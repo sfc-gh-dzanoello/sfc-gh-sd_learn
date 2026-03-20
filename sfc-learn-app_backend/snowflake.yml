@@ -1,0 +1,18 @@
+definition_version: 2
+entities:
+  snowflake_learning_hub:
+    type: streamlit
+    identifier:
+      name: SNOWFLAKE_LEARNING_HUB
+    title: "Snowflake Certification Study Hub"
+    query_warehouse: COMPUTE_WH
+    main_file: streamlit_app.py
+    pages_dir: app_pages/
+    artifacts:
+      - src: i18n/
+        dest: i18n/
+      - src: certifications/
+        dest: certifications/
+      - src: labs/
+        dest: labs/
+      - environment.yml

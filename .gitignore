@@ -1,0 +1,4 @@
+.DS_Store
+__pycache__/
+*.pyc
+sfc-gh-sd-paths/sfc-gh-sd-learn-project
