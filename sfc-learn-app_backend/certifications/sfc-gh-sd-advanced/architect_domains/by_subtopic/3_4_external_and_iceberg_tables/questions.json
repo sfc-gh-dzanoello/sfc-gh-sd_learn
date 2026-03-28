@@ -1,0 +1,369 @@
+{
+  "sub_topic": "3.4",
+  "sub_topic_name": "External & Iceberg Tables",
+  "domain": "Domain 3.0: Data Engineering",
+  "total_questions": 9,
+  "difficulty_distribution": {
+    "advanced": 5,
+    "intermediate": 4
+  },
+  "exam_traps": [
+    {
+      "trap": "External tables are READ-ONLY in Snowflake",
+      "why_confusing": "You cannot INSERT, UPDATE, or DELETE on external tables. They reference data in external storage (S3, Azure Blob, GCS). Materialized views on external tables provide faster reads.",
+      "correct_answer": "External tables = read-only. Data stays in external storage.",
+      "doc_reference": "https://docs.snowflake.com/en/user-guide/tables-external-intro"
+    },
+    {
+      "trap": "Materialized views on external tables reduce latency and egress cost",
+      "why_confusing": "The exam asks about cross-cloud access with low latency and minimal egress. A materialized view on an external table caches results in Snowflake, avoiding repeated cross-cloud data transfer.",
+      "correct_answer": "MV on external table = cached, low latency, reduced egress. Best for cross-cloud scenarios.",
+      "doc_reference": "https://docs.snowflake.com/en/user-guide/views-materialized"
+    },
+    {
+      "trap": "Iceberg tables in Snowflake can be managed (Snowflake catalog) or unmanaged (external catalog)",
+      "why_confusing": "Managed Iceberg tables let Snowflake handle metadata. Unmanaged ones use an external catalog (AWS Glue, etc.). The exam tests which approach gives full DML support.",
+      "correct_answer": "Managed = full DML, Snowflake manages metadata. Unmanaged = read-only or limited writes.",
+      "doc_reference": "https://docs.snowflake.com/en/user-guide/tables-iceberg"
+    }
+  ],
+  "questions": [
+    {
+      "id": "architect_test1_q37",
+      "source": "architect_test1",
+      "question_num": 37,
+      "question": "Which columns can be included in an external table schema? (Choose three.)",
+      "options": [
+        {
+          "text": "VALUE",
+          "explanation": ""
+        },
+        {
+          "text": "METADATA$FILE_ROW_NUMBER",
+          "explanation": ""
+        },
+        {
+          "text": "METADATA$FILENAME",
+          "explanation": ""
+        },
+        {
+          "text": "METADATA$EXTERNAL_TABLE_PARTITION",
+          "explanation": ""
+        },
+        {
+          "text": "METADATA$ROW_ID",
+          "explanation": ""
+        },
+        {
+          "text": "METADATA$ISUPDATE",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0,
+        1,
+        2
+      ],
+      "multi_select": true,
+      "multi_select_count": 3,
+      "overall_explanation": "These columns can be included in an external table schema. METADATA$FILE_ROW_NUMBER tracks the row number in the file, VALUE stores the actual content of the external data, and METADATA$FILENAME records the name of the file from which the data is being read. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "advanced",
+      "sub_topic": "3.4",
+      "sub_topic_name": "External & Iceberg Tables"
+    },
+    {
+      "id": "architect_test1_q55",
+      "source": "architect_test1",
+      "question_num": 55,
+      "question": "What transformations are supported in the below SQL statement? (Choose three.)\n\nCREATE PIPE ... AS COPY ... FROM (...)",
+      "options": [
+        {
+          "text": "Type casts are supported.",
+          "explanation": ""
+        },
+        {
+          "text": "Incoming data can be joined with other tables.",
+          "explanation": ""
+        },
+        {
+          "text": "Columns can be reordered.",
+          "explanation": ""
+        },
+        {
+          "text": "Data can be filtered by an optional WHERE clause.",
+          "explanation": ""
+        },
+        {
+          "text": "The ON_ERROR - ABORT_STATEMENT command can be used.",
+          "explanation": ""
+        },
+        {
+          "text": "Columns can be omitted.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0,
+        2,
+        5
+      ],
+      "multi_select": true,
+      "multi_select_count": 3,
+      "overall_explanation": "COPY command supports:\n\nColumn reordering, omission, and casting through a SELECT statement, allowing flexibility in how data is loaded into the target table. This means that the data files do not need to match the number or order of columns in the target table.\n\nThe ENFORCE_LENGTH | TRUNCATECOLUMNS option, which enables the truncation of text strings that exceed the length of the target column, ensuring data integrity within specified limits.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "advanced",
+      "sub_topic": "3.4",
+      "sub_topic_name": "External & Iceberg Tables"
+    },
+    {
+      "id": "architect_test1_q60",
+      "source": "architect_test1",
+      "question_num": 60,
+      "question": "When using the COPY INTO [table] command with the CSV file format, how does the MATCH_BY_COLUMN_NAME parameter behave?",
+      "options": [
+        {
+          "text": "The command will return an error stating that the file has unmatched columns.",
+          "explanation": ""
+        },
+        {
+          "text": "It expects a header to be present in the CSV file, which is matched to a case-sensitive table column name.",
+          "explanation": ""
+        },
+        {
+          "text": "The command will return an error.",
+          "explanation": ""
+        },
+        {
+          "text": "The parameter will be ignored.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "MATCH_BY_COLUMN_NAME can be set to CASE_SENSITIVE, CASE_INSENSITIVE, or NONE. This parameter is a string that indicates whether to load semi-structured data into the target table's columns that correspond to the columns in the data. MATCH_BY_COLUMN_NAME is compatible with CSV and other data types such as JSON, Avro, Parquet, and ORC, ensuring that it won't be ignored or cause an error. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "intermediate",
+      "sub_topic": "3.4",
+      "sub_topic_name": "External & Iceberg Tables"
+    },
+    {
+      "id": "architect_test2_q11",
+      "source": "architect_test2",
+      "question_num": 11,
+      "question": "An Architect needs to design a data unloading strategy for Snowflake, that will be used the COPY INTO <location> command.\n\nWhich configuration is valid?\n\n• Location of files: Azure ADLS\n\n• File formats: JSON, XML, Avro, Parquet, ORC\n\n• Compression: bzip2\n\n• Encryption: User-supplied key\n\n• Location of files: Amazon S3\n\n• File formats: CSV, JSON\n\n• File encoding: Latin-1 (ISO-8859)\n\n• Encryption: 128-bit\n\n• Location of files: Snowflake internal location\n\n• File format: CSV, XML\n\n• File encoding: UTF_8\n\n• Encryption: 128-bit",
+      "options": [
+        {
+          "text": "• Location of files: Google Cloud Storage",
+          "explanation": ""
+        },
+        {
+          "text": "• File formats: Parquet",
+          "explanation": ""
+        },
+        {
+          "text": "• File encoding. UTF-8",
+          "explanation": ""
+        },
+        {
+          "text": "• Compression: Snappy",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "CSV, JSON, Parquet are allowed format files.\n\nUTF 8 is the only encoding allowed.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "intermediate",
+      "sub_topic": "3.4",
+      "sub_topic_name": "External & Iceberg Tables"
+    },
+    {
+      "id": "architect_test2_q42",
+      "source": "architect_test2",
+      "question_num": 42,
+      "question": "When does a stream become stale?",
+      "options": [
+        {
+          "text": "When the source table is truncated",
+          "explanation": ""
+        },
+        {
+          "text": "When it’s consumed",
+          "explanation": ""
+        },
+        {
+          "text": "When its offset is outside of the data retention period for its source table",
+          "explanation": ""
+        },
+        {
+          "text": "When it’s dropped",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        2
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Stale means that the offset is outside the data retention period for the source table, and in this case, the historical data for the source table is no longer accessible. You should recreate the stream to track new changes. You should consume the stream records within a transaction during the retention period for the table. This does not apply to streams on external tables, as they don't have a data retention period.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "intermediate",
+      "sub_topic": "3.4",
+      "sub_topic_name": "External & Iceberg Tables"
+    },
+    {
+      "id": "architect_test3_q15",
+      "source": "architect_test3",
+      "question_num": 15,
+      "question": "A copy command is executed to load a file. After the file has loaded and the metadata has expired, what options can be used to reload the file? (Select TWO).",
+      "options": [
+        {
+          "text": "Set the LOAD_UNCERTAIN_FILES option to TRUE.",
+          "explanation": ""
+        },
+        {
+          "text": "Set the PRESERVE_SPACE option to TRUE.",
+          "explanation": ""
+        },
+        {
+          "text": "Set the ALLOW_DUPLICATE option to TRUE.",
+          "explanation": ""
+        },
+        {
+          "text": "Set the FORCE option to TRUE.",
+          "explanation": ""
+        },
+        {
+          "text": "Set the DISABLE_SNOWFLAKE_DATA option to TRUE.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0,
+        3
+      ],
+      "multi_select": true,
+      "multi_select_count": 2,
+      "overall_explanation": "For more detailed information about syntax, refer to the Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "intermediate",
+      "sub_topic": "3.4",
+      "sub_topic_name": "External & Iceberg Tables"
+    },
+    {
+      "id": "architect_test5_q37",
+      "source": "architect_test5",
+      "question_num": 37,
+      "question": "A retailer's enterprise data organization is exploring the use of Data Vault 2.0 to model its data lake solution. A Snowflake Architect has been asked to provide recommendations for using Data Vault 2.0 on Snowflake. What should the Architect tell the data organization? (Select TWO). Using the multi-table insert feature, multiple Point-in-Time (PIT) tables can be loaded sequentially from a single join query from the data vault. Change data capture can be performed using the Data Vault 2.0 HASH_DELTA concept.",
+      "options": [
+        {
+          "text": "Using the multi-table insert feature in Snowflake, multiple Point-in-Time (PIT) tables can be loaded in parallel from a single join query from the data vault.",
+          "explanation": ""
+        },
+        {
+          "text": "Change data capture can be performed using the Data Vault 2.0 HASH_DIFF concept.",
+          "explanation": ""
+        },
+        {
+          "text": "There are performance challenges when using Snowflake to load multiple Point-in-Time (PIT) tables in parallel from a single join query from the data vault.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0,
+        1
+      ],
+      "multi_select": true,
+      "multi_select_count": 2,
+      "overall_explanation": "In the Architect certification exams we can find some questions about modeling and in particular about Data Vault. It is not necessary to be an expert but it is recommended to be familiar with the main features of this modeling methodology. A few comments: Hashdiff represents the versions of a record. HDIFF is calculated by computing a hash value on all the meaningful columns in the table. HASH_DELTA as a concept does not exist in DV. Snowflake's SQL multi-table insert allows for you to insert data into multiple target tables in a single SQL statement in parallel from a single data source. It is very useful not only for loading PITs in parallel, but also for more DV entities. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "advanced",
+      "sub_topic": "3.4",
+      "sub_topic_name": "External & Iceberg Tables"
+    },
+    {
+      "id": "architect_new_q49",
+      "source": "architect_new",
+      "question_num": 49,
+      "question": "What are the two management modes for Apache Iceberg tables in Snowflake?",
+      "options": [
+        {
+          "text": "Internal mode and external mode.",
+          "explanation": ""
+        },
+        {
+          "text": "Snowflake-managed and externally-managed catalog.",
+          "explanation": ""
+        },
+        {
+          "text": "Read-only mode and read-write mode.",
+          "explanation": ""
+        },
+        {
+          "text": "Shared mode and private mode.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Iceberg tables in Snowflake can be Snowflake-managed (Snowflake manages the Iceberg catalog and metadata) or externally-managed (an external catalog like AWS Glue or a REST catalog manages the metadata). Snowflake-managed gives full DML; externally-managed is read-only.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "advanced",
+      "sub_topic": "3.4",
+      "sub_topic_name": "External & Iceberg Tables"
+    },
+    {
+      "id": "architect_new_q50",
+      "source": "architect_new",
+      "question_num": 50,
+      "question": "What is a key advantage of using Snowflake-managed Iceberg tables over regular Snowflake tables?",
+      "options": [
+        {
+          "text": "They are faster for analytical queries.",
+          "explanation": ""
+        },
+        {
+          "text": "They store data in open Apache Iceberg format, enabling interoperability with other engines.",
+          "explanation": ""
+        },
+        {
+          "text": "They support Time Travel for longer periods.",
+          "explanation": ""
+        },
+        {
+          "text": "They automatically cluster data without explicit clustering keys.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Snowflake-managed Iceberg tables store data in the open Apache Iceberg format (Parquet files). This means external engines (Spark, Trino, Presto) can also read the data, enabling interoperability. Regular Snowflake tables use a proprietary format.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "advanced",
+      "sub_topic": "3.4",
+      "sub_topic_name": "External & Iceberg Tables"
+    }
+  ]
+}

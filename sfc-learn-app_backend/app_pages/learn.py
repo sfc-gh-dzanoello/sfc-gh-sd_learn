@@ -113,7 +113,7 @@ with tabs[1]:
     # Display flashcards
     for i, fc in enumerate(flashcards):
         st.markdown(f"""
-        <div style="background:#FFF;border-left:5px solid {color};border-radius:10px;padding:14px 18px;margin:8px 0;box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+        <div style="background:rgba(128,128,128,0.06);border-left:5px solid {color};border-radius:10px;padding:14px 18px;margin:8px 0;box-shadow:0 1px 4px rgba(0,0,0,0.06);">
             <strong style="color:{color};">Q: {fc['q']}</strong>
         </div>
         """, unsafe_allow_html=True)
@@ -124,7 +124,7 @@ with tabs[1]:
         if st.session_state.get(f"fc_rev_{selected_topic}_{i}", False):
             st.markdown(f"""
             <div style="background:#E8F5E9;border-left:4px solid #4CAF50;border-radius:8px;padding:10px 14px;margin:0 0 10px;">
-                <span style="color:#333;">✅ {fc['a']}</span>
+                <span style="color:#1a1a2e;">✅ {fc['a']}</span>
             </div>
             """, unsafe_allow_html=True)
 
@@ -150,9 +150,9 @@ with tabs[2]:
 
     for i, kc in enumerate(concepts):
         st.markdown(f"""
-        <div style="background:#FFF;border-left:4px solid {color};border-radius:8px;padding:12px 16px;margin:6px 0;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+        <div style="background:rgba(128,128,128,0.06);border-left:4px solid {color};border-radius:8px;padding:12px 16px;margin:6px 0;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
             <strong style="color:{color};">{kc['term']}</strong><br>
-            <span style="color:#333;font-size:0.9rem;">{kc['definition']}</span>
+            <span style="color:inherit;font-size:0.9rem;">{kc['definition']}</span>
         </div>
         """, unsafe_allow_html=True)
 

@@ -1,0 +1,173 @@
+{
+  "sub_topic": "1.2",
+  "sub_topic_name": "Parameter Hierarchy",
+  "domain": "Domain 1.0: Accounts and Security",
+  "total_questions": 4,
+  "difficulty_distribution": {
+    "advanced": 1,
+    "intermediate": 3
+  },
+  "exam_traps": [
+    {
+      "trap": "When you DROP a database, child schema/table retention periods are IGNORED",
+      "why_confusing": "If DB has 30-day retention and schema has 50-day, dropping the DB means the schema is only recoverable for 30 days (the DB's retention). The schema's own 50-day setting only applies when you drop the schema independently.",
+      "correct_answer": "Parent object's retention overrides children when parent is dropped",
+      "doc_reference": "https://docs.snowflake.com/en/user-guide/data-time-travel"
+    },
+    {
+      "trap": "Parameter hierarchy: Account > Database > Schema > Table > Session",
+      "why_confusing": "Object-level parameters override account-level defaults. Session parameters override object-level for that session only. CREATE SCHEMA with explicit retention overrides the database default.",
+      "correct_answer": "Most specific level wins. Schema retention=20 means tables in that schema default to 20, even if DB says 30.",
+      "doc_reference": "https://docs.snowflake.com/en/sql-reference/parameters"
+    },
+    {
+      "trap": "DATA_RETENTION_TIME_IN_DAYS max is 1 day for Standard, 90 days for Enterprise+",
+      "why_confusing": "Standard edition caps Time Travel at 1 day. Enterprise and higher allow up to 90 days. If a question says 'retain for 6 years', Time Travel is NOT the answer -- use zero-copy cloning instead.",
+      "correct_answer": "Standard=1 day max, Enterprise+=90 days max. For long-term retention, use cloning.",
+      "doc_reference": "https://docs.snowflake.com/en/user-guide/data-time-travel"
+    }
+  ],
+  "questions": [
+    {
+      "id": "architect_test5_q1",
+      "source": "architect_test5",
+      "question_num": 1,
+      "question": "A Data Architect is using Time Travel to clone a table using this query:\n\nCREATE TABLE MY_TABLE_CLONE CLONE MY_TABLE\nAT (OFFSET => -60*30);\nAn error is returned.\n\nWhat could be causing the error? (Select TWO).\n\nThe object has exceeded the maximum cloning limit.",
+      "options": [
+        {
+          "text": "Time Travel and cloning features cannot be run together.",
+          "explanation": ""
+        },
+        {
+          "text": "The source object did not exist at the time specified in the AT | BEFORE parameter.",
+          "explanation": ""
+        },
+        {
+          "text": "The object cannot be cloned because it has a row access policy attached to it.",
+          "explanation": ""
+        },
+        {
+          "text": "The source object is an external table.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1,
+        3
+      ],
+      "multi_select": true,
+      "multi_select_count": 2,
+      "overall_explanation": "A few comments:\n\nWhen using Time Travel, External tables are not cloned.\n\nIf the timestamp or offset in the Time Travel clause references a point before the object was created or outside the retention period, cloning will fail with an error.\n\nTime Travel and cloning can be used together.\n\nTables with row access policies can be cloned; the policy is cloned along with the table.",
+      "domain_raw": "",
+      "domain": "Domain 1.0: Accounts and Security",
+      "difficulty": "intermediate",
+      "sub_topic": "1.2",
+      "sub_topic_name": "Parameter Hierarchy"
+    },
+    {
+      "id": "architect_test5_q9",
+      "source": "architect_test5",
+      "question_num": 9,
+      "question": "Which of the following are characteristics of Snowflake’s parameter hierarchy?",
+      "options": [
+        {
+          "text": "Session parameters override virtual warehouse parameters.",
+          "explanation": ""
+        },
+        {
+          "text": "Virtual warehouse parameters override user parameters.",
+          "explanation": ""
+        },
+        {
+          "text": "Table parameters override virtual warehouse parameters.",
+          "explanation": ""
+        },
+        {
+          "text": "Schema parameters override account parameters.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        3
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "This is how object parameters can be overridden at each level: Account Object parameters overridden by Warehouse parameters Account Object parameters overriden by Database parameters overriden by Schema parameters overriden by Table, pipe, etc parameters Account Object parameters overriden by User parameters For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 1.0: Accounts and Security",
+      "difficulty": "intermediate",
+      "sub_topic": "1.2",
+      "sub_topic_name": "Parameter Hierarchy"
+    },
+    {
+      "id": "architect_new_q64",
+      "source": "architect_new",
+      "question_num": 64,
+      "question": "What is the parameter MIN_DATA_RETENTION_TIME_IN_DAYS used for?",
+      "options": [
+        {
+          "text": "Setting the maximum Time Travel retention at the account level.",
+          "explanation": ""
+        },
+        {
+          "text": "Setting a floor for Time Travel retention that no object in the account can go below.",
+          "explanation": ""
+        },
+        {
+          "text": "Setting the minimum Fail-safe retention period.",
+          "explanation": ""
+        },
+        {
+          "text": "Setting the minimum data retention for shares.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "MIN_DATA_RETENTION_TIME_IN_DAYS is an account-level parameter that sets a floor. No database, schema, or table in the account can have a DATA_RETENTION_TIME_IN_DAYS value lower than this minimum. It prevents users from setting Time Travel to 0.",
+      "domain_raw": "",
+      "domain": "Domain 1.0: Accounts and Security",
+      "difficulty": "advanced",
+      "sub_topic": "1.2",
+      "sub_topic_name": "Parameter Hierarchy"
+    },
+    {
+      "id": "architect_new_q65",
+      "source": "architect_new",
+      "question_num": 65,
+      "question": "What is the precedence order for Snowflake parameters?",
+      "options": [
+        {
+          "text": "Account > Object > Session (account always wins).",
+          "explanation": ""
+        },
+        {
+          "text": "Session > Object > Account (most specific wins).",
+          "explanation": ""
+        },
+        {
+          "text": "All levels have equal precedence.",
+          "explanation": ""
+        },
+        {
+          "text": "Object > Session > Account.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "The most specific parameter wins: Session overrides Object, which overrides Account. For example, if a user sets STATEMENT_TIMEOUT_IN_SECONDS at the session level, it overrides the account-level and warehouse-level settings for that session.",
+      "domain_raw": "",
+      "domain": "Domain 1.0: Accounts and Security",
+      "difficulty": "intermediate",
+      "sub_topic": "1.2",
+      "sub_topic_name": "Parameter Hierarchy"
+    }
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "sub_topic": "5.3",
+  "sub_topic_name": "Reader Accounts",
+  "domain": "Domain 5.0: Sharing & Collaboration",
+  "total_questions": 1,
+  "difficulty_distribution": {
+    "intermediate": 1
+  },
+  "exam_traps": [
+    {
+      "trap": "Reader accounts are managed by the provider and consume the provider's credits",
+      "why_confusing": "Unlike regular consumer accounts, reader accounts are created BY the provider for consumers who don't have their own Snowflake account. The provider pays for all compute used by reader accounts.",
+      "correct_answer": "Reader accounts = provider-managed and provider-billed. Consumer has no Snowflake account.",
+      "doc_reference": "https://docs.snowflake.com/en/user-guide/data-sharing-reader-create"
+    }
+  ],
+  "questions": [
+    {
+      "id": "architect_new_q18",
+      "source": "architect_new",
+      "question_num": 18,
+      "question": "An Architect is designing a solution where multiple departments within the same account need access to curated data products. Should they use Snowflake shares or another approach?",
+      "options": [
+        {
+          "text": "Create internal shares between departments.",
+          "explanation": ""
+        },
+        {
+          "text": "Use RBAC with grants -- shares are only for cross-account data access.",
+          "explanation": ""
+        },
+        {
+          "text": "Create reader accounts for each department.",
+          "explanation": ""
+        },
+        {
+          "text": "Export data to separate databases for each department.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Snowflake shares are designed for cross-account data access. Within the same account, the standard approach is to use RBAC (role-based access control) with appropriate grants on databases, schemas, and objects.",
+      "domain_raw": "",
+      "domain": "Domain 5.0: Sharing & Collaboration",
+      "difficulty": "intermediate",
+      "sub_topic": "5.3",
+      "sub_topic_name": "Reader Accounts"
+    }
+  ]
+}

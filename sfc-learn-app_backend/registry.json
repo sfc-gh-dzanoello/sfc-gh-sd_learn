@@ -5,7 +5,7 @@
       "code": "COF-C03",
       "full_name": "SnowPro Core (COF-C03)",
       "category": "core",
-      "icon": "🎯",
+      "icon": "",
       "color": "#29B5E8",
       "sidebar_gradient": "linear-gradient(135deg,#0E4D71,#0B3D5B)",
       "sidebar_accent": "#B2EBF2",
@@ -24,41 +24,41 @@
         "pt": "100 Qs | 115 min | $175",
         "es": "100 Qs | 115 min | $175"
       },
-      "questions_file": "certifications/questions/core_questions.json",
+      "questions_file": "certifications/sfc-gh-sd-snowprocore/core_questions.json",
       "domains": {
         "Domain 1: Architecture": {
-          "dir": "certifications/core/snowpro_core/domain_01_architecture",
+          "dir": "certifications/sfc-gh-sd-snowprocore/domain_01_architecture",
           "color": "#29B5E8",
           "css_num": "1",
-          "emoji": "🏗️",
+          "emoji": "",
           "weight": "25-30%"
         },
         "Domain 2: Account & Governance": {
-          "dir": "certifications/core/snowpro_core/domain_02_account_governance",
+          "dir": "certifications/sfc-gh-sd-snowprocore/domain_02_account_governance",
           "color": "#FF6B6B",
           "css_num": "2",
-          "emoji": "🔐",
+          "emoji": "",
           "weight": "20-25%"
         },
         "Domain 3: Data Loading": {
-          "dir": "certifications/core/snowpro_core/domain_03_data_loading",
+          "dir": "certifications/sfc-gh-sd-snowprocore/domain_03_data_loading",
           "color": "#4ECB71",
           "css_num": "3",
-          "emoji": "📦",
+          "emoji": "",
           "weight": "10-15%"
         },
         "Domain 4: Performance & Querying": {
-          "dir": "certifications/core/snowpro_core/domain_04_performance_querying",
+          "dir": "certifications/sfc-gh-sd-snowprocore/domain_04_performance_querying",
           "color": "#FFD93D",
           "css_num": "4",
-          "emoji": "⚡",
+          "emoji": "",
           "weight": "15-20%"
         },
         "Domain 5: Collaboration": {
-          "dir": "certifications/core/snowpro_core/domain_05_collaboration",
+          "dir": "certifications/sfc-gh-sd-snowprocore/domain_05_collaboration",
           "color": "#C084FC",
           "css_num": "5",
-          "emoji": "🤝",
+          "emoji": "",
           "weight": "10-15%"
         }
       },
@@ -110,7 +110,7 @@
       "code": "ARA-C01",
       "full_name": "SnowPro Architect (ARA-C01)",
       "category": "advanced",
-      "icon": "📐",
+      "icon": "",
       "color": "#1565C0",
       "sidebar_gradient": "linear-gradient(135deg,#1565C0,#0D47A1)",
       "sidebar_accent": "#BBDEFB",
@@ -129,79 +129,100 @@
         "pt": "65 Qs | 115 min | $375",
         "es": "65 Qs | 115 min | $375"
       },
-      "questions_file": "certifications/questions/architect_questions.json",
+      "questions_file": "certifications/sfc-gh-sd-advanced/architect_domains/architect_questions.json",
       "domains": {
-        "Domain 1: Account & Security": {
-          "dir": "certifications/advanced/architect/domain_01_accounts_and_security",
+        "Domain 1.0: Accounts and Security": {
+          "dir": "certifications/sfc-gh-sd-advanced/architect_domains/architect/architect_2/domain_01_accounts_and_security",
           "color": "#29B5E8",
           "css_num": "1",
-          "emoji": "🔐",
+          "emoji": "",
           "weight": "25%"
         },
-        "Domain 2: Data Architecture": {
-          "dir": "certifications/advanced/architect/domain_02_snowflake_architecture",
+        "Domain 2.0: Snowflake Architecture": {
+          "dir": "certifications/sfc-gh-sd-advanced/architect_domains/architect/architect_2/domain_02_snowflake_architecture",
           "color": "#FF6B6B",
           "css_num": "2",
-          "emoji": "🏗️",
+          "emoji": "",
           "weight": "30%"
         },
-        "Domain 3: Data Engineering": {
-          "dir": "certifications/advanced/architect/domain_03_data_engineering",
+        "Domain 3.0: Data Engineering": {
+          "dir": "certifications/sfc-gh-sd-advanced/architect_domains/architect/architect_2/domain_03_data_engineering",
           "color": "#4ECB71",
           "css_num": "3",
-          "emoji": "⚙️",
+          "emoji": "",
           "weight": "25%"
         },
-        "Domain 4: Performance": {
-          "dir": "certifications/advanced/architect/domain_04_performance_optimization",
+        "Domain 4.0: Performance Optimization": {
+          "dir": "certifications/sfc-gh-sd-advanced/architect_domains/architect/architect_2/domain_04_performance_optimization",
           "color": "#FFD93D",
           "css_num": "4",
-          "emoji": "⚡",
+          "emoji": "",
           "weight": "20%"
         },
-        "Domain 5: Sharing & Collaboration": {
-          "dir": "certifications/advanced/architect/domain_05_sharing_collaboration",
+        "Domain 5.0: Sharing & Collaboration": {
+          "dir": "certifications/sfc-gh-sd-advanced/architect_domains/architect/architect_2/domain_05_sharing_collaboration",
           "color": "#C084FC",
           "css_num": "5",
-          "emoji": "🤝",
-          "weight": "—"
+          "emoji": "",
+          "weight": "included"
+        },
+        "Domain 6.0: DevOps & Ecosystem": {
+          "dir": "certifications/sfc-gh-sd-advanced/architect_domains/architect/architect_2/domain_06_devops_ecosystem",
+          "color": "#FF7043",
+          "css_num": "6",
+          "emoji": "",
+          "weight": "included"
         }
       },
       "domain_tips": {
-        "Domain 1: Account & Security": [
+        "Domain 1.0: Accounts and Security": [
           "Tri-Secret Secure: customer-managed key + Snowflake key + composite master key. Business Critical+.",
           "Network policies apply at ACCOUNT or USER level. CIDR notation required.",
           "SCIM = automated user provisioning. Supports Azure AD, Okta. SECURITYADMIN role required.",
           "Private Link: AWS PrivateLink / Azure Private Link. No data over public internet.",
           "Key pair authentication: 2048-bit RSA minimum. Can have 2 active keys for rotation."
         ],
-        "Domain 2: Data Architecture": [
+        "Domain 2.0: Snowflake Architecture": [
           "Global Services layer handles account replication, failover, database replication across regions.",
           "Hybrid tables: transactional + analytical. Row-store index for low-latency OLTP lookups.",
           "Snowgrid: cross-cloud, cross-region data sharing and replication framework.",
           "Replication groups: bundle databases, shares, and other objects for coordinated failover.",
-          "Client redirect: automatic client failover between primary and secondary connections."
+          "Client redirect: automatic client failover between primary and secondary connections.",
+          "Cross-region sharing requires database replication first -- cannot share directly across regions.",
+          "Auto-Fulfillment handles cross-cloud Marketplace delivery automatically. Manual replication for direct shares.",
+          "Data Clean Rooms: secure multi-party analysis without exposing raw data.",
+          "Reader accounts: provider pays EVERYTHING (storage + compute). Read-only access.",
+          "Secure views REQUIRED for sharing -- regular views expose the SQL definition."
         ],
-        "Domain 3: Data Engineering": [
+        "Domain 3.0: Data Engineering": [
           "Dynamic Tables: declarative pipelines. Set TARGET_LAG, Snowflake auto-refreshes. Replaces streams+tasks.",
           "Streams + Tasks: CDC pattern. Stream captures changes, Task runs on schedule or trigger.",
           "Snowpipe Streaming: Java/Python SDK, sub-second latency. No staging files needed.",
           "Apache Iceberg tables: open format, Snowflake-managed or externally managed catalog.",
           "Data sharing + Marketplace: zero-copy, live data. Provider pays storage, consumer pays compute."
         ],
-        "Domain 4: Performance": [
+        "Domain 4.0: Performance Optimization": [
           "Query Profile: focus on TableScan (pruning), Sort (spilling), Aggregate (grouping).",
           "Search Optimization Service: point lookups, substring search, geo functions. Enterprise+.",
           "Materialized Views: auto-refreshed, automatic query rewrite. Enterprise+. Best for heavy aggregations.",
           "Clustering keys: large tables (multi-TB), frequently filtered columns. Check SYSTEM$CLUSTERING_INFORMATION.",
           "Multi-cluster warehouse: Standard policy (perf) vs Economy policy (cost). Auto-scale 1-10 clusters."
         ],
-        "Domain 5: Sharing & Collaboration": [
-          "Cross-region sharing requires database replication first — cannot share directly across regions.",
-          "Auto-Fulfillment handles cross-cloud Marketplace delivery automatically. Manual replication for direct shares.",
-          "Data Clean Rooms: secure multi-party analysis without exposing raw data.",
-          "Reader accounts: provider pays EVERYTHING (storage + compute). Read-only access.",
-          "Secure views REQUIRED for sharing — regular views expose the SQL definition."
+        "Domain 5.0: Sharing & Collaboration": [
+          "Shares are READ-ONLY. Consumer cannot modify. Provider pays storage, consumer pays compute.",
+          "Secure views REQUIRED for sharing -- regular views expose the SQL definition to consumers.",
+          "Reader accounts: provider creates AND pays for compute. For consumers without Snowflake accounts.",
+          "Cross-region sharing requires database replication first -- cannot share directly across regions.",
+          "Data Clean Rooms: secure multi-party analysis without exposing raw data to each other.",
+          "Native Apps (Application Packages): distribute code + data as installable packages via Marketplace."
+        ],
+        "Domain 6.0: DevOps & Ecosystem": [
+          "Zero-copy clones for dev/staging/prod environments. Cloned tasks are suspended by default.",
+          "SPCS (Snowpark Container Services): run Docker containers in Snowflake compute. GPU support.",
+          "Snowpark: DataFrame API in Python/Java/Scala. Runs in Snowflake compute, not client-side.",
+          "CI/CD: use SnowCLI or Terraform for infrastructure-as-code. SchemaChange for migration scripts.",
+          "Environment isolation: separate databases or accounts per environment. Use managed access schemas.",
+          "Raw -> Transform -> Consumption zone pattern for data pipeline architecture."
         ]
       }
     },
@@ -210,14 +231,14 @@
       "code": "DEA-C01",
       "full_name": "SnowPro Data Engineer (DEA-C01)",
       "category": "advanced",
-      "icon": "⚙️",
+      "icon": "",
       "color": "#FF9800",
       "sidebar_gradient": "linear-gradient(135deg,#E65100,#BF360C)",
       "sidebar_accent": "#FFE0B2",
       "sidebar_text": "#FFF3E0",
       "sidebar_sub": "#FFCC80",
       "difficulty": "advanced",
-      "available": false,
+      "available": true,
       "exam": {
         "questions": 100,
         "time": "115 min",
@@ -225,20 +246,95 @@
         "pass_score": "750/1000"
       },
       "info": {
-        "en": "Coming soon",
-        "pt": "Em breve",
-        "es": "Proximamente"
+        "en": "Advanced certification for Data Engineers building and optimizing data pipelines in Snowflake.",
+        "pt": "Certificacao avancada para Engenheiros de Dados que constroem e otimizam pipelines de dados no Snowflake.",
+        "es": "Certificacion avanzada para Ingenieros de Datos que construyen y optimizan pipelines de datos en Snowflake."
       },
-      "questions_file": null,
-      "domains": {},
-      "domain_tips": {}
+      "questions_file": "certifications/sfc-gh-sd-advanced/data_engineer_domains/data_engineer_questions.json",
+      "domains": {
+        "Domain 1.0: Data Movement": {
+          "weight": "28%",
+          "color": "#1565C0",
+          "dir": "certifications/sfc-gh-sd-advanced/data_engineer_domains/domain_01_data_movement",
+          "css_num": "1",
+          "emoji": ""
+        },
+        "Domain 2.0: Performance Optimization": {
+          "weight": "19%",
+          "color": "#00838F",
+          "dir": "certifications/sfc-gh-sd-advanced/data_engineer_domains/domain_02_performance_optimization",
+          "css_num": "2",
+          "emoji": ""
+        },
+        "Domain 3.0: Storage and Data Protection": {
+          "weight": "14%",
+          "color": "#2E7D32",
+          "dir": "certifications/sfc-gh-sd-advanced/data_engineer_domains/domain_03_storage_data_protection",
+          "css_num": "3",
+          "emoji": ""
+        },
+        "Domain 4.0: Data Governance": {
+          "weight": "14%",
+          "color": "#6A1B9A",
+          "dir": "certifications/sfc-gh-sd-advanced/data_engineer_domains/domain_04_data_governance",
+          "css_num": "4",
+          "emoji": ""
+        },
+        "Domain 5.0: Data Transformation": {
+          "weight": "25%",
+          "color": "#E65100",
+          "dir": "certifications/sfc-gh-sd-advanced/data_engineer_domains/domain_05_data_transformation",
+          "css_num": "5",
+          "emoji": ""
+        }
+      },
+      "domain_tips": {
+        "Domain 1.0: Data Movement": [
+          "COPY INTO = bulk batch. Snowpipe = continuous serverless. Snowpipe Streaming = sub-second via SDK.",
+          "Snowpipe uses Snowflake-managed serverless compute, NOT your warehouse. Billed per-second.",
+          "AUTO_INGEST requires cloud event notifications: S3 SQS, GCS Pub/Sub, or Azure Event Grid.",
+          "Load metadata stored 64 days. After that, same files can reload without FORCE = TRUE.",
+          "Storage Integration decouples cloud credentials from stage definitions. Uses IAM roles.",
+          "Schema Evolution (ENABLE_SCHEMA_EVOLUTION) only ADDS columns. Never modifies or drops existing ones."
+        ],
+        "Domain 2.0: Performance Optimization": [
+          "Cache order: Result cache (24h, free) -> Local disk (warehouse SSD) -> Remote disk (storage layer).",
+          "Spilling = warehouse too small -> scale UP. Queuing = not enough clusters -> scale OUT.",
+          "Clustering keys: best for large tables (multi-TB) with frequent range/equality filters on specific columns.",
+          "Search Optimization Service: point lookups, substring search, geo functions. Enterprise+ required.",
+          "Query Acceleration Service: offloads portions of eligible queries to shared compute. Good for outlier queries.",
+          "Resource monitors track CREDIT usage. Can notify or suspend at account or warehouse level."
+        ],
+        "Domain 3.0: Storage and Data Protection": [
+          "Time Travel: 0-1 day Standard, 0-90 days Enterprise. Then 7-day Fail-safe (Snowflake only, not queryable).",
+          "Transient tables: 0-1 day Time Travel, NO Fail-safe. Temporary tables: same, session-scoped.",
+          "Cloning = zero-copy at creation (metadata only). New writes use separate storage. Privileges NOT cloned.",
+          "UNDROP works within Time Travel retention. Order matters: most recently dropped restored first.",
+          "Micro-partitions: columnar, compressed, immutable, 50-500MB. You cannot control their size directly."
+        ],
+        "Domain 4.0: Data Governance": [
+          "RBAC: privileges granted to roles, roles granted to users. DAC: object owner controls access.",
+          "Masking policies: ONE per column. Enterprise+ required. Attached via ALTER TABLE ... SET MASKING POLICY.",
+          "Row Access Policies: ONE per table/view. Controls which rows users see based on context functions.",
+          "Object tagging: key-value metadata for classification. Tag-based masking = masking policy attached to a tag.",
+          "ACCOUNTADMIN = top role. SECURITYADMIN manages grants. USERADMIN creates users/roles. SYSADMIN owns objects."
+        ],
+        "Domain 5.0: Data Transformation": [
+          "Streams capture DML changes (inserts, updates, deletes). SYSTEM$STREAM_HAS_DATA() checks for new data.",
+          "Tasks run on schedule (CRON or interval) or via AFTER triggers (task trees/DAGs).",
+          "Dynamic Tables: declarative pipelines with TARGET_LAG. Snowflake auto-refreshes. Replaces streams+tasks for many use cases.",
+          "UDFs return values inline in queries. Stored procedures execute procedural logic and can use SQL, JavaScript, Python, Java.",
+          "FLATTEN + LATERAL: expand semi-structured arrays/objects into rows. Essential for JSON/VARIANT processing.",
+          "Snowpark DataFrame API: Python/Java/Scala. Executes in Snowflake compute, not client-side."
+        ]
+      }
     },
     "gen_ai": {
       "name": "Gen AI",
       "code": "AIG-C01",
       "full_name": "SnowPro Specialty: Gen AI",
       "category": "specialist",
-      "icon": "🤖",
+      "icon": "",
       "color": "#AB47BC",
       "sidebar_gradient": "linear-gradient(135deg,#6A1B9A,#4A148C)",
       "sidebar_accent": "#E1BEE7",
@@ -257,35 +353,28 @@
         "pt": "65 Qs | 115 min | $175 | Pré-req: Core ou Associate",
         "es": "65 Qs | 115 min | $175 | Prereq: Core o Associate"
       },
-      "questions_file": "certifications/questions/gen_ai_questions.json",
+      "questions_file": "certifications/sfc-gh-sd-specialist/sfc-gh-sd-gen_ai/ges_c01/gen_ai_questions.json",
       "domains": {
         "Domain 1: Snowflake for Gen AI Overview": {
-          "dir": "certifications/specialist/gen_ai/domain_01_gen_ai_overview",
+          "dir": "certifications/sfc-gh-sd-specialist/sfc-gh-sd-gen_ai/ges_c01/domain_01_gen_ai_overview",
           "color": "#AB47BC",
           "css_num": "1",
-          "emoji": "🧠",
+          "emoji": "",
           "weight": "30%"
         },
         "Domain 2: Snowflake Gen AI & LLM Functions": {
-          "dir": "certifications/specialist/gen_ai/domain_02_gen_ai_llm_functions",
+          "dir": "certifications/sfc-gh-sd-specialist/sfc-gh-sd-gen_ai/ges_c01/domain_02_gen_ai_llm_functions",
           "color": "#7E57C2",
           "css_num": "2",
-          "emoji": "⚡",
+          "emoji": "",
           "weight": "44%"
         },
         "Domain 3: Snowflake Gen AI Governance": {
-          "dir": "certifications/specialist/gen_ai/domain_03_gen_ai_governance",
+          "dir": "certifications/sfc-gh-sd-specialist/sfc-gh-sd-gen_ai/ges_c01/domain_03_gen_ai_governance",
           "color": "#5C6BC0",
           "css_num": "3",
-          "emoji": "🔐",
+          "emoji": "",
           "weight": "26%"
-        },
-        "Domain 4: Snowflake Document AI": {
-          "dir": "certifications/specialist/gen_ai/domain_04_document_ai",
-          "color": "#42A5F5",
-          "css_num": "4",
-          "emoji": "📄",
-          "weight": "Removed (Mar 2026)"
         }
       },
       "domain_tips": {
@@ -313,12 +402,6 @@
           "AI Observability (Preview): evaluation metrics, tracing, logging via event tables. Trulens SDK integration.",
           "Minimize costs: choose smaller models when possible, reduce token count, use task-specific functions over COMPLETE.",
           "REST API auth: key pair, OAuth. Data never leaves Snowflake boundary when using Cortex functions."
-        ],
-        "Domain 4: Snowflake Document AI": [
-          "NOTE: Document AI decommissioned Feb 28, 2026. Removed from exam starting March 1, 2026.",
-          "Document AI extracted structured data from PDFs/images. Used PREDICT function on trained models.",
-          "Required SNOWFLAKE.ML.DOCUMENT_INTELLIGENCE and CREATE MODEL privileges.",
-          "GET_PRESIGNED_URL for document access. Question optimization improved extraction accuracy."
         ]
       }
     },
@@ -327,7 +410,7 @@
       "code": "DAD-C01",
       "full_name": "SnowPro Data Administrator (DAD-C01)",
       "category": "advanced",
-      "icon": "🛡️",
+      "icon": "",
       "color": "#00897B",
       "sidebar_gradient": "linear-gradient(135deg,#00695C,#004D40)",
       "sidebar_accent": "#B2DFDB",
@@ -335,8 +418,17 @@
       "sidebar_sub": "#80CBC4",
       "difficulty": "advanced",
       "available": false,
-      "exam": { "questions": 65, "time": "115 min", "cost": "$375", "pass_score": "750/1000" },
-      "info": { "en": "Coming soon", "pt": "Em breve", "es": "Proximamente" },
+      "exam": {
+        "questions": 65,
+        "time": "115 min",
+        "cost": "$375",
+        "pass_score": "750/1000"
+      },
+      "info": {
+        "en": "Coming soon",
+        "pt": "Em breve",
+        "es": "Proximamente"
+      },
       "questions_file": null,
       "domains": {},
       "domain_tips": {}
@@ -346,7 +438,7 @@
       "code": "DSA-C01",
       "full_name": "SnowPro Data Science (DSA-C01)",
       "category": "advanced",
-      "icon": "🔬",
+      "icon": "",
       "color": "#E91E63",
       "sidebar_gradient": "linear-gradient(135deg,#C2185B,#880E4F)",
       "sidebar_accent": "#F8BBD0",
@@ -354,8 +446,17 @@
       "sidebar_sub": "#F48FB1",
       "difficulty": "advanced",
       "available": false,
-      "exam": { "questions": 65, "time": "115 min", "cost": "$375", "pass_score": "750/1000" },
-      "info": { "en": "Coming soon", "pt": "Em breve", "es": "Proximamente" },
+      "exam": {
+        "questions": 65,
+        "time": "115 min",
+        "cost": "$375",
+        "pass_score": "750/1000"
+      },
+      "info": {
+        "en": "Coming soon",
+        "pt": "Em breve",
+        "es": "Proximamente"
+      },
       "questions_file": null,
       "domains": {},
       "domain_tips": {}
@@ -365,7 +466,7 @@
       "code": "SEA-C01",
       "full_name": "SnowPro Security Engineer (SEA-C01)",
       "category": "advanced",
-      "icon": "🔒",
+      "icon": "",
       "color": "#F44336",
       "sidebar_gradient": "linear-gradient(135deg,#D32F2F,#B71C1C)",
       "sidebar_accent": "#FFCDD2",
@@ -373,8 +474,17 @@
       "sidebar_sub": "#EF9A9A",
       "difficulty": "advanced",
       "available": false,
-      "exam": { "questions": 65, "time": "115 min", "cost": "$375", "pass_score": "750/1000" },
-      "info": { "en": "Coming soon", "pt": "Em breve", "es": "Proximamente" },
+      "exam": {
+        "questions": 65,
+        "time": "115 min",
+        "cost": "$375",
+        "pass_score": "750/1000"
+      },
+      "info": {
+        "en": "Coming soon",
+        "pt": "Em breve",
+        "es": "Proximamente"
+      },
       "questions_file": null,
       "domains": {},
       "domain_tips": {}
@@ -384,7 +494,7 @@
       "code": "DAN-C01",
       "full_name": "SnowPro Data Analyst (DAN-C01)",
       "category": "advanced",
-      "icon": "📊",
+      "icon": "",
       "color": "#5C6BC0",
       "sidebar_gradient": "linear-gradient(135deg,#3949AB,#283593)",
       "sidebar_accent": "#C5CAE9",
@@ -392,8 +502,17 @@
       "sidebar_sub": "#9FA8DA",
       "difficulty": "advanced",
       "available": false,
-      "exam": { "questions": 65, "time": "115 min", "cost": "$375", "pass_score": "750/1000" },
-      "info": { "en": "Coming soon", "pt": "Em breve", "es": "Proximamente" },
+      "exam": {
+        "questions": 65,
+        "time": "115 min",
+        "cost": "$375",
+        "pass_score": "750/1000"
+      },
+      "info": {
+        "en": "Coming soon",
+        "pt": "Em breve",
+        "es": "Proximamente"
+      },
       "questions_file": null,
       "domains": {},
       "domain_tips": {}
@@ -403,7 +522,7 @@
       "code": "SPA-C01",
       "full_name": "SnowPro Specialty: Snowpark (SPA-C01)",
       "category": "specialist",
-      "icon": "🐍",
+      "icon": "",
       "color": "#43A047",
       "sidebar_gradient": "linear-gradient(135deg,#2E7D32,#1B5E20)",
       "sidebar_accent": "#C8E6C9",
@@ -411,8 +530,17 @@
       "sidebar_sub": "#A5D6A7",
       "difficulty": "specialist",
       "available": false,
-      "exam": { "questions": 65, "time": "115 min", "cost": "$175", "pass_score": "750/1000" },
-      "info": { "en": "Coming soon", "pt": "Em breve", "es": "Proximamente" },
+      "exam": {
+        "questions": 65,
+        "time": "115 min",
+        "cost": "$175",
+        "pass_score": "750/1000"
+      },
+      "info": {
+        "en": "Coming soon",
+        "pt": "Em breve",
+        "es": "Proximamente"
+      },
       "questions_file": null,
       "domains": {},
       "domain_tips": {}
@@ -422,7 +550,7 @@
       "code": "NAP-C01",
       "full_name": "SnowPro Specialty: Native App (NAP-C01)",
       "category": "specialist",
-      "icon": "📦",
+      "icon": "",
       "color": "#FF7043",
       "sidebar_gradient": "linear-gradient(135deg,#E64A19,#BF360C)",
       "sidebar_accent": "#FFCCBC",
@@ -430,8 +558,17 @@
       "sidebar_sub": "#FFAB91",
       "difficulty": "specialist",
       "available": false,
-      "exam": { "questions": 65, "time": "115 min", "cost": "$175", "pass_score": "750/1000" },
-      "info": { "en": "Coming soon", "pt": "Em breve", "es": "Proximamente" },
+      "exam": {
+        "questions": 65,
+        "time": "115 min",
+        "cost": "$175",
+        "pass_score": "750/1000"
+      },
+      "info": {
+        "en": "Coming soon",
+        "pt": "Em breve",
+        "es": "Proximamente"
+      },
       "questions_file": null,
       "domains": {},
       "domain_tips": {}

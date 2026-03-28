@@ -1,0 +1,54 @@
+{
+  "sub_topic": "5.5",
+  "sub_topic_name": "Data Clean Rooms",
+  "domain": "Domain 5.0: Sharing & Collaboration",
+  "total_questions": 1,
+  "difficulty_distribution": {
+    "advanced": 1
+  },
+  "exam_traps": [
+    {
+      "trap": "Data Clean Rooms allow joint analysis without exposing raw data to either party",
+      "why_confusing": "Clean rooms use secure views and policies so two parties can run approved queries on combined data without seeing each other's raw records. The exam tests the concept, not implementation details.",
+      "correct_answer": "Clean rooms = secure multi-party analysis without raw data exposure",
+      "doc_reference": "https://docs.snowflake.com/en/user-guide/cleanrooms-introduction"
+    }
+  ],
+  "questions": [
+    {
+      "id": "architect_new_q7",
+      "source": "architect_new",
+      "question_num": 7,
+      "question": "A Data Clean Room analysis requires two companies to compute audience overlap without either party seeing the other's raw data. What Snowflake feature enables this?",
+      "options": [
+        {
+          "text": "Standard data sharing with secure views.",
+          "explanation": ""
+        },
+        {
+          "text": "Snowflake Data Clean Rooms with secure multiparty computation.",
+          "explanation": ""
+        },
+        {
+          "text": "External functions calling a third-party MPC service.",
+          "explanation": ""
+        },
+        {
+          "text": "Database replication between the two accounts.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Snowflake Data Clean Rooms enable secure multiparty analysis where participants can compute aggregate results (like audience overlap) without exposing underlying raw data to each other. This goes beyond standard sharing which grants read access to actual rows.",
+      "domain_raw": "",
+      "domain": "Domain 5.0: Sharing & Collaboration",
+      "difficulty": "advanced",
+      "sub_topic": "5.5",
+      "sub_topic_name": "Data Clean Rooms"
+    }
+  ]
+}

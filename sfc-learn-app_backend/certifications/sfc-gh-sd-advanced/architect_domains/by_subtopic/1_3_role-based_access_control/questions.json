@@ -1,0 +1,1455 @@
+{
+  "sub_topic": "1.3",
+  "sub_topic_name": "Role-Based Access Control",
+  "domain": "Domain 1.0: Accounts and Security",
+  "total_questions": 39,
+  "difficulty_distribution": {
+    "advanced": 7,
+    "beginner": 2,
+    "intermediate": 30
+  },
+  "exam_traps": [
+    {
+      "trap": "Secondary roles CANNOT run DDL (CREATE) statements",
+      "why_confusing": "Secondary roles can do SELECT, INSERT, UPDATE, DELETE, TRUNCATE. But CREATE (DDL) is restricted to the PRIMARY role only. The exam tests this distinction specifically.",
+      "correct_answer": "DDL operations (CREATE, ALTER, DROP) use only the primary role. DML uses primary + secondary.",
+      "doc_reference": "https://docs.snowflake.com/en/user-guide/security-access-control-overview"
+    },
+    {
+      "trap": "Owner's rights vs Caller's rights stored procedures",
+      "why_confusing": "Owner's rights: procedure executes with the owner's privileges (can do things the caller can't). Caller's rights: uses the caller's privileges. You CANNOT use both at the same time. The exam gives tricky options suggesting 'both rights' -- that's always wrong.",
+      "correct_answer": "A stored procedure runs as EITHER owner's rights OR caller's rights, never both",
+      "doc_reference": "https://docs.snowflake.com/en/developer-guide/stored-procedure/stored-procedures-rights"
+    },
+    {
+      "trap": "MANAGED ACCESS schemas: only schema owner or SECURITYADMIN+ can grant privileges",
+      "why_confusing": "In regular schemas, any object owner can grant privileges on their objects. In MANAGED ACCESS schemas, only the schema owner (or roles higher in hierarchy) can manage grants. This centralizes access control.",
+      "correct_answer": "WITH MANAGED ACCESS removes grant ability from individual object owners",
+      "doc_reference": "https://docs.snowflake.com/en/user-guide/security-access-control-overview"
+    },
+    {
+      "trap": "Future grants apply to objects not yet created, NOT retroactively",
+      "why_confusing": "GRANT ... ON FUTURE TABLES only affects tables created AFTER the grant. Existing tables need separate grants. The exam may ask why a user can see new tables but not old ones.",
+      "correct_answer": "Future grants = forward-looking only. Use GRANT ON ALL for existing objects.",
+      "doc_reference": "https://docs.snowflake.com/en/sql-reference/sql/grant-privilege"
+    },
+    {
+      "trap": "Dynamic Data Masking vs Row Access Policies: masking hides COLUMNS, RAP hides ROWS",
+      "why_confusing": "Both are security policies but at different granularity. Masking policy = applied to a column, returns masked value. Row access policy = applied to a table, filters which rows are visible. The exam mixes them up in answer options.",
+      "correct_answer": "Masking = column-level hiding. Row Access Policy = row-level filtering.",
+      "doc_reference": "https://docs.snowflake.com/en/user-guide/security-column-ddm-intro"
+    }
+  ],
+  "questions": [
+    {
+      "id": "architect_test1_q2",
+      "source": "architect_test1",
+      "question_num": 2,
+      "question": "How does Snowflake store security-related information for an external function that calls code that is executed outside of Snowflake?",
+      "options": [
+        {
+          "text": "Secure storage",
+          "explanation": ""
+        },
+        {
+          "text": "API integration",
+          "explanation": ""
+        },
+        {
+          "text": "Access control",
+          "explanation": ""
+        },
+        {
+          "text": "Restricted access",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Snowflake uses API integration to securely store and manage security-related information for an external function that calls code executed outside of Snowflake. This ensures secure communication and handling of credentials or tokens needed for external services. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 1.0: Accounts and Security",
+      "difficulty": "intermediate",
+      "sub_topic": "1.3",
+      "sub_topic_name": "Role-Based Access Control"
+    },
+    {
+      "id": "architect_test1_q10",
+      "source": "architect_test1",
+      "question_num": 10,
+      "question": "Consider the following scenario where a masking policy is applied on the CREDITCARDNO column of the CREDITCARDINFO table. The masking policy definition is as follows:\n\ncreate or replace masking policy creditcardno_mask as (val string) returns string ->\ncase\n    when is_role_in_session('PI_ANALYTICS') then\n        right(val, 4)\n    else\n        '***MASKED***'\nend;\n\nSample data for the CREDITCARDINFO table is as follows:\n\nNAME                EXPIRYDATE        CREDITCARDNO\n\nJOHN DOE        2022-07-23        4321 5678 9012 1234\n\nIf the Snowflake system roles have not been granted any additional roles, what will be the result?",
+      "options": [
+        {
+          "text": "Anyone with the PI_ANALYTICS role will see the last 4 characters of the CREDITCARDNO column data in clear text.",
+          "explanation": ""
+        },
+        {
+          "text": "The sysadmin can see the CREDITCARDNO column data in clear text.",
+          "explanation": ""
+        },
+        {
+          "text": "Anyone with the PI_ANALYTICS role will see the CREDITCARDNO column as ***MASKED***.",
+          "explanation": ""
+        },
+        {
+          "text": "The owner of the table will see the CREDITCARDNO column data in clear text.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "A few comments:\n\nThe masking policy explicitly allows users with the PI_ANALYTICS role to see the last four characters.\n\nBeing the owner of the table does not grant exemption from the masking policy.\n\nSince the question specifies that no additional roles are granted to system roles, only users with the PI_ANALYTICS role will be able to see the last four characters of CREDITCARDNO in clear text.",
+      "domain_raw": "",
+      "domain": "Domain 1.0: Accounts and Security",
+      "difficulty": "intermediate",
+      "sub_topic": "1.3",
+      "sub_topic_name": "Role-Based Access Control"
+    },
+    {
+      "id": "architect_test1_q15",
+      "source": "architect_test1",
+      "question_num": 15,
+      "question": "The following table exists in the production database:",
+      "options": [
+        {
+          "text": "A regulatory requirement states that the company must mask the username for events that are older than six months based on the current date when the data is queried.",
+          "explanation": ""
+        },
+        {
+          "text": "How can the requirement be met without duplicating the event data and making sure it is applied when creating views using the table or cloning the table?",
+          "explanation": ""
+        },
+        {
+          "text": "Use a masking policy on the username column with event_timestamp as a conditional column.",
+          "explanation": ""
+        },
+        {
+          "text": "Use a masking policy on the username column using an entitlement table with valid dates.",
+          "explanation": ""
+        },
+        {
+          "text": "Use a row level policy on the user_events table using an entitlement table with valid dates.",
+          "explanation": ""
+        },
+        {
+          "text": "Use a secure view on the user_events table using a case statement on the username column.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        2
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "A masking policy can be applied to the username column to enable conditional data masking based on the event_timestamp. This guarantees that usernames associated with events older than six months are hidden in queries, while data from the most recent six months remains accessible. About other options: Utilizing an entitlement table introduces unnecessary complexity, as masking policies are specifically designed to efficiently address such requirements. A row-level policy is not needed in this case, since the issue pertains to column-specific masking rather than row-specific access. Implementing a masking policy will dynamically enforce this requirement across all queries and views. Importantly, masking policies defined on the table will remain intact even when cloning to a different database. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 1.0: Accounts and Security",
+      "difficulty": "advanced",
+      "sub_topic": "1.3",
+      "sub_topic_name": "Role-Based Access Control"
+    },
+    {
+      "id": "architect_test1_q21",
+      "source": "architect_test1",
+      "question_num": 21,
+      "question": "What is a characteristic of Role-Based Access Control (RBAC) as used in Snowflake?",
+      "options": [
+        {
+          "text": "A user can use a \"super-user\" access along with SECURITYADMIN to bypass authorization checks and access all databases, schemas, and underlying objects.",
+          "explanation": ""
+        },
+        {
+          "text": "A user can create managed access schemas to support current and future grants and ensure only object owners can grant privileges to other roles.",
+          "explanation": ""
+        },
+        {
+          "text": "Privileges can be granted at the database level and can be inherited by all underlying objects.",
+          "explanation": ""
+        },
+        {
+          "text": "A user can create managed access schemas to support future grants and ensure only schema owners can grant privileges to other roles.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        3
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "A few comments: In Snowflake, there is no notion of a \"super-user\" or \"super-role\" that can circumvent authorization checks. Within managed access schemas, object owners forfeit their ability to make grant decisions. Only the schema owner or a role with the MANAGE GRANTS privilege has the authority to grant privileges on objects within the schema, which helps centralize the management of permissions. For more detailed information about object cloning, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 1.0: Accounts and Security",
+      "difficulty": "beginner",
+      "sub_topic": "1.3",
+      "sub_topic_name": "Role-Based Access Control"
+    },
+    {
+      "id": "architect_test1_q24",
+      "source": "architect_test1",
+      "question_num": 24,
+      "question": "A Snowflake Architect is designing a multiple-account design strategy. This strategy will be MOST cost-effective with which scenarios?",
+      "options": [
+        {
+          "text": "The company must use a specific network policy for certain users to allow and block given IP addresses.",
+          "explanation": ""
+        },
+        {
+          "text": "The company needs to support different role-based access control features for the development, test, and production environments.",
+          "explanation": ""
+        },
+        {
+          "text": "The company security policy mandates the use of different identity provider instances for the development, test, and production environments.",
+          "explanation": ""
+        },
+        {
+          "text": "The company needs to share data between two databases, where one must support Payment Card Industry Data Security Standard (PCI DSS) compliance but the other one does not.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        3
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "When one database must support PCI DSS compliance and another does not, separating them into different Snowflake accounts is cost-effective. The account needing PCI DSS compliance can be set up with the Business Critical Edition, which includes advanced security features necessary for compliance. The other account can use a lower-cost edition, avoiding unnecessary expenses for compliance features that aren't needed. About other options: Managing role-based access control (RBAC) within a single Snowflake account is more cost-effective than creating multiple accounts. Snowflake's RBAC system is designed to handle different environments (development, test, production) within the same account using roles and privileges, avoiding the overhead of managing multiple accounts. While network policies are applied at the account level, managing specific policies for certain users does not always justify multiple accounts. It is possible to configure Snowflake so different users authenticate using different identity providers. For more detailed information about network policies, refer to the official Snowflake documentation. For more detailed information about multiple IdP instances, refer to the official Snowflake documentation. For more detailed information about Snowflake editions and security features, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 1.0: Accounts and Security",
+      "difficulty": "advanced",
+      "sub_topic": "1.3",
+      "sub_topic_name": "Role-Based Access Control"
+    },
+    {
+      "id": "architect_test1_q28",
+      "source": "architect_test1",
+      "question_num": 28,
+      "question": "What is a characteristic of Role Based Access Control (RBAC) as used in Snowflake?",
+      "options": [
+        {
+          "text": "A user can use a \"super-user\" access along with SECURITYADMIN to bypass authorization checks an access all databases, schemas, and underlying objects.",
+          "explanation": ""
+        },
+        {
+          "text": "A user can create managed access schemas to support current and future grants and ensure only object owners can grant privileges to other roles.",
+          "explanation": ""
+        },
+        {
+          "text": "A user can create managed access schemas to support future grants and ensure only schema owners can grant privileges to other roles.",
+          "explanation": ""
+        },
+        {
+          "text": "Privileges can be granted at the database level and can be inherited by all underlying objects.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        2
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "With managed access schemas, object owners forfeit their ability to make grant decisions. Only the schema owner, defined as the role with the OWNERSHIP privilege on the schema, or a role with the MANAGE GRANTS privilege has the authority to grant privileges on the objects within the schema. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 1.0: Accounts and Security",
+      "difficulty": "beginner",
+      "sub_topic": "1.3",
+      "sub_topic_name": "Role-Based Access Control"
+    },
+    {
+      "id": "architect_test1_q35",
+      "source": "architect_test1",
+      "question_num": 35,
+      "question": "A new user user_01 is created within Snowflake. The following two commands are executed:\n\nCommand 1 --> show grants to user user_01;\n\nCommand 2 --> show grants on user user_01;\n\nWhat inferences can be made about these commands?\n\nCommand 1 defines which role owns user_01\n\nCommand 2 defines all the grants which have been given to user_01",
+      "options": [
+        {
+          "text": "Command 1 defines all the grants which are given to user_01",
+          "explanation": ""
+        },
+        {
+          "text": "Command 2 defines which role owns user_01",
+          "explanation": ""
+        },
+        {
+          "text": "Command 1 defines all the grants which are given to user_01",
+          "explanation": ""
+        },
+        {
+          "text": "Command 2 defines which user owns user_01",
+          "explanation": ""
+        },
+        {
+          "text": "Command 1 defines which user owns user_01",
+          "explanation": ""
+        },
+        {
+          "text": "Command 2 defines all the grants which have been given to user_01",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Users do not own other users.\n\nSHOW GRANTS TO USER lists all the roles granted to the user.\n\nSHOW GRANTS ON lists all the privileges granted on the user, including ownership.",
+      "domain_raw": "",
+      "domain": "Domain 1.0: Accounts and Security",
+      "difficulty": "advanced",
+      "sub_topic": "1.3",
+      "sub_topic_name": "Role-Based Access Control"
+    },
+    {
+      "id": "architect_test1_q38",
+      "source": "architect_test1",
+      "question_num": 38,
+      "question": "An Architect is implementing a CI/CD process. When attempting to clone a table from a production to a development environment, the cloning operation fails. What could be causing this to happen?",
+      "options": [
+        {
+          "text": "The retention time for the table is set to zero.",
+          "explanation": ""
+        },
+        {
+          "text": "The table is transient.",
+          "explanation": ""
+        },
+        {
+          "text": "Tables cannot be cloned from a higher environment to a lower environment.",
+          "explanation": ""
+        },
+        {
+          "text": "The table has a masking policy.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Cloning operations take time to finish, especially with large tables. During this timeframe, DML transactions can modify the data in the source table. As a result, Snowflake tries to clone the table data as it was when the operation started. However, if DML transactions result in data being purged during the cloning process (due to the table's retention time being set to 0), the necessary data becomes unavailable to complete the operation, leading to an error. About other options: Transient tables can still be cloned, as Snowflake supports cloning transient tables. However, they do not retain dropped data for Time Travel, but this does not prevent cloning itself. A masking policy would not prevent the cloning of the table. The policy remains attached to the cloned table, and cloning with policies is a supported operation. Snowflake does not impose a restriction based on environment hierarchy (production vs. development). Cloning operations are allowed between environments as long as the user has the necessary permissions. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 1.0: Accounts and Security",
+      "difficulty": "intermediate",
+      "sub_topic": "1.3",
+      "sub_topic_name": "Role-Based Access Control"
+    },
+    {
+      "id": "architect_test1_q53",
+      "source": "architect_test1",
+      "question_num": 53,
+      "question": "How can the Snowflake context functions be used to help determine whether a user is authorized to see data that has column-level security enforced? (Choose two.)",
+      "options": [
+        {
+          "text": "Set masking policy conditions using INVOKER_ROLE targeting the executing role in a SQL statement.",
+          "explanation": ""
+        },
+        {
+          "text": "Set masking policy conditions using CURRENT_ROLE targeting the role in use for the current session.",
+          "explanation": ""
+        },
+        {
+          "text": "Determine if there are OWNERSHIP privileges on the masking policy that would allow the use of any function.",
+          "explanation": ""
+        },
+        {
+          "text": "Set masking policy conditions using IS_ROLE_IN_SESSION targeting the role in use for the current account.",
+          "explanation": ""
+        },
+        {
+          "text": "Assign the ACCOUNTADMIN role to the user who is executing the object.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0,
+        1
+      ],
+      "multi_select": true,
+      "multi_select_count": 2,
+      "overall_explanation": "A few comments: Applying masking policies supported by context functions is a common way to apply Dynamic Data Masking on a table. Column-level Security supports using Context Functions in the conditions of the masking policy body to enforce whether a user has authorization to see data. The context functions CURRENT_SESSION, INVOKER_ROLE and IS_ROLE_IN_SESSION support the implementation of masking policies. Of these 3 options, the option that would be discarded in this question is IS_ROLE_IN_SESSION because it refers to current account when it actually returns TRUE/FALSE if the current role matches at session level. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 1.0: Accounts and Security",
+      "difficulty": "intermediate",
+      "sub_topic": "1.3",
+      "sub_topic_name": "Role-Based Access Control"
+    },
+    {
+      "id": "architect_test2_q16",
+      "source": "architect_test2",
+      "question_num": 16,
+      "question": "A Snowflake developer has created a masking policy with the following syntax:\n\ncreate or replace masking policy mp\nAS (val string) returns string ->\nCASE\nWHEN current_role() in('DEVROLE')\nTHEN val\nELSE '*********'\nEND;\n\nWhich statements are correct about this policy? (Choose two.)\n\nSECURITYADMIN role can see the plain-text value as stored in the table\n\nAnyone with any role can see the plain-text value as stored in the table",
+      "options": [
+        {
+          "text": "Everyone except DEVROLE role can see the plain-text value as '*********'",
+          "explanation": ""
+        },
+        {
+          "text": "The owner of the table can see the plain-text value as stored in the table",
+          "explanation": ""
+        },
+        {
+          "text": "Anyone with DEVROLE role can see the plain-text value as stored in the table",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0,
+        2
+      ],
+      "multi_select": true,
+      "multi_select_count": 2,
+      "overall_explanation": "You can return whatever you want. For example, if we specify in the else:\n\nELSE sha2(val)\n\nIt will return a hash value using SHA2, SHA2_HEX for unauthorized users",
+      "domain_raw": "",
+      "domain": "Domain 1.0: Accounts and Security",
+      "difficulty": "intermediate",
+      "sub_topic": "1.3",
+      "sub_topic_name": "Role-Based Access Control"
+    },
+    {
+      "id": "architect_test2_q25",
+      "source": "architect_test2",
+      "question_num": 25,
+      "question": "A healthcare company is deploying a Snowflake account that may include Personal Health Information (PHI). The company must ensure compliance with all relevant privacy standards. Which best practice recommendations will meet data protection and compliance requirements? (Choose three.)",
+      "options": [
+        {
+          "text": "Use the Internal Tokenization feature to obfuscate sensitive data.",
+          "explanation": ""
+        },
+        {
+          "text": "Use, at minimum, the Business Critical edition of Snowflake.",
+          "explanation": ""
+        },
+        {
+          "text": "Rewrite SQL queries to eliminate projections of PHI data based on current_role().",
+          "explanation": ""
+        },
+        {
+          "text": "Create Dynamic Data Masking policies and apply them to columns that contain PHI.",
+          "explanation": ""
+        },
+        {
+          "text": "Avoid sharing data with partner organizations.",
+          "explanation": ""
+        },
+        {
+          "text": "Use the External Tokenization feature to obfuscate sensitive data.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1,
+        3,
+        5
+      ],
+      "multi_select": true,
+      "multi_select_count": 3,
+      "overall_explanation": "A few comments: Business Critical Edition offers support for PHI data (in accordance with HIPAA and HITRUST CSF regulations). The other Snowflake features we have to leverage is Column-level Security (External tokenization and Dynamic Data Masking) For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 1.0: Accounts and Security",
+      "difficulty": "advanced",
+      "sub_topic": "1.3",
+      "sub_topic_name": "Role-Based Access Control"
+    },
+    {
+      "id": "architect_test2_q29",
+      "source": "architect_test2",
+      "question_num": 29,
+      "question": "An Architect entered the following commands in sequence:\n\nUSER1 cannot find the table.\n\nWhich of the following commands does the Architect need to run for USER1 to find the tables using the Principle of Least Privilege? (Choose two.)\n\nGRANT ALL PRIVILEGES ON DATABASE SANDBOX TO ROLE INTERN;",
+      "options": [
+        {
+          "text": "GRANT USAGE ON DATABASE SANDBOX TO ROLE INTERN;",
+          "explanation": ""
+        },
+        {
+          "text": "GRANT USAGE ON SCHEMA SANDBOX.PUBLIC TO ROLE INTERN;",
+          "explanation": ""
+        },
+        {
+          "text": "GRANT ROLE PUBLIC TO ROLE INTERN;",
+          "explanation": ""
+        },
+        {
+          "text": "GRANT OWNERSHIP ON DATABASE SANDBOX TO USER INTERN;",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0,
+        1
+      ],
+      "multi_select": true,
+      "multi_select_count": 2,
+      "overall_explanation": "Since each table belongs to a single schema, and the schema, in turn, belongs to a database, the table becomes the schema object, and to assign any schema object privileges, we need to first grant USAGE privilege on parent objects such as schema and database.",
+      "domain_raw": "",
+      "domain": "Domain 1.0: Accounts and Security",
+      "difficulty": "intermediate",
+      "sub_topic": "1.3",
+      "sub_topic_name": "Role-Based Access Control"
+    },
+    {
+      "id": "architect_test3_q6",
+      "source": "architect_test3",
+      "question_num": 6,
+      "question": "Which of the following are characteristics of how row access policies can be applied to external tables? (Choose three.)",
+      "options": [
+        {
+          "text": "A row access policy can be applied to the VALUE column of an existing external table.",
+          "explanation": ""
+        },
+        {
+          "text": "A row access policy cannot be applied to a view created on top of an external table.",
+          "explanation": ""
+        },
+        {
+          "text": "While cloning a database, both the row access policy and the external table will be cloned.",
+          "explanation": ""
+        },
+        {
+          "text": "A row access policy cannot be directly added to a virtual column of an external table.",
+          "explanation": ""
+        },
+        {
+          "text": "An external table can be created with a row access policy, and the policy can be applied to the VALUE column.",
+          "explanation": ""
+        },
+        {
+          "text": "External tables are supported as mapping tables in a row access policy.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0,
+        3,
+        4
+      ],
+      "multi_select": true,
+      "multi_select_count": 3,
+      "overall_explanation": "A few comments: Row access policies can be used to restrict access to specific rows based on the VALUE column. Row access policies are not applied directly to virtual columns, as they are designed for real columns like VALUE. When creating an external table, a row access policy can be applied directly to control access. While cloning a database, Snowflake clones the row access policy, but not the external table. For more detailed information, refer to the Snowflake documentation. For more detailed information about External tables cloning considerations, refer to the Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 1.0: Accounts and Security",
+      "difficulty": "advanced",
+      "sub_topic": "1.3",
+      "sub_topic_name": "Role-Based Access Control"
+    },
+    {
+      "id": "architect_test3_q11",
+      "source": "architect_test3",
+      "question_num": 11,
+      "question": "Person1 is using the role SECURITYADMIN. Person 1 creates a role named DBA_ROLE that will manage the warehouses in the Snowflake account. Person1 now needs to switch to that role. What command(s) need to be executed to switch the context of this worksheet?",
+      "options": [
+        {
+          "text": "GRANT ROLE DBA_ROLE TO USER PERSON1;",
+          "explanation": ""
+        },
+        {
+          "text": "USE ROLE DBA_ROLE;",
+          "explanation": ""
+        },
+        {
+          "text": "The SECURITYADMIN role is not allowed to GRANT permissions to a role.",
+          "explanation": ""
+        },
+        {
+          "text": "GRANT ROLE DBA_ROLE TO ROLE SECURITYADMIN;",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "For more detailed information, refer to the Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 1.0: Accounts and Security",
+      "difficulty": "intermediate",
+      "sub_topic": "1.3",
+      "sub_topic_name": "Role-Based Access Control"
+    },
+    {
+      "id": "architect_test3_q22",
+      "source": "architect_test3",
+      "question_num": 22,
+      "question": "A SYSADMIN created a number of database objects and granted the ownership privilege to a custom role. What will happen if the custom role is not assigned to SYSADMIN or SECURITYADMIN through a role hierarchy? (Choose two.)",
+      "options": [
+        {
+          "text": "The SYSADMIN role will not be able to manage the objects created by the role.",
+          "explanation": ""
+        },
+        {
+          "text": "As the database objects are created by the SYSADMIN, the custom role will be able to manage the objects.",
+          "explanation": ""
+        },
+        {
+          "text": "The SECURITYADMN role can grant themselves access to the objects and modify their access grants.",
+          "explanation": ""
+        },
+        {
+          "text": "The SECURITYADMIN role cannot view the objects or modify their access grants.",
+          "explanation": ""
+        },
+        {
+          "text": "The objects can be viewed by both the SECURITYADMIN and USERADMIN roles.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0,
+        2
+      ],
+      "multi_select": true,
+      "multi_select_count": 2,
+      "overall_explanation": "A few comments: Since ownership of the objects has been transferred to the custom role, SYSADMIN will no longer have the ability to manage those objects unless it has been granted the necessary privileges. The SECURITYADMIN role has the ability to grant itself access to objects, allowing it to modify access grants, even if it was not initially part of the role hierarchy. For more detailed information, refer to the Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 1.0: Accounts and Security",
+      "difficulty": "intermediate",
+      "sub_topic": "1.3",
+      "sub_topic_name": "Role-Based Access Control"
+    },
+    {
+      "id": "architect_test3_q26",
+      "source": "architect_test3",
+      "question_num": 26,
+      "question": "A Snowflake Architect is designing an application and tenancy strategy for an organization where strong legal isolation rules as well as multi-tenancy are requirements. Which approach will meet these requirements if Role-Based Access Policies (RBAC) is a viable option for isolating tenants?",
+      "options": [
+        {
+          "text": "Create a multi-tenant table strategy if row level security is not viable for isolating tenants.",
+          "explanation": ""
+        },
+        {
+          "text": "Create an object for each tenant strategy if row level security is not viable for isolating tenants.",
+          "explanation": ""
+        },
+        {
+          "text": "Create an object for each tenant strategy if row level security is viable for isolating tenants.",
+          "explanation": ""
+        },
+        {
+          "text": "Create accounts for each tenant in the Snowflake organization.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Security can factor into the decision to use an OPT design pattern. Some customers prefer the OPT model because they don’t want to manage an entitlement table, secure views, or row-level security with strong processes behind them. For more detailed information, refer to the Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 1.0: Accounts and Security",
+      "difficulty": "intermediate",
+      "sub_topic": "1.3",
+      "sub_topic_name": "Role-Based Access Control"
+    },
+    {
+      "id": "architect_test3_q62",
+      "source": "architect_test3",
+      "question_num": 62,
+      "question": "A user can change object parameters using which of the following roles?",
+      "options": [
+        {
+          "text": "SYSADMIN, SECURITYADMIN",
+          "explanation": ""
+        },
+        {
+          "text": "SECURITYADMIN, USER with PRIVILEGE",
+          "explanation": ""
+        },
+        {
+          "text": "ACCOUNTADMIN, SECURITYADMIN",
+          "explanation": ""
+        },
+        {
+          "text": "ACCOUNTADMIN, USER with PRIVILEGE",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        3
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "The ACCOUNTADMIN role has full privileges to modify object parameters, and any user with the necessary specific privilege can also perform these changes, provided they have been granted the appropriate permissions. For more detailed information, refer to the Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 1.0: Accounts and Security",
+      "difficulty": "intermediate",
+      "sub_topic": "1.3",
+      "sub_topic_name": "Role-Based Access Control"
+    },
+    {
+      "id": "architect_test4_q1",
+      "source": "architect_test4",
+      "question_num": 1,
+      "question": "A user has activated primary and secondary roles for a session. What operation is the user prohibited from using as part of SQL actions in Snowflake using the secondary role?",
+      "options": [
+        {
+          "text": "Create",
+          "explanation": ""
+        },
+        {
+          "text": "Truncate",
+          "explanation": ""
+        },
+        {
+          "text": "Insert",
+          "explanation": ""
+        },
+        {
+          "text": "Delete",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Secondary roles can be used to grant additional access for viewing or modifying data, but DDL (Data Definition Language) operations like CREATE are restricted to the primary role. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 1.0: Accounts and Security",
+      "difficulty": "intermediate",
+      "sub_topic": "1.3",
+      "sub_topic_name": "Role-Based Access Control"
+    },
+    {
+      "id": "architect_test4_q13",
+      "source": "architect_test4",
+      "question_num": 13,
+      "question": "An Architect has a VPN_ACCESS_LOGS table in the SECURITY_LOGS schema containing timestamps of the connection and disconnection, username of the user, and summary statistics. What should the Architect do to enable the Snowflake search optimization service on this table?",
+      "options": [
+        {
+          "text": "Assume role with OWNERSHIP on VPN_ACCESS_LOGS and ADD SEARCH OPTIMIZATION in the SECURITY_LOGS schema.",
+          "explanation": ""
+        },
+        {
+          "text": "Assume role with ALL PRIVILEGES including ADD SEARCH OPTIMIZATION on the SECURITY LOGS schema.",
+          "explanation": ""
+        },
+        {
+          "text": "Assume role with ALL PRIVILEGES on VPN_ACCESS_LOGS and ADD SEARCH OPTIMIZATION in the SECURITY_LOGS schema.",
+          "explanation": ""
+        },
+        {
+          "text": "Assume role with OWNERSHIP on future tables and ADD SEARCH OPTIMIZATION on the SECURITY_LOGS schema.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "We need a role with OWNERSHIP privileges on that specific table and then apply the ADD SEARCH OPTIMIZATION option in the SECURITY_LOGS schema. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 1.0: Accounts and Security",
+      "difficulty": "intermediate",
+      "sub_topic": "1.3",
+      "sub_topic_name": "Role-Based Access Control"
+    },
+    {
+      "id": "architect_test4_q15",
+      "source": "architect_test4",
+      "question_num": 15,
+      "question": "At which object type level can the APPLY MASKING POLICY, APPLY ROW ACCESS POLICY and APPLY SESSION POLICY privileges be granted?",
+      "options": [
+        {
+          "text": "Table",
+          "explanation": ""
+        },
+        {
+          "text": "Global",
+          "explanation": ""
+        },
+        {
+          "text": "Schema",
+          "explanation": ""
+        },
+        {
+          "text": "Database",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "These are global privileges to grant. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 1.0: Accounts and Security",
+      "difficulty": "intermediate",
+      "sub_topic": "1.3",
+      "sub_topic_name": "Role-Based Access Control"
+    },
+    {
+      "id": "architect_test4_q16",
+      "source": "architect_test4",
+      "question_num": 16,
+      "question": "To which entity do we grant privileges?",
+      "options": [
+        {
+          "text": "Account",
+          "explanation": ""
+        },
+        {
+          "text": "Roles",
+          "explanation": ""
+        },
+        {
+          "text": "Groups",
+          "explanation": ""
+        },
+        {
+          "text": "Users",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "RBAC approach. Privileges in Snowflake are granted to roles. Roles serve as a mechanism for managing permissions and access controls, allowing users and groups to inherit the privileges associated with those roles. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 1.0: Accounts and Security",
+      "difficulty": "intermediate",
+      "sub_topic": "1.3",
+      "sub_topic_name": "Role-Based Access Control"
+    },
+    {
+      "id": "architect_test4_q21",
+      "source": "architect_test4",
+      "question_num": 21,
+      "question": "A user has the appropriate privilege to see unmasked data in a column. If the user loads this column data into another column that does not have a masking policy, what will occur?",
+      "options": [
+        {
+          "text": "Unmasked data will be loaded into the new column but only users with the appropriate privileges will be able to see the unmasked data.",
+          "explanation": ""
+        },
+        {
+          "text": "Unmasked data will be loaded in the new column.",
+          "explanation": ""
+        },
+        {
+          "text": "Unmasked data will be loaded into the new column and no users will be able to see the unmasked data.",
+          "explanation": ""
+        },
+        {
+          "text": "Masked data will be loaded into the new column.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "When a user with the appropriate privileges loads data from a column that has an unmasked value into another column that does not have a masking policy, the unmasked data will be loaded into the new column. The lack of a masking policy on the new column means that it will reflect the original unmasked data. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 1.0: Accounts and Security",
+      "difficulty": "intermediate",
+      "sub_topic": "1.3",
+      "sub_topic_name": "Role-Based Access Control"
+    },
+    {
+      "id": "architect_test4_q38",
+      "source": "architect_test4",
+      "question_num": 38,
+      "question": "What integration object should be used to place restrictions on where data may be exported?",
+      "options": [
+        {
+          "text": "Security integration",
+          "explanation": ""
+        },
+        {
+          "text": "API integration",
+          "explanation": ""
+        },
+        {
+          "text": "Stage integration",
+          "explanation": ""
+        },
+        {
+          "text": "Storage integration",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        3
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "A storage integration is an object that contains a generated identity and access management (IAM) entity for your external cloud storage, along with an optional set of allowed or blocked storage locations (such as AWS S3, GCS, or Microsoft Azure). Cloud provider administrators in the organization grant permissions for these storage locations to the generated entity. This setup enables users to avoid supplying credentials when creating stages or loading and unloading data, streamlining the process and enhancing security. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 1.0: Accounts and Security",
+      "difficulty": "intermediate",
+      "sub_topic": "1.3",
+      "sub_topic_name": "Role-Based Access Control"
+    },
+    {
+      "id": "architect_test4_q39",
+      "source": "architect_test4",
+      "question_num": 39,
+      "question": "Which role can view account-level Credit and Storage Usage? (Choose two.)",
+      "options": [
+        {
+          "text": "USAGEADMIN",
+          "explanation": ""
+        },
+        {
+          "text": "A role that has been granted the MONITOR USAGE global privilege",
+          "explanation": ""
+        },
+        {
+          "text": "STORAGEADMIN",
+          "explanation": ""
+        },
+        {
+          "text": "ACCOUNTADMIN",
+          "explanation": ""
+        },
+        {
+          "text": "SYSADMIN",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1,
+        3
+      ],
+      "multi_select": true,
+      "multi_select_count": 2,
+      "overall_explanation": "The ACCOUNTADMIN role has full visibility into account-level credit and storage usage. Additionally, any role that has been granted the MONITOR USAGE global privilege can also view this information, ensuring proper access control for monitoring purposes. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 1.0: Accounts and Security",
+      "difficulty": "intermediate",
+      "sub_topic": "1.3",
+      "sub_topic_name": "Role-Based Access Control"
+    },
+    {
+      "id": "architect_test4_q45",
+      "source": "architect_test4",
+      "question_num": 45,
+      "question": "A user, analyst_user has been granted the analyst_role, and is deploying a SnowSQL script to run as a background service to extract data from Snowflake. What steps should be taken to allow the IP addresses to be accessed? (Select TWO). USE ROLE USERADMIN; CREATE OR REPLACE NETWORK POLICY ANALYST_POLICY ALLOWED_IP_LIST = ('10.1.1.20'); ALTER ROLE ANALYST_ROLE SET NETWORK_POLICY='ANALYST_POLICY'; ALTER USER ANALYST_USER SET NETWORK_POLICY='10.1.1.20';",
+      "options": [
+        {
+          "text": "ALTER USER ANALYST_USER SET NETWORK_POLICY='ANALYST_POLICY';",
+          "explanation": ""
+        },
+        {
+          "text": "USE ROLE SECURITYADMIN;",
+          "explanation": ""
+        },
+        {
+          "text": "CREATE OR REPLACE NETWORK POLICY ANALYST_POLICY ALLOWED_IP_LIST = ('10.1.1.20');",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0,
+        1
+      ],
+      "multi_select": true,
+      "multi_select_count": 2,
+      "overall_explanation": "A few comments: To restrict or allow access to Snowflake from specific IP addresses, a network policy must be set for the user, allowing only the IP addresses specified in the policy to access Snowflake. Network policies in Snowflake are managed by the SECURITYADMIN role. Once the policy is created, it can then be applied to the user. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 1.0: Accounts and Security",
+      "difficulty": "intermediate",
+      "sub_topic": "1.3",
+      "sub_topic_name": "Role-Based Access Control"
+    },
+    {
+      "id": "architect_test4_q64",
+      "source": "architect_test4",
+      "question_num": 64,
+      "question": "Which of the following objects are NOT securable objects?",
+      "options": [
+        {
+          "text": "PRIVILEGES",
+          "explanation": ""
+        },
+        {
+          "text": "ROLES",
+          "explanation": ""
+        },
+        {
+          "text": "USERS",
+          "explanation": ""
+        },
+        {
+          "text": "VIEWS",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "PRIVILEGES are not securable objects because they are permissions granted to roles to control access to securable objects like tables and views. Users and roles are entities that can be assigned these privileges, but privileges themselves cannot be secured. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 1.0: Accounts and Security",
+      "difficulty": "intermediate",
+      "sub_topic": "1.3",
+      "sub_topic_name": "Role-Based Access Control"
+    },
+    {
+      "id": "architect_test5_q4",
+      "source": "architect_test5",
+      "question_num": 4,
+      "question": "A company uses Snowflake to store and analyze their customer data. The company has a strict regulatory requirement to protect Personally Identifiable Information (PII). What should an Architect do to meet this requirement?",
+      "options": [
+        {
+          "text": "Use row-level security to mask PII data.",
+          "explanation": ""
+        },
+        {
+          "text": "Create secure views for the PII data and grant access to the views as needed.",
+          "explanation": ""
+        },
+        {
+          "text": "Create separate tables for columns containing PII and those that do not; grant access as needed.",
+          "explanation": ""
+        },
+        {
+          "text": "Use tag-based masking policies for columns that contain PII data.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        3
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "A few comments: Tag-based masking policies are the recommended approach in Snowflake to manage and enforce column-level data protection, especially for PII. By tagging columns as containing PII and associating masking policies, Snowflake can automatically enforce dynamic data masking based on user roles and privileges, ensuring compliance with data privacy regulations. This method supports scalability, auditability, and centralized governance. Row-level security controls access to rows, not suitable for masking specific columns. Secure views help protect data but lack the dynamic masking and tag-based enforcement capabilities. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 1.0: Accounts and Security",
+      "difficulty": "intermediate",
+      "sub_topic": "1.3",
+      "sub_topic_name": "Role-Based Access Control"
+    },
+    {
+      "id": "architect_test5_q14",
+      "source": "architect_test5",
+      "question_num": 14,
+      "question": "A Data Architect needs to share data from an orders table with a team. The Architect must ensure that the team members cannot view any Personal Identifiable Information (PII), but they can access and analyze other metrics from the orders table. The Pll is disbursed across several columns and individual rows on the table. How can this requirement be met?",
+      "options": [
+        {
+          "text": "Share the table data using individual secure views.",
+          "explanation": ""
+        },
+        {
+          "text": "Encrypt the order_id column before sharing the data.",
+          "explanation": ""
+        },
+        {
+          "text": "Apply an aggregation policy on the table using MIN_GROUP_SIZE.",
+          "explanation": ""
+        },
+        {
+          "text": "Apply Dynamic Data Masking on all the columns that contain PII.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        3
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "A few comments: Dynamic Data Masking is specifically designed to protect sensitive data (like PII) by masking it at query runtime, based on the user's role or context. Since PII is \"disbursed across several columns and individual rows,\" DDM allows you to mask specific values within those columns/rows without affecting the non-PII data or requiring separate views for every scenario. Encrypting only order_id isn't enough, as PII is in \"several columns and individual rows. Aggregation policies (like k-anonymity) are for preventing re-identification by grouping data, often by generalizing or summarizing. This would likely prevent the team from accessing and analyzing other metrics at a granular level, which the requirement specifies. While secure views can hide columns or filter rows, managing PII \"disbursed across several columns and individual rows\" purely with secure views would be extremely complex and potentially lead to data leakage if not perfectly designed. Not the best option. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 1.0: Accounts and Security",
+      "difficulty": "intermediate",
+      "sub_topic": "1.3",
+      "sub_topic_name": "Role-Based Access Control"
+    },
+    {
+      "id": "architect_test5_q15",
+      "source": "architect_test5",
+      "question_num": 15,
+      "question": "A company is following the Data Mesh principles, including domain separation, and chose one Snowflake account for its data platform. An Architect created two data domains to produce two data products. The Architect needs a third data domain that will use both of the data products to create an aggregate data product. The read access to the data products will be granted through a separate role. Based on the Data Mesh principles, how should the third domain be configured to create the aggregate product if it has been granted the two read roles?",
+      "options": [
+        {
+          "text": "Use secondary roles for all users.",
+          "explanation": ""
+        },
+        {
+          "text": "Request a technical ETL user with the sysadmin role.",
+          "explanation": ""
+        },
+        {
+          "text": "Create a hierarchy between the two read roles.",
+          "explanation": ""
+        },
+        {
+          "text": "Request that the two data domains share data using the Data Exchange.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "A few comments: Creating a hierarchy of roles could introduce dependencies between domains, which goes against the principle of domain autonomy in Data Mesh. Data Exchange is typically used for sharing data between different accounts. Within the same account, data access is best managed through roles. Use sysadmin role would grant overly high privileges, which goes against the principle of least privilege and is unnecessary for a read-only access requirement. Data Mesh principles can be applied by assigning specific read roles to each data domain. The use of secondary roles for users allows the third data domain, which needs to access the data products of the other two domains, to have controlled access through secondary read roles.",
+      "domain_raw": "",
+      "domain": "Domain 1.0: Accounts and Security",
+      "difficulty": "intermediate",
+      "sub_topic": "1.3",
+      "sub_topic_name": "Role-Based Access Control"
+    },
+    {
+      "id": "architect_test5_q21",
+      "source": "architect_test5",
+      "question_num": 21,
+      "question": "A Data Architect needs to monitor data usage patterns, performance metrics, and query efficiency to optimize the data workloads in a Snowflake account. The Architect needs insights into long-running queries, frequently accessed tables, and warehouse resource utilization while also tracking user activities and ensuring compliance with governance policies. Which combination of views should the Architect use to meet these requirements? (Select THREE). SNOWFLAKE.ACCOUNT_USAGE.OBJECT_DEPENDENCIES view to track dependencies between objects. Use the SNOWFLAKE.ACCOUNT_USAGE.DATABASE_STORAGE_USAGE_HISTORY view to analyze historical storage usage across databases. Use the SNOWFLAKE.ACCOUNT_USAGE.SCHEMA_PRIVILEGES view to ensure compliance with data governance policies.",
+      "options": [
+        {
+          "text": "Use the SNOWFLAKE.ACCOUNT_USAGE.WAREHOUSE_METERING_HISTORY view to monitor warehouse resource consumption.",
+          "explanation": ""
+        },
+        {
+          "text": "Use the SNOWFLAKE.ACCOUNT_USAGE.ACCESS_HISTORY view to track access patterns.",
+          "explanation": ""
+        },
+        {
+          "text": "Use the SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY view to analyze query performance.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0,
+        1,
+        2
+      ],
+      "multi_select": true,
+      "multi_select_count": 3,
+      "overall_explanation": "We will need the following views: QUERY_HISTORY. This view provides detailed information about query performance, including duration, users, and resource usage — ideal for identifying long-running or inefficient queries. ACCESS_HISTORY. This view tracks which users accessed which data, helping to identify frequently accessed tables and support compliance/governance auditing. WAREHOUSE_METERING_HISTORY. This shows warehouse usage metrics like compute credits used, allowing analysis of resource utilization for workload optimization. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 1.0: Accounts and Security",
+      "difficulty": "advanced",
+      "sub_topic": "1.3",
+      "sub_topic_name": "Role-Based Access Control"
+    },
+    {
+      "id": "architect_test5_q30",
+      "source": "architect_test5",
+      "question_num": 30,
+      "question": "An Architect is creating a new database role for a team of Data Analysts. The Architect is considering using the OR REPLACE keywords in the CREATE DATABASE ROLE command to ensure the role is created even if it already exists. What should the Architect consider before using the OR REPLACE keywords?",
+      "options": [
+        {
+          "text": "The dropped database role cannot be recreated.",
+          "explanation": ""
+        },
+        {
+          "text": "The database role can only be dropped by a user with a role that has the MANAGE GRANTS privilege.",
+          "explanation": ""
+        },
+        {
+          "text": "The OR REPLACE keywords are unsupported when creating a database role.",
+          "explanation": ""
+        },
+        {
+          "text": "Recreating a database role drops it from any shares that it is granted to.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        3
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "A few comments: It is not recommended to use the OR REPLACE keywords when recreating a database role. This action first drops the role and then recreates it, which removes the role from any shares to which it was granted. If a database role must be recreated, it must be granted to those shares again. Data consumers who use a share that includes the database role should be notified. They will need to grant the database role to their own account roles again. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 1.0: Accounts and Security",
+      "difficulty": "intermediate",
+      "sub_topic": "1.3",
+      "sub_topic_name": "Role-Based Access Control"
+    },
+    {
+      "id": "architect_test5_q31",
+      "source": "architect_test5",
+      "question_num": 31,
+      "question": "A company is designing its serving layer for data that is in cloud storage. Multiple terabytes of the data will be used for reporting. Some data does not have a clear use case but could be useful for experimental analysis. This experimentation data changes frequently and is sometimes wiped out and replaced completely in a few days. The company wants to centralize access control, provide a single point of connection for the end-users, and maintain data governance. What solution meets these requirements while MINIMIZING costs, administrative effort, and development overhead?",
+      "options": [
+        {
+          "text": "Import the data used for reporting into a Snowflake schema with native tables. Then create views that have SELECT commands pointing to the cloud storage files for the experimentation data. Then create two different roles to match the different user personas, and grant these roles to the corresponding users.",
+          "explanation": ""
+        },
+        {
+          "text": "Import all the data in cloud storage to be used for reporting into a Snowflake schema with native tables. Then create a role that has access to this schema and manage access to the data through that role.",
+          "explanation": ""
+        },
+        {
+          "text": "Import all the data in cloud storage to be used for reporting into a Snowflake schema with native tables. Then create two different roles with grants to the different datasets to match the different user personas, and grant these roles to the corresponding users.",
+          "explanation": ""
+        },
+        {
+          "text": "Import the data used for reporting into a Snowflake schema with native tables. Then create external tables pointing to the cloud storage folders used for the experimentation data. Then create two different roles with grants to the different datasets to match the different user personas, and grant these roles to the corresponding users.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Key comments: multiple terabytes for reporting, some data for experimental analysis that changes frequently. Governance is required. Centralize access control. A few comments: We want to minimize costs and administrative effort. Considering that there is a lot of data, to minimize the cost we would have to think about storing in Snowflake only the strictly necessary data. Native tables will provide better performance than making queries from the External Stage. Native tables are ideal for reporting workloads: optimized for performance, governance, and frequent use. SELECT queries can be pulled to an external stage. It will be cheaper than managing an external table with the partition, refresh or notification system. Creating roles with appropriate grants satisfies the governance and centralized access control requirements.",
+      "domain_raw": "",
+      "domain": "Domain 1.0: Accounts and Security",
+      "difficulty": "intermediate",
+      "sub_topic": "1.3",
+      "sub_topic_name": "Role-Based Access Control"
+    },
+    {
+      "id": "architect_test5_q43",
+      "source": "architect_test5",
+      "question_num": 43,
+      "question": "Which combination of primary and secondary roles can a Snowflake user set in a session to access objects?",
+      "options": [
+        {
+          "text": "A session can have more than one active primary role at a time. Anyone with the active primary role can activate any number of secondary roles at the same time.",
+          "explanation": ""
+        },
+        {
+          "text": "A session can have exactly one active primary role at a time. A secondary role cannot be activated anytime the primary role is active.",
+          "explanation": ""
+        },
+        {
+          "text": "A session can have exactly one active primary role at any time. The user with the active primary role can activate any number of secondary roles at the same time.",
+          "explanation": ""
+        },
+        {
+          "text": "A session can have more than one active primary role at a time. The user with the active primary role can activate exactly one secondary role at the same time.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        2
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "A few comments: Only a single primary role can be active at a time in a user session. A session can activate any number of secondary roles at the same time. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 1.0: Accounts and Security",
+      "difficulty": "intermediate",
+      "sub_topic": "1.3",
+      "sub_topic_name": "Role-Based Access Control"
+    },
+    {
+      "id": "architect_test5_q47",
+      "source": "architect_test5",
+      "question_num": 47,
+      "question": "A user has activated primary and secondary roles for a session. What operation is the user prohibited from using as part of SQL actions in Snowflake using the secondary role?",
+      "options": [
+        {
+          "text": "Truncate",
+          "explanation": ""
+        },
+        {
+          "text": "Create",
+          "explanation": ""
+        },
+        {
+          "text": "Insert",
+          "explanation": ""
+        },
+        {
+          "text": "Delete",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "The authority to run CREATE <object> statements comes exclusively from the active primary role. When an object is created, ownership is assigned to that primary role. For all other SQL operations, permissions granted to either the active primary or any secondary roles can be used for authorization. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 1.0: Accounts and Security",
+      "difficulty": "intermediate",
+      "sub_topic": "1.3",
+      "sub_topic_name": "Role-Based Access Control"
+    },
+    {
+      "id": "architect_test5_q50",
+      "source": "architect_test5",
+      "question_num": 50,
+      "question": "What are characteristics of Dynamic Data Masking? (Select TWO). A masking policy that is currently set on a table can be dropped.",
+      "options": [
+        {
+          "text": "A masking policy can be applied to the VALUE column of an external table.",
+          "explanation": ""
+        },
+        {
+          "text": "A single masking policy can be applied to columns with different data types.",
+          "explanation": ""
+        },
+        {
+          "text": "A single masking policy can be applied to columns in different tables.",
+          "explanation": ""
+        },
+        {
+          "text": "The role that creates the masking policy will always see unmasked data in query results.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0,
+        2
+      ],
+      "multi_select": true,
+      "multi_select_count": 2,
+      "overall_explanation": "A few comments: We can apply a masking policy to one or more table or view columns that have a matching data type. When creating an external table with CREATE EXTERNAL TABLE, we cannot assign a masking policy to the VALUE column because it is automatically created by default. However, we can apply a masking policy to this column later using ALTER TABLE … ALTER COLUMN. The masking policy for the VALUE column must have a VARIANT data type. Before dropping a policy, we need to unset it from the table or view column using ALTER TABLE … ALTER COLUMN or ALTER VIEW. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 1.0: Accounts and Security",
+      "difficulty": "intermediate",
+      "sub_topic": "1.3",
+      "sub_topic_name": "Role-Based Access Control"
+    },
+    {
+      "id": "architect_new_q58",
+      "source": "architect_new",
+      "question_num": 58,
+      "question": "What role is required to configure SCIM integration with an identity provider?",
+      "options": [
+        {
+          "text": "ACCOUNTADMIN",
+          "explanation": ""
+        },
+        {
+          "text": "SYSADMIN",
+          "explanation": ""
+        },
+        {
+          "text": "SECURITYADMIN",
+          "explanation": ""
+        },
+        {
+          "text": "USERADMIN",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        2
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "SCIM provisioning requires the SECURITYADMIN role (or a custom role with the necessary privileges). SCIM integrations manage users and roles, which are security operations. The SCIM integration is typically owned by SECURITYADMIN or a dedicated SCIM role.",
+      "domain_raw": "",
+      "domain": "Domain 1.0: Accounts and Security",
+      "difficulty": "intermediate",
+      "sub_topic": "1.3",
+      "sub_topic_name": "Role-Based Access Control"
+    },
+    {
+      "id": "architect_new_q67",
+      "source": "architect_new",
+      "question_num": 67,
+      "question": "What is the purpose of REQUIRE_STORAGE_INTEGRATION_FOR_STAGE_CREATION?",
+      "options": [
+        {
+          "text": "Requiring encryption for all external stages.",
+          "explanation": ""
+        },
+        {
+          "text": "Forcing the use of storage integrations (instead of raw credentials) when creating external stages.",
+          "explanation": ""
+        },
+        {
+          "text": "Requiring ACCOUNTADMIN to approve all stage creation.",
+          "explanation": ""
+        },
+        {
+          "text": "Limiting stage creation to internal stages only.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "This account-level parameter prevents users from creating external stages with embedded credentials (access keys, secret keys). It forces the use of storage integrations, which use IAM roles and centralize credential management. This is a security hardening best practice.",
+      "domain_raw": "",
+      "domain": "Domain 1.0: Accounts and Security",
+      "difficulty": "advanced",
+      "sub_topic": "1.3",
+      "sub_topic_name": "Role-Based Access Control"
+    },
+    {
+      "id": "architect_new_q69",
+      "source": "architect_new",
+      "question_num": 69,
+      "question": "What is a managed access schema?",
+      "options": [
+        {
+          "text": "A schema where only ACCOUNTADMIN can create objects.",
+          "explanation": ""
+        },
+        {
+          "text": "A schema where the schema owner (or MANAGE GRANTS holder) controls all grants, not individual object owners.",
+          "explanation": ""
+        },
+        {
+          "text": "A schema that automatically applies masking policies to all tables.",
+          "explanation": ""
+        },
+        {
+          "text": "A schema that restricts access to read-only.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "In a managed access schema, individual object owners cannot grant access to their objects. Only the schema owner or a role with MANAGE GRANTS can issue grants. This prevents privilege escalation where individual developers grant unauthorized access.",
+      "domain_raw": "",
+      "domain": "Domain 1.0: Accounts and Security",
+      "difficulty": "intermediate",
+      "sub_topic": "1.3",
+      "sub_topic_name": "Role-Based Access Control"
+    },
+    {
+      "id": "architect_new_q71",
+      "source": "architect_new",
+      "question_num": 71,
+      "question": "How many masking policies can be applied to a single column?",
+      "options": [
+        {
+          "text": "Unlimited -- policies are evaluated in order.",
+          "explanation": ""
+        },
+        {
+          "text": "Exactly one masking policy per column.",
+          "explanation": ""
+        },
+        {
+          "text": "Up to three masking policies per column.",
+          "explanation": ""
+        },
+        {
+          "text": "One per role -- each role sees a different policy.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Only ONE masking policy can be applied to a single column at any time. The policy itself can contain conditional logic (CASE statements using CURRENT_ROLE() or IS_ROLE_IN_SESSION()) to return different masked values for different roles.",
+      "domain_raw": "",
+      "domain": "Domain 1.0: Accounts and Security",
+      "difficulty": "intermediate",
+      "sub_topic": "1.3",
+      "sub_topic_name": "Role-Based Access Control"
+    }
+  ]
+}

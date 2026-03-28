@@ -13,12 +13,8 @@ from i18n import t, get_text
 from app_pages.data_layer import get_tracks, get_topic_content
 from app_pages.persistence import load_learn_progress, save_learn_progress
 
-DIFFICULTY_COLORS = {
-    "beginner": "#4ECB71",
-    "intermediate": "#FFD93D",
-    "advanced": "#FF6B6B",
-    "expert": "#C084FC",
-}
+from theme import T
+DIFFICULTY_COLORS = T.DIFFICULTY
 
 
 def load_tracks():
@@ -270,7 +266,7 @@ with tab_quiz:
                                     <div style="background:rgba(41,181,232,0.1); border-left:4px solid #29B5E8;
                                                 border-radius:8px; padding:14px 18px; margin:8px 0;">
                                         <strong style="color:#29B5E8;">🤖 AI Tutor</strong><br>
-                                        <span style="color:#FAFAFA;">{resp}</span>
+                                        <span style="color:inherit;">{resp}</span>
                                     </div>
                                     """, unsafe_allow_html=True)
                     except ImportError:

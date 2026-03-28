@@ -1,0 +1,108 @@
+{
+  "data_analyst": {
+    "name": {"en": "Data Analyst", "pt": "Analista de Dados", "es": "Analista de Datos"},
+    "description": {
+      "en": "SQL querying, dashboards, data sharing, and analytics-focused performance tuning.",
+      "pt": "Consultas SQL, dashboards, compartilhamento de dados e otimizacao de performance para analytics.",
+      "es": "Consultas SQL, dashboards, comparticion de datos y optimizacion de rendimiento para analytics."
+    },
+    "color": "#29B5E8",
+    "emoji": ":material/bar_chart:",
+    "difficulty": "beginner",
+    "topics": [
+      {"key": "sql_fundamentals", "name": {"en": "SQL Fundamentals & Functions", "pt": "Fundamentos SQL e Funcoes", "es": "Fundamentos SQL y Funciones"}},
+      {"key": "semi_structured", "name": {"en": "Semi-Structured Data (JSON, Parquet)", "pt": "Dados Semi-Estruturados (JSON, Parquet)", "es": "Datos Semi-Estructurados (JSON, Parquet)"}},
+      {"key": "secure_shares", "name": {"en": "Secure Data Shares & Marketplace", "pt": "Compartilhamento Seguro e Marketplace", "es": "Comparticion Segura y Marketplace"}},
+      {"key": "query_profile", "name": {"en": "Query Profile & Caching", "pt": "Query Profile e Cache", "es": "Query Profile y Cache"}}
+    ]
+  },
+  "data_architect": {
+    "name": {"en": "Data Architect", "pt": "Arquiteto de Dados", "es": "Arquitecto de Datos"},
+    "description": {
+      "en": "Data modeling, object hierarchy, replication, failover, and end-to-end architecture design.",
+      "pt": "Modelagem de dados, hierarquia de objetos, replicacao, failover e design de arquitetura.",
+      "es": "Modelado de datos, jerarquia de objetos, replicacion, failover y diseno de arquitectura."
+    },
+    "color": "#FF6B6B",
+    "emoji": ":material/architecture:",
+    "difficulty": "advanced",
+    "topics": [
+      {"key": "architecture_overview", "name": {"en": "Architecture & Micro-Partitions", "pt": "Arquitetura e Micro-Particoes", "es": "Arquitectura y Micro-Particiones"}},
+      {"key": "data_modeling", "name": {"en": "Data Modeling (Star, Vault, 3NF)", "pt": "Modelagem de Dados (Star, Vault, 3NF)", "es": "Modelado de Datos (Star, Vault, 3NF)"}},
+      {"key": "replication", "name": {"en": "Replication & Failover", "pt": "Replicacao e Failover", "es": "Replicacion y Failover"}},
+      {"key": "rbac_roles", "name": {"en": "RBAC & Security Strategy", "pt": "RBAC e Estrategia de Seguranca", "es": "RBAC y Estrategia de Seguridad"}},
+      {"key": "compliance", "name": {"en": "Compliance & Encryption", "pt": "Conformidade e Criptografia", "es": "Cumplimiento y Cifrado"}}
+    ]
+  },
+  "data_scientist": {
+    "name": {"en": "Data Scientist", "pt": "Cientista de Dados", "es": "Cientifico de Datos"},
+    "description": {
+      "en": "Snowpark, UDFs, ML workflows, unstructured data, and Python-based data processing.",
+      "pt": "Snowpark, UDFs, workflows de ML, dados nao-estruturados e processamento com Python.",
+      "es": "Snowpark, UDFs, workflows de ML, datos no estructurados y procesamiento con Python."
+    },
+    "color": "#C084FC",
+    "emoji": ":material/psychology:",
+    "difficulty": "advanced",
+    "topics": [
+      {"key": "snowpark_python", "name": {"en": "Snowpark for Python", "pt": "Snowpark para Python", "es": "Snowpark para Python"}},
+      {"key": "udfs_procedures", "name": {"en": "UDFs & Stored Procedures", "pt": "UDFs e Stored Procedures", "es": "UDFs y Stored Procedures"}},
+      {"key": "semi_structured", "name": {"en": "Semi-Structured & Unstructured Data", "pt": "Dados Semi e Nao-Estruturados", "es": "Datos Semi y No Estructurados"}},
+      {"key": "stages_formats", "name": {"en": "Stages & File Formats", "pt": "Stages e Formatos de Arquivo", "es": "Stages y Formatos de Archivo"}}
+    ]
+  },
+  "data_engineer": {
+    "name": {"en": "Data Engineer", "pt": "Engenheiro de Dados", "es": "Ingeniero de Datos"},
+    "description": {
+      "en": "Pipelines, COPY INTO, Snowpipe, tasks, streams, dynamic tables, and performance tuning.",
+      "pt": "Pipelines, COPY INTO, Snowpipe, tasks, streams, tabelas dinamicas e otimizacao.",
+      "es": "Pipelines, COPY INTO, Snowpipe, tasks, streams, tablas dinamicas y optimizacion."
+    },
+    "color": "#4ECB71",
+    "emoji": ":material/engineering:",
+    "difficulty": "intermediate",
+    "topics": [
+      {"key": "copy_into", "name": {"en": "COPY INTO & Snowpipe", "pt": "COPY INTO e Snowpipe", "es": "COPY INTO y Snowpipe"}},
+      {"key": "tasks_streams", "name": {"en": "Tasks & Streams (CDC)", "pt": "Tasks e Streams (CDC)", "es": "Tasks y Streams (CDC)"}},
+      {"key": "dynamic_tables", "name": {"en": "Dynamic Tables & Pipelines", "pt": "Tabelas Dinamicas e Pipelines", "es": "Tablas Dinamicas y Pipelines"}},
+      {"key": "clustering_pruning", "name": {"en": "Clustering & Pruning", "pt": "Clustering e Pruning", "es": "Clustering y Pruning"}},
+      {"key": "stages_formats", "name": {"en": "Stages & File Formats", "pt": "Stages e Formatos de Arquivo", "es": "Stages y Formatos de Archivo"}}
+    ]
+  },
+  "security_engineer": {
+    "name": {"en": "Security Engineer", "pt": "Engenheiro de Seguranca", "es": "Ingeniero de Seguridad"},
+    "description": {
+      "en": "Network policies, PrivateLink, masking, row access, authentication, and compliance.",
+      "pt": "Politicas de rede, PrivateLink, mascaramento, acesso a linhas, autenticacao e conformidade.",
+      "es": "Politicas de red, PrivateLink, enmascaramiento, acceso a filas, autenticacion y cumplimiento."
+    },
+    "color": "#FFD93D",
+    "emoji": ":material/shield:",
+    "difficulty": "advanced",
+    "topics": [
+      {"key": "rbac_roles", "name": {"en": "RBAC & System Roles", "pt": "RBAC e Roles de Sistema", "es": "RBAC y Roles del Sistema"}},
+      {"key": "network_policies", "name": {"en": "Network Policies & PrivateLink", "pt": "Politicas de Rede e PrivateLink", "es": "Politicas de Red y PrivateLink"}},
+      {"key": "masking_policies", "name": {"en": "Dynamic Data Masking & RAP", "pt": "Mascaramento Dinamico e RAP", "es": "Enmascaramiento Dinamico y RAP"}},
+      {"key": "authentication", "name": {"en": "Authentication & MFA", "pt": "Autenticacao e MFA", "es": "Autenticacion y MFA"}},
+      {"key": "compliance", "name": {"en": "Compliance & Encryption", "pt": "Conformidade e Criptografia", "es": "Cumplimiento y Cifrado"}}
+    ]
+  },
+  "data_administrator": {
+    "name": {"en": "Data Administrator", "pt": "Administrador de Dados", "es": "Administrador de Datos"},
+    "description": {
+      "en": "Warehouse sizing, account management, resource monitors, cost control, and user management.",
+      "pt": "Dimensionamento de warehouses, gestao de contas, monitores de recursos, custos e usuarios.",
+      "es": "Dimensionamiento de warehouses, gestion de cuentas, monitores de recursos, costos y usuarios."
+    },
+    "color": "#F97316",
+    "emoji": ":material/admin_panel_settings:",
+    "difficulty": "intermediate",
+    "topics": [
+      {"key": "virtual_warehouses", "name": {"en": "Virtual Warehouses & Sizing", "pt": "Warehouses Virtuais e Dimensionamento", "es": "Warehouses Virtuales y Dimensionamiento"}},
+      {"key": "account_management", "name": {"en": "Account Management & Parameters", "pt": "Gestao de Conta e Parametros", "es": "Gestion de Cuenta y Parametros"}},
+      {"key": "resource_monitors", "name": {"en": "Resource Monitors & Cost Control", "pt": "Monitores de Recursos e Custos", "es": "Monitores de Recursos y Costos"}},
+      {"key": "databases_schemas", "name": {"en": "Databases & Schemas", "pt": "Bancos de Dados e Schemas", "es": "Bases de Datos y Schemas"}},
+      {"key": "user_role_mgmt", "name": {"en": "User & Role Management", "pt": "Gestao de Usuarios e Roles", "es": "Gestion de Usuarios y Roles"}}
+    ]
+  }
+}

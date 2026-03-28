@@ -1,0 +1,141 @@
+{
+  "sub_topic": "4.5",
+  "sub_topic_name": "Performance Services",
+  "domain": "Domain 4.0: Performance Optimization",
+  "total_questions": 3,
+  "difficulty_distribution": {
+    "advanced": 2,
+    "beginner": 1
+  },
+  "exam_traps": [
+    {
+      "trap": "Search Optimization Service (SOS) helps point lookups, not full table scans",
+      "why_confusing": "SOS is for equality/IN predicates on specific values (like WHERE id = 123). It does NOT help with range scans, LIKE patterns, or aggregations. Costs extra credits as a background service.",
+      "correct_answer": "SOS = fast point lookups. Not for scans/aggregations. Extra cost.",
+      "doc_reference": "https://docs.snowflake.com/en/user-guide/search-optimization-service"
+    },
+    {
+      "trap": "Query Acceleration Service (QAS) helps queries with disproportionately large scans",
+      "why_confusing": "QAS offloads portions of a query to shared compute resources. Best for queries scanning lots of data but returning few rows. Not all queries benefit -- the scale factor parameter controls eligibility.",
+      "correct_answer": "QAS = offload large scans to shared compute. Set QUERY_ACCELERATION_MAX_SCALE_FACTOR.",
+      "doc_reference": "https://docs.snowflake.com/en/user-guide/query-acceleration-service"
+    }
+  ],
+  "questions": [
+    {
+      "id": "architect_test1_q20",
+      "source": "architect_test1",
+      "question_num": 20,
+      "question": "Which performance optimization techniques in Snowflake have storage costs associated with them? (Select THREE).",
+      "options": [
+        {
+          "text": "Clustering a table",
+          "explanation": ""
+        },
+        {
+          "text": "Using the query acceleration service",
+          "explanation": ""
+        },
+        {
+          "text": "Rekeying",
+          "explanation": ""
+        },
+        {
+          "text": "Using a muiti-cluster virtual warehouse",
+          "explanation": ""
+        },
+        {
+          "text": "Using a matenalized view",
+          "explanation": ""
+        },
+        {
+          "text": "Using the search optimization service",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0,
+        4,
+        5
+      ],
+      "multi_select": true,
+      "multi_select_count": 3,
+      "overall_explanation": "These performance optimization techniques in Snowflake come with additional storage costs. The search optimization service and materialized views store extra metadata to enhance query performance, while clustering a table creates additional storage structures to improve query efficiency based on how the data is organized. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 4.0: Performance Optimization",
+      "difficulty": "advanced",
+      "sub_topic": "4.5",
+      "sub_topic_name": "Performance Services"
+    },
+    {
+      "id": "architect_test2_q54",
+      "source": "architect_test2",
+      "question_num": 54,
+      "question": "What is the difference between clustering a table and using searching optimization only talking about costs?",
+      "options": [
+        {
+          "text": "Search optimization involves storage and compute costs, whereas clustering only involves storage costs.",
+          "explanation": ""
+        },
+        {
+          "text": "Search optimization involves storage and compute costs, whereas clustering only involves compute costs.",
+          "explanation": ""
+        },
+        {
+          "text": "Search optimization involves storage and compute costs, whereas clustering doesn’t cost anything.",
+          "explanation": ""
+        },
+        {
+          "text": "Both solutions involve storage and compute costs, so there is no difference between them talking about costs.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        3
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "A few comments: Both clustering and search optimization in Snowflake incur storage and compute costs. Search Optimization Service: Storage & Compute Costs. Materialized View: Storage & Compute Costs. Clustering: Storage & Compute Costs. Query Acceleration Service: Only Compute Cost. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 4.0: Performance Optimization",
+      "difficulty": "beginner",
+      "sub_topic": "4.5",
+      "sub_topic_name": "Performance Services"
+    },
+    {
+      "id": "architect_new_q51",
+      "source": "architect_new",
+      "question_num": 51,
+      "question": "What type of queries benefit MOST from the Query Acceleration Service (QAS)?",
+      "options": [
+        {
+          "text": "Simple single-table scans with tight filters.",
+          "explanation": ""
+        },
+        {
+          "text": "Queries with large scans that disproportionately impact overall warehouse performance (outlier queries).",
+          "explanation": ""
+        },
+        {
+          "text": "DDL operations like CREATE TABLE and ALTER TABLE.",
+          "explanation": ""
+        },
+        {
+          "text": "All queries benefit equally from QAS.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "QAS targets outlier queries -- queries that scan significantly more data than typical queries in the workload. It offloads portions of these queries to shared compute resources, reducing their impact on the warehouse. It's most effective for exploratory or ad-hoc heavy queries.",
+      "domain_raw": "",
+      "domain": "Domain 4.0: Performance Optimization",
+      "difficulty": "advanced",
+      "sub_topic": "4.5",
+      "sub_topic_name": "Performance Services"
+    }
+  ]
+}

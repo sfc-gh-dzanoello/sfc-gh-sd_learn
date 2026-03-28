@@ -1,0 +1,485 @@
+{
+  "sub_topic": "3.3",
+  "sub_topic_name": "Streams & Tasks",
+  "domain": "Domain 3.0: Data Engineering",
+  "total_questions": 12,
+  "difficulty_distribution": {
+    "advanced": 1,
+    "intermediate": 11
+  },
+  "exam_traps": [
+    {
+      "trap": "Standard streams track INSERT, UPDATE, DELETE. Append-only streams track only INSERT.",
+      "why_confusing": "If you only need new rows (e.g., from Snowpipe loading), append-only streams are more efficient. Standard streams capture all DML changes. The exam asks which stream type for 'new records only'.",
+      "correct_answer": "Append-only = inserts only (efficient for Snowpipe). Standard = all DML.",
+      "doc_reference": "https://docs.snowflake.com/en/user-guide/streams-intro"
+    },
+    {
+      "trap": "Tasks require a warehouse OR can use serverless compute",
+      "why_confusing": "Tasks can run on a user-managed warehouse or on Snowflake-managed serverless compute. Serverless tasks auto-scale but you don't control the warehouse size. The exam asks about cost-effectiveness.",
+      "correct_answer": "Serverless tasks: no warehouse needed, auto-scale. User-managed: you pick the warehouse.",
+      "doc_reference": "https://docs.snowflake.com/en/user-guide/tasks-intro"
+    },
+    {
+      "trap": "SYSTEM$STREAM_HAS_DATA() returns TRUE/FALSE -- used in WHEN clause of tasks",
+      "why_confusing": "Tasks with WHEN SYSTEM$STREAM_HAS_DATA('stream_name') only run when the stream has unconsumed data. Without this, the task runs on schedule even if there's nothing to process (wasting credits).",
+      "correct_answer": "Use WHEN clause with SYSTEM$STREAM_HAS_DATA to avoid unnecessary task runs",
+      "doc_reference": "https://docs.snowflake.com/en/sql-reference/functions/system_stream_has_data"
+    }
+  ],
+  "questions": [
+    {
+      "id": "architect_test1_q40",
+      "source": "architect_test1",
+      "question_num": 40,
+      "question": "An Architect for a multi-national transportation company has a system that is used to check the weather conditions along vehicle routes. The data is provided to drivers.\n\nThe weather information is delivered regularly by a third-party company and this information is generated as JSON structure. Then the data is loaded into Snowflake in a column with a VARIANT data type. This table is directly queried to deliver the statistics to the drivers with minimum time lapse.\n\nA single entry includes (but is not limited to):\n\n- Weather condition: cloudy, sunny, rainy, etc.\n\n- Degree\n\n- Longitude and latitude\n\n- Timeframe\n\n- Location address\n\n- Wind\n\nThe table holds more than 10 years' worth of data in order to deliver the statistics from different years and locations. The amount of data on the table increases every day.\n\nThe drivers report that they are not receiving the weather statistics for their locations in time.\n\nWhat can the Architect do to deliver the statistics to the drivers faster?",
+      "options": [
+        {
+          "text": "Create an additional table in the schema for longitude and latitude. Determine a regular task to fill this information by extracting it from the JSON dataset.",
+          "explanation": ""
+        },
+        {
+          "text": "Divide the table into several tables for each location by using the location address information from the JSON dataset in order to process the queries in parallel.",
+          "explanation": ""
+        },
+        {
+          "text": "Divide the table into several tables for each year by using the timeframe information from the JSON dataset in order to process the queries in parallel.",
+          "explanation": ""
+        },
+        {
+          "text": "Add search optimization service on the variant column for longitude and latitude in order to query the information by using specific metadata.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        3
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "This is a use case for the use of search optimization service. Search optimization service can significantly improve the performance of certain types of lookup and analytical queries. An extensive set of filtering predicates are supported.\n\nThe search optimization service is designed to enhance the performance of specific query types on tables, such as:\n\nPoint lookup queries that retrieve a single row or a small set of distinct rows.\n\nBusiness users requiring quick response times for key dashboards with highly specific filters.\n\nQueries on semi-structured columns like VARIANT, OBJECT, and ARRAY that use equality conditions.\n\nAbout other options:\n\nDividing the table by year or location adds complexity to data management and does not guarantee better performance\n\nCreating an additional table for longitude and latitude adds complexity and increases data duplication. It also introduces overhead in maintaining data synchronization between the tables.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "intermediate",
+      "sub_topic": "3.3",
+      "sub_topic_name": "Streams & Tasks"
+    },
+    {
+      "id": "architect_test2_q41",
+      "source": "architect_test2",
+      "question_num": 41,
+      "question": "Which of the following statements are correct about the TASK_HISTORY function? (Choose three)",
+      "options": [
+        {
+          "text": "The function returns a maximum of 10,000 rows",
+          "explanation": ""
+        },
+        {
+          "text": "You can query the history of task usage within a specified date range. It returns both the completed and running tasks.",
+          "explanation": ""
+        },
+        {
+          "text": "You can query the history of task usage within a specified date range. It only returns the completed tasks.",
+          "explanation": ""
+        },
+        {
+          "text": "The function returns a maximum of 100 rows",
+          "explanation": ""
+        },
+        {
+          "text": "It returns the task activity within the last 7 days or the next scheduled execution within the next 8 days.",
+          "explanation": ""
+        },
+        {
+          "text": "The function returns a maximum of 1000 rows",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0,
+        1,
+        4
+      ],
+      "multi_select": true,
+      "multi_select_count": 3,
+      "overall_explanation": "By default, the function returns 100 rows. However, you can specify the number of rows that you want to return (until a maximum of 10.000) with the RESULT_LIMIT parameter. It returns tasks that are SCHEDULED, EXECUTING, SUCCEEDED, FAILED, FAILED_AND_AUTO_SUSPENDED, CANCELLED, or SKIPPED, and you can also return only the ones that failed or were canceled using the ERROR_ONLY parameter. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "advanced",
+      "sub_topic": "3.3",
+      "sub_topic_name": "Streams & Tasks"
+    },
+    {
+      "id": "architect_test3_q16",
+      "source": "architect_test3",
+      "question_num": 16,
+      "question": "After creating the table MY_TABLE, we execute the following commands:\n\nCREATE STREAM MYSTREAM ON TABLE MYTABLE;\nINSERT INTO MYTABLE VALUES (15);\nWhat will be the output of executing the following command?",
+      "options": [
+        {
+          "text": "SELECT SYSTEM$STREAM_HAS_DATA('MYSTREAM');",
+          "explanation": ""
+        },
+        {
+          "text": "It will return “False”",
+          "explanation": ""
+        },
+        {
+          "text": "It will return “15”",
+          "explanation": ""
+        },
+        {
+          "text": "It will return “Null”",
+          "explanation": ""
+        },
+        {
+          "text": "It will return “True”",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        4
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "The SYSTEM$STREAM_HAS_DATA indicates whether a specified stream contains change data capture (CDC) records and they haven't been consumed. In this case, it will return True. This function is intended to be used in the \"WHEN\" expression in the definition of tasks; if the stream has data, then you execute the task. Otherwise, the task can skip the current run.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "intermediate",
+      "sub_topic": "3.3",
+      "sub_topic_name": "Streams & Tasks"
+    },
+    {
+      "id": "architect_test3_q31",
+      "source": "architect_test3",
+      "question_num": 31,
+      "question": "How is the change of local time due to daylight savings time handled in Snowflake tasks? (Choose two.)",
+      "options": [
+        {
+          "text": "A task will move to a suspended state during the daylight savings time change.",
+          "explanation": ""
+        },
+        {
+          "text": "Task schedules can be designed to follow specified or local time zones to accommodate the time changes.",
+          "explanation": ""
+        },
+        {
+          "text": "A task scheduled in a UTC-based schedule will have no issues with the time changes.",
+          "explanation": ""
+        },
+        {
+          "text": "A task schedule will follow only the specified time and will fail to handle lost or duplicated hours.",
+          "explanation": ""
+        },
+        {
+          "text": "A frequent task execution schedule like minutes may not cause a problem, but will affect the task history.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        2,
+        3
+      ],
+      "multi_select": true,
+      "multi_select_count": 2,
+      "overall_explanation": "A few comments: Tasks that follow a UTC-based schedule are not affected by daylight savings time changes, as UTC remains constant regardless of local time adjustments. Tasks scheduled in local time zones can encounter issues during daylight savings transitions, such as skipping or repeating execution due to the loss or gain of an hour, leading to potential scheduling inconsistencies. For more detailed information, refer to the Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "intermediate",
+      "sub_topic": "3.3",
+      "sub_topic_name": "Streams & Tasks"
+    },
+    {
+      "id": "architect_test4_q19",
+      "source": "architect_test4",
+      "question_num": 19,
+      "question": "The following DDL command was used to create a task based on a stream:",
+      "options": [
+        {
+          "text": "Assuming MY_WH is set to auto_suspend – 60 and used exclusively for this task, which statement is true?",
+          "explanation": ""
+        },
+        {
+          "text": "The warehouse MY_WH will never suspend.",
+          "explanation": ""
+        },
+        {
+          "text": "The warehouse MY_WH will only be active when there are results in the stream.",
+          "explanation": ""
+        },
+        {
+          "text": "The warehouse MY_WH will be made active every five minutes to check the stream.",
+          "explanation": ""
+        },
+        {
+          "text": "The warehouse MY_WH will automatically resize to accommodate the size of the stream.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        2
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "A few comments: The SYSTEM$STREAM_HAS_DATA function is the only function supported for evaluation in the SQL expression. This function determines whether a specified stream contains change tracking data. A task evaluates this function before starting its current run; if the result is FALSE, the task will not execute. It's important to note that while this function is designed to minimize false negatives (i.e., it will not return a false value if the stream contains change data), it does not guarantee the avoidance of false positives (i.e., it may return true even if the stream has no change data). Furthermore, validating the conditions of the WHEN expression does not consume compute resources, as this validation is processed within the cloud services layer. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "intermediate",
+      "sub_topic": "3.3",
+      "sub_topic_name": "Streams & Tasks"
+    },
+    {
+      "id": "architect_test4_q29",
+      "source": "architect_test4",
+      "question_num": 29,
+      "question": "What built-in Snowflake features make use of the change tracking metadata for a table? (Choose two.)",
+      "options": [
+        {
+          "text": "A STREAM object",
+          "explanation": ""
+        },
+        {
+          "text": "The CHANGE_DATA_CAPTURE command",
+          "explanation": ""
+        },
+        {
+          "text": "The MERGE command",
+          "explanation": ""
+        },
+        {
+          "text": "The CHANGES clause",
+          "explanation": ""
+        },
+        {
+          "text": "The UPSERT command",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0,
+        3
+      ],
+      "multi_select": true,
+      "multi_select_count": 2,
+      "overall_explanation": "Both a STREAM object and the CHANGES clause in Snowflake use change tracking metadata to capture and track modifications made to a table. STREAM objects track row-level changes, while the CHANGES clause allows querying for data changes directly.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "intermediate",
+      "sub_topic": "3.3",
+      "sub_topic_name": "Streams & Tasks"
+    },
+    {
+      "id": "architect_test4_q37",
+      "source": "architect_test4",
+      "question_num": 37,
+      "question": "A new table and streams are created with the following commands:\n\nCREATE OR REPLACE TABLE LETTERS (ID INT, LETTER STRING);\nCREATE OR REPLACE STREAM STREAM_1 ON TABLE LETTERS;\nCREATE OR REPLACE STREAM STREAM_2 ON TABLE LETTERS APPEND_ONLY = TRUE;\n\nThe following operations are processed on the newly created table:\n\nINSERT INTO LETTERS VALUES (1, 'A');\nINSERT INTO LETTERS VALUES (2, 'B');\nINSERT INTO LETTERS VALUES (3, 'C');\nTRUNCATE TABLE LETTERS;\nINSERT INTO LETTERS VALUES (4, 'D');\nINSERT INTO LETTERS VALUES (5, 'E');\nINSERT INTO LETTERS VALUES (6, 'F');\nDELETE FROM LETTERS WHERE ID = 6;\n\nWhat would be the output of the following SQL commands, in order?\n\nSELECT COUNT (*) FROM STREAM_1;\nSELECT COUNT (*) FROM STREAM_2;",
+      "options": [
+        {
+          "text": "2 & 6",
+          "explanation": ""
+        },
+        {
+          "text": "2 & 3",
+          "explanation": ""
+        },
+        {
+          "text": "4 & 6",
+          "explanation": ""
+        },
+        {
+          "text": "4 & 3",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "A few comments:\n\nSTREAM_1 (with default settings) tracks all DML changes (inserts, deletes, and updates).\n\nInsertions of (4, 'D') and (5, 'E').\n\nSTREAM_2 (with APPEND_ONLY = TRUE) tracks only insert operations and ignores any updates or deletes.\n\nInsertions of (1, 'A'), (2, 'B'), (3, 'C') (initial inserts), and (4, 'D'), (5, 'E'), (6, 'F') (inserts after the truncate).\n\nFor more detailed information about streams, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "intermediate",
+      "sub_topic": "3.3",
+      "sub_topic_name": "Streams & Tasks"
+    },
+    {
+      "id": "architect_test4_q42",
+      "source": "architect_test4",
+      "question_num": 42,
+      "question": "A Data Architect is cloning a database for a new development environment. Which of the following should the Architect take into consideration with the cloning process? (Choose two.)",
+      "options": [
+        {
+          "text": "Pipes that reference an external stage will not be cloned",
+          "explanation": ""
+        },
+        {
+          "text": "Database tables will be locked during the cloning process.",
+          "explanation": ""
+        },
+        {
+          "text": "Tasks will be suspended by default when created.",
+          "explanation": ""
+        },
+        {
+          "text": "Unconsumed records in the streams will be inaccessible.",
+          "explanation": ""
+        },
+        {
+          "text": "The cloned database will retain any granted privileges from the source database.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        2,
+        3
+      ],
+      "multi_select": true,
+      "multi_select_count": 2,
+      "overall_explanation": "A few comments: It’s possible to clone pipes that reference an external stage. The tasks in the clone are suspended by default when the schema that contains them is cloned. Cloning a database or schema that includes source tables and streams results in any unconsumed records in the streams (in the clone) being inaccessible. During long cloning operations, DML transactions can modify data in the source table. For more detailed information, refer to the official Snowflake documentation. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "intermediate",
+      "sub_topic": "3.3",
+      "sub_topic_name": "Streams & Tasks"
+    },
+    {
+      "id": "architect_test5_q7",
+      "source": "architect_test5",
+      "question_num": 7,
+      "question": "A table, t1, has a table stream defined, named s1. The data retention time on the table is set for 10 days. Stream s1 has not been consumed for 10 consecutive days. What consideration needs to be made if an Architect wants to implement an ELT process on the stream?",
+      "options": [
+        {
+          "text": "An ETL process can access stream s1 after the 11th day because Snowflake automatically puts a temporary extension on the stream offset for 7 additional days.",
+          "explanation": ""
+        },
+        {
+          "text": "Because of the data retention time setting on table t1, from the 11th day forward if any ETL process tries to access stream s1 the records from the stream will be inaccessible.",
+          "explanation": ""
+        },
+        {
+          "text": "An ETL process can access stream s1 after the 11th day because Snowflake automatically puts a temporary extension on the stream offset for 14 additional days.",
+          "explanation": ""
+        },
+        {
+          "text": "An ETL process can access the stream s1 after the 11th day because streams have no dependency on the table DATA_RETENTION_TIME_IN_DAYS parameter.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        2
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "If a table has a data retention period shorter than 14 days and its stream hasn't been used, Snowflake will temporarily extend the retention up to a 14-day maximum (by default) to prevent the stream from becoming outdated. This happens automatically, no matter your Snowflake edition. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "intermediate",
+      "sub_topic": "3.3",
+      "sub_topic_name": "Streams & Tasks"
+    },
+    {
+      "id": "architect_new_q42",
+      "source": "architect_new",
+      "question_num": 42,
+      "question": "How are task dependencies (DAGs) defined in Snowflake?",
+      "options": [
+        {
+          "text": "Using a separate DAG object: CREATE DAG.",
+          "explanation": ""
+        },
+        {
+          "text": "Using the AFTER clause in CREATE TASK to define parent-child relationships.",
+          "explanation": ""
+        },
+        {
+          "text": "Using a JSON configuration file uploaded to a stage.",
+          "explanation": ""
+        },
+        {
+          "text": "Tasks cannot have dependencies -- they run independently.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Task trees (DAGs) are created by defining parent-child relationships using the AFTER clause. A child task runs only after its parent task completes successfully. Example: CREATE TASK child_task ... AFTER parent_task AS ...",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "intermediate",
+      "sub_topic": "3.3",
+      "sub_topic_name": "Streams & Tasks"
+    },
+    {
+      "id": "architect_new_q43",
+      "source": "architect_new",
+      "question_num": 43,
+      "question": "In a task tree, what happens if a parent task fails?",
+      "options": [
+        {
+          "text": "Child tasks run anyway with the data available.",
+          "explanation": ""
+        },
+        {
+          "text": "Child tasks are skipped and marked as failed.",
+          "explanation": ""
+        },
+        {
+          "text": "Child tasks wait indefinitely for the parent to succeed.",
+          "explanation": ""
+        },
+        {
+          "text": "The entire task tree is automatically retried from the root.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "When a parent task in a task tree fails, all downstream child tasks are automatically skipped. They do not execute. The task tree must be manually restarted or the root task must succeed on its next scheduled run for children to execute.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "intermediate",
+      "sub_topic": "3.3",
+      "sub_topic_name": "Streams & Tasks"
+    },
+    {
+      "id": "architect_new_q47",
+      "source": "architect_new",
+      "question_num": 47,
+      "question": "When should an Architect recommend dynamic tables over streams and tasks?",
+      "options": [
+        {
+          "text": "When the pipeline requires complex procedural logic with IF/ELSE branching.",
+          "explanation": ""
+        },
+        {
+          "text": "When the pipeline is a declarative SQL transformation that should auto-refresh on a schedule.",
+          "explanation": ""
+        },
+        {
+          "text": "When sub-second latency is required.",
+          "explanation": ""
+        },
+        {
+          "text": "When the pipeline needs to call external functions.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Dynamic tables are ideal for declarative SQL pipelines where you define the desired result and Snowflake handles refresh scheduling via TARGET_LAG. Streams + tasks are better for procedural logic, complex branching, or when you need fine-grained control over execution.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "intermediate",
+      "sub_topic": "3.3",
+      "sub_topic_name": "Streams & Tasks"
+    }
+  ]
+}

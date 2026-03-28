@@ -1,0 +1,216 @@
+{
+  "sub_topic": "3.5",
+  "sub_topic_name": "Data Transformation",
+  "domain": "Domain 3.0: Data Engineering",
+  "total_questions": 5,
+  "difficulty_distribution": {
+    "advanced": 1,
+    "intermediate": 4
+  },
+  "exam_traps": [
+    {
+      "trap": "External functions return VARIANT type",
+      "why_confusing": "The exam asks 'what can an external function return?' -- the answer is VARIANT. External functions call remote services (via API gateway) and the response is always VARIANT.",
+      "correct_answer": "External function return type = VARIANT",
+      "doc_reference": "https://docs.snowflake.com/en/sql-reference/external-functions-introduction"
+    },
+    {
+      "trap": "External functions CAN appear in SQL statements and DO accept parameters",
+      "why_confusing": "Some wrong options say external functions 'can only appear in certain clauses' or 'are not database objects'. External functions ARE database objects, accept parameters, and can be used in SELECT, WHERE, etc.",
+      "correct_answer": "External functions are DB objects, accept params, return VARIANT, can be used in standard SQL clauses",
+      "doc_reference": "https://docs.snowflake.com/en/sql-reference/external-functions-introduction"
+    }
+  ],
+  "questions": [
+    {
+      "id": "architect_test1_q11",
+      "source": "architect_test1",
+      "question_num": 11,
+      "question": "Which Snowflake objects can be used in a data share? (Choose two.)",
+      "options": [
+        {
+          "text": "Stored procedure",
+          "explanation": ""
+        },
+        {
+          "text": "External table",
+          "explanation": ""
+        },
+        {
+          "text": "Standard view",
+          "explanation": ""
+        },
+        {
+          "text": "Secure view",
+          "explanation": ""
+        },
+        {
+          "text": "Stream",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1,
+        3
+      ],
+      "multi_select": true,
+      "multi_select_count": 2,
+      "overall_explanation": "Secure Data Sharing enables you to share specific objects from a database within your account with other Snowflake accounts. The types of Snowflake objects that can be shared include databases, tables, dynamic tables, external tables, Iceberg tables, secure views, secure materialized views, and secure user-defined functions (UDFs). For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "advanced",
+      "sub_topic": "3.5",
+      "sub_topic_name": "Data Transformation"
+    },
+    {
+      "id": "architect_test1_q29",
+      "source": "architect_test1",
+      "question_num": 29,
+      "question": "Which SQL ALTER command will MAXIMIZE memory and compute resources for a Snowpark stored procedure when executed on the snowpark_opt_wh warehouse?",
+      "options": [
+        {
+          "text": "alter warehouse snowpark_opt_wh set max_concurrency_level = 1;",
+          "explanation": ""
+        },
+        {
+          "text": "alter warehouse snowpark_opt_wh set max_concurrency_level = 8;",
+          "explanation": ""
+        },
+        {
+          "text": "alter warehouse snowpark_opt_wh set max_concurrency_level = 2;",
+          "explanation": ""
+        },
+        {
+          "text": "alter warehouse snowpark_opt_wh set max_concurrency_level = 16;",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Setting the max_concurrency_level to 1 ensures that the Snowpark stored procedure will have access to the maximum memory and compute resources available to the warehouse, as only one query will be executed at a time, allocating all resources to that single query. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "intermediate",
+      "sub_topic": "3.5",
+      "sub_topic_name": "Data Transformation"
+    },
+    {
+      "id": "architect_test1_q39",
+      "source": "architect_test1",
+      "question_num": 39,
+      "question": "What are characteristics of the use of transactions in Snowflake? (Choose two.)",
+      "options": [
+        {
+          "text": "Explicit transactions can contain DDL, DML, and query statements.",
+          "explanation": ""
+        },
+        {
+          "text": "The AUTOCOMMIT setting can be changed inside a stored procedure.",
+          "explanation": ""
+        },
+        {
+          "text": "Explicit transactions should contain only DML statements and query statements. All DDL statements implicitly commit active transactions.",
+          "explanation": ""
+        },
+        {
+          "text": "A transaction can be started explicitly by executing a BEGIN WORK statement and end explicitly by executing a COMMIT WORK statement.",
+          "explanation": ""
+        },
+        {
+          "text": "A transaction can be started explicitly by executing a BEGIN TRANSACTION statement and end explicitly by executing an END TRANSACTION statement.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        2,
+        3
+      ],
+      "multi_select": true,
+      "multi_select_count": 2,
+      "overall_explanation": "A few comments: An explicit transaction can be commenced by issuing a BEGIN statement. Snowflake also recognizes BEGIN WORK and BEGIN TRANSACTION as aliases, with BEGIN TRANSACTION being the favored option. Transactions are explicitly terminated through the execution of COMMIT or ROLLBACK. Snowflake offers COMMIT WORK as an alternative to COMMIT, and ROLLBACK WORK as an alternative to ROLLBACK Explicit transactions should contain only DML statements and query statements. DDL statements implicitly commit active transactions. An error message will be generated if the autocommit setting is altered within a stored procedure. We can use BEGIN TRANSACTION to start an explicit transaction, but to end it we have to use COMMIT WORK/COMMIT or ROLLBACK WORK/ROLLBACK. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "intermediate",
+      "sub_topic": "3.5",
+      "sub_topic_name": "Data Transformation"
+    },
+    {
+      "id": "architect_test3_q20",
+      "source": "architect_test3",
+      "question_num": 20,
+      "question": "What are the limitations about external functions? (Choose two.)",
+      "options": [
+        {
+          "text": "The maximum response size per batch is 16MB.",
+          "explanation": ""
+        },
+        {
+          "text": "We can only write functions, not stored procedures.",
+          "explanation": ""
+        },
+        {
+          "text": "Future grants of privileges on external functions are supported.",
+          "explanation": ""
+        },
+        {
+          "text": "External functions can return multiple values for each input row",
+          "explanation": ""
+        },
+        {
+          "text": "External functions must be scalar, so it returns a single value for each input row.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1,
+        4
+      ],
+      "multi_select": true,
+      "multi_select_count": 2,
+      "overall_explanation": "For more detailed information, refer to the Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "intermediate",
+      "sub_topic": "3.5",
+      "sub_topic_name": "Data Transformation"
+    },
+    {
+      "id": "architect_test4_q56",
+      "source": "architect_test4",
+      "question_num": 56,
+      "question": "An Architect needs to automate the daily import of two files from an external stage into Snowflake. One file has Parquet-formatted data, the other has CSV-formatted data. How should the data be joined and aggregated to produce a final result set?",
+      "options": [
+        {
+          "text": "Create a materialized view to read, join, and aggregate the data directly from the external stage, and use the view to produce the final result set.",
+          "explanation": ""
+        },
+        {
+          "text": "Create a JavaScript stored procedure to read, join, and aggregate the data directly from the external stage, and then store the results in a table.",
+          "explanation": ""
+        },
+        {
+          "text": "Use Snowpipe to ingest the two files, then create a materialized view to produce the final result set.",
+          "explanation": ""
+        },
+        {
+          "text": "Create a task using Snowflake scripting that will import the files, and then call a Tabular User-Defined Function (UDTF) to produce the final result set.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        3
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "A few comments: It is not possible to use materialized views on a join, so we discard two options. A Snowflake task can be scheduled to import the Parquet and CSV files from the external stage into staging tables. A UDTF can be used to handle the join and aggregation logic needed for the final result set. Snowflake procedures are designed to operate on data within tables rather than directly accessing files in stages. For more detailed information about materialized views limitations, refer to the official Snowflake documentation. For more detailed information about UDTF join examples, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "intermediate",
+      "sub_topic": "3.5",
+      "sub_topic_name": "Data Transformation"
+    }
+  ]
+}

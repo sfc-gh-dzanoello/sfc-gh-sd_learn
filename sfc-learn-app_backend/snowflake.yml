@@ -3,16 +3,16 @@ entities:
   snowflake_learning_hub:
     type: streamlit
     identifier:
-      name: SNOWFLAKE_LEARNING_HUB
+      name: PRQZ2EGXBDMF6UTA
+      schema: PS_APPS_DEV
+      database: PST
     title: "Snowflake Certification Study Hub"
-    query_warehouse: COMPUTE_WH
+    query_warehouse: SNOWADHOC
     main_file: streamlit_app.py
     pages_dir: app_pages/
     artifacts:
-      - src: i18n/
-        dest: i18n/
-      - src: certifications/
-        dest: certifications/
-      - src: labs/
-        dest: labs/
+      - i18n/
+      - certifications/
+      - registry.json
       - environment.yml
+      - theme.py

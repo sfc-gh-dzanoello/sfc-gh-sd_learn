@@ -2,3 +2,13 @@
 __pycache__/
 *.pyc
 sfc-gh-sd-paths/sfc-gh-sd-learn-project
+# Personal data (user-specific study progress)
+user_notes_data.json
+study_progress.json
+learn_progress.json
+learn_topics.json
+# Build/temp artifacts
+output/
+*.!*
+# Streamlit secrets (local dev only)
+.streamlit/secrets.toml

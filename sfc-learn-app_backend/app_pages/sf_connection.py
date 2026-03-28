@@ -9,8 +9,9 @@ except ImportError:
 
 try:
     from snowflake.snowpark.context import get_active_session
+    get_active_session()
     IN_SIS = True
-except ImportError:
+except Exception:
     IN_SIS = False
 
 
@@ -76,7 +77,10 @@ def run_sql(sql, params=None):
     try:
         # Snowpark session (SiS)
         if hasattr(conn, "sql"):
-            df = conn.sql(sql).collect()
+            if params:
+                df = conn.sql(sql, params=params).collect()
+            else:
+                df = conn.sql(sql).collect()
             return [row.as_dict() for row in df]
 
         # snowflake.connector
@@ -127,29 +131,26 @@ def connection_status_widget():
     status = st.session_state.get("_sf_status", None)
 
     if status and status.get("connected"):
-        st.sidebar.markdown(f"""
-        <div style="background:rgba(78,203,113,0.1); border-left:3px solid #4ECB71;
-                    border-radius:6px; padding:8px 12px; margin:4px 0;">
-            <span style="color:#4ECB71; font-weight:600;">● Connected</span><br>
-            <span style="color:#9CA3AF; font-size:0.8rem;">{status['user']} • {status['role']}</span>
-        </div>
-        """, unsafe_allow_html=True)
+        st.sidebar.markdown(
+'<div style="background:rgba(78,203,113,0.1); border-left:3px solid #4ECB71;'
+' border-radius:6px; padding:8px 12px; margin:4px 0;">'
+f'<span style="color:#4ECB71; font-weight:600;">Connected</span><br>'
+f'<span style="color:#9CA3AF; font-size:0.8rem;">{status["user"]} - {status["role"]}</span>'
+'</div>', unsafe_allow_html=True)
     elif IN_SIS:
-        st.sidebar.markdown("""
-        <div style="background:rgba(41,181,232,0.1); border-left:3px solid #29B5E8;
-                    border-radius:6px; padding:8px 12px; margin:4px 0;">
-            <span style="color:#29B5E8; font-weight:600;">● SiS Mode</span><br>
-            <span style="color:#9CA3AF; font-size:0.8rem;">Built-in connection</span>
-        </div>
-        """, unsafe_allow_html=True)
+        st.sidebar.markdown(
+'<div style="background:rgba(41,181,232,0.1); border-left:3px solid #29B5E8;'
+' border-radius:6px; padding:8px 12px; margin:4px 0;">'
+'<span style="color:#29B5E8; font-weight:600;">SiS Mode</span><br>'
+'<span style="color:#9CA3AF; font-size:0.8rem;">Built-in connection</span>'
+'</div>', unsafe_allow_html=True)
     else:
-        st.sidebar.markdown("""
-        <div style="background:rgba(255,107,107,0.1); border-left:3px solid #FF6B6B;
-                    border-radius:6px; padding:8px 12px; margin:4px 0;">
-            <span style="color:#FF6B6B; font-weight:600;">● Not connected</span><br>
-            <span style="color:#9CA3AF; font-size:0.8rem;">Click Connect above</span>
-        </div>
-        """, unsafe_allow_html=True)
+        st.sidebar.markdown(
+'<div style="background:rgba(255,107,107,0.1); border-left:3px solid #FF6B6B;'
+' border-radius:6px; padding:8px 12px; margin:4px 0;">'
+'<span style="color:#FF6B6B; font-weight:600;">Not connected</span><br>'
+'<span style="color:#9CA3AF; font-size:0.8rem;">Click Connect above</span>'
+'</div>', unsafe_allow_html=True)
 
 
 def close_connection():

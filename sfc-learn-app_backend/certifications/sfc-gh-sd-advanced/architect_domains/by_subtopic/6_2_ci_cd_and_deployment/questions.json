@@ -1,0 +1,126 @@
+{
+  "sub_topic": "6.2",
+  "sub_topic_name": "CI/CD & Deployment",
+  "domain": "Domain 6.0: DevOps & Ecosystem",
+  "total_questions": 3,
+  "difficulty_distribution": {
+    "advanced": 1,
+    "intermediate": 2
+  },
+  "exam_traps": [
+    {
+      "trap": "Snowflake CLI (snow) and Schemachange are different tools for different purposes",
+      "why_confusing": "Snowflake CLI is the official tool for deploying Snowpark, Streamlit, and managing Snowflake objects. Schemachange is a third-party tool for database migration scripts (similar to Flyway). The exam may test which tool for which use case.",
+      "correct_answer": "Snowflake CLI = deploy apps/objects. Schemachange = database migration scripts.",
+      "doc_reference": "https://docs.snowflake.com/en/developer-guide/snowflake-cli/index"
+    }
+  ],
+  "questions": [
+    {
+      "id": "architect_new_q19",
+      "source": "architect_new",
+      "question_num": 19,
+      "question": "An Architect needs to deploy schema changes to production with zero downtime. Which Snowflake feature enables this?",
+      "options": [
+        {
+          "text": "CREATE DATABASE ... CLONE",
+          "explanation": ""
+        },
+        {
+          "text": "ALTER DATABASE ... SWAP WITH",
+          "explanation": ""
+        },
+        {
+          "text": "ALTER DATABASE ... RENAME TO",
+          "explanation": ""
+        },
+        {
+          "text": "CREATE DATABASE ... FROM SHARE",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "ALTER DATABASE SWAP WITH atomically swaps two databases, enabling blue/green deployments. Deploy changes to the 'blue' database, test them, then swap it with production. If issues arise, swap back for instant rollback.",
+      "domain_raw": "",
+      "domain": "Domain 6.0: DevOps & Ecosystem",
+      "difficulty": "intermediate",
+      "sub_topic": "6.2",
+      "sub_topic_name": "CI/CD & Deployment"
+    },
+    {
+      "id": "architect_new_q21",
+      "source": "architect_new",
+      "question_num": 21,
+      "question": "What authentication method is recommended for Snowflake CI/CD pipelines?",
+      "options": [
+        {
+          "text": "Username and password stored in environment variables.",
+          "explanation": ""
+        },
+        {
+          "text": "Single sign-on (SSO) with SAML.",
+          "explanation": ""
+        },
+        {
+          "text": "Key-pair authentication with an encrypted private key.",
+          "explanation": ""
+        },
+        {
+          "text": "OAuth with user consent flow.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        2
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Key-pair authentication is the recommended method for CI/CD pipelines. It avoids storing passwords, supports key rotation with two active keys, and doesn't require interactive login. SSO and OAuth with consent flows are interactive and unsuitable for automated pipelines.",
+      "domain_raw": "",
+      "domain": "Domain 6.0: DevOps & Ecosystem",
+      "difficulty": "intermediate",
+      "sub_topic": "6.2",
+      "sub_topic_name": "CI/CD & Deployment"
+    },
+    {
+      "id": "architect_new_q36",
+      "source": "architect_new",
+      "question_num": 36,
+      "question": "Which approach is recommended for rolling back a failed production deployment in Snowflake? (Choose two.)",
+      "options": [
+        {
+          "text": "Use ALTER DATABASE SWAP WITH to swap back to the previous version.",
+          "explanation": ""
+        },
+        {
+          "text": "Manually re-run the previous migration scripts.",
+          "explanation": ""
+        },
+        {
+          "text": "Use Time Travel to clone the database from before the deployment.",
+          "explanation": ""
+        },
+        {
+          "text": "Delete the account and recreate it.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0,
+        2
+      ],
+      "multi_select": true,
+      "multi_select_count": 2,
+      "overall_explanation": "Two reliable rollback strategies: (1) ALTER DATABASE SWAP WITH reverses a blue/green deployment instantly. (2) Time Travel allows cloning a database from a point before the failed deployment. Both are fast and don't require re-running scripts.",
+      "domain_raw": "",
+      "domain": "Domain 6.0: DevOps & Ecosystem",
+      "difficulty": "advanced",
+      "sub_topic": "6.2",
+      "sub_topic_name": "CI/CD & Deployment"
+    }
+  ]
+}

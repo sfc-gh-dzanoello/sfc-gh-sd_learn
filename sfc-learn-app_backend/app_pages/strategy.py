@@ -4,6 +4,7 @@ import random
 import re
 import os
 import sys
+from i18n import t
 
 BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if BASE not in sys.path:
@@ -11,10 +12,15 @@ if BASE not in sys.path:
 
 from app_pages.data_layer import get_app_content
 
-# ── Sidebar: Home button ──
-if st.sidebar.button("🏠 Home", key="strategy_home", use_container_width=True):
-    st.session_state.app_mode = None
-    st.switch_page("app_pages/landing.py")
+# ── Sidebar: Navigation buttons ──
+_nav1, _nav2 = st.sidebar.columns(2)
+with _nav1:
+    if st.button(":material/home: Home", key="strategy_home", use_container_width=True):
+        st.session_state.app_mode = None
+        st.switch_page("app_pages/landing.py")
+with _nav2:
+    if st.button(":material/arrow_back: Dashboard", key="strategy_dash", use_container_width=True):
+        st.switch_page("app_pages/dashboard.py")
 
 DOMAIN_COLORS = st.session_state.get("DOMAIN_COLORS", {})
 DOMAIN_CSS_NUM = st.session_state.get("DOMAIN_CSS_NUM", {})
@@ -31,9 +37,9 @@ def _hex_to_rgb(hex_color):
     return f"{int(h[0:2],16)},{int(h[2:4],16)},{int(h[4:6],16)}"
 
 
-st.markdown("""
-<h1 style="margin-bottom:4px;">🎯 Exam Strategy</h1>
-<p style="color:#9CA3AF; margin-top:0;">Everything you need — organized by topic. Click a tab.</p>
+st.markdown(f"""
+<h1 style="margin-bottom:4px;">🎯 {t("exam_strategy_title")}</h1>
+<p style="color:#9CA3AF; margin-top:0;">{t("exam_strategy_subtitle")}</p>
 """, unsafe_allow_html=True)
 
 # ── Exam overview stat cards ──
@@ -47,9 +53,9 @@ per_q_sec = round(time_minutes * 60 / num_questions)
 exam_stats = [
     (str(num_questions), "Questions", "#29B5E8"),
     (exam_time, "Time", "#FFD93D"),
-    (f"~{per_q_sec} sec", "Per question", "#4ECB71"),
+    (f"~{per_q_sec} sec", t("per_question"), "#4ECB71"),
     (pass_score, "Pass score", "#FF6B6B"),
-    ("Single + Multi", "Types", "#C084FC"),
+    (t("single_multi"), t("types"), "#C084FC"),
 ]
 for col, (val, label, color) in zip(cols, exam_stats):
     with col:
@@ -66,13 +72,13 @@ st.markdown("<br>", unsafe_allow_html=True)
 # ── TABS ──
 # ══════════════════════════════════════════
 tab_fc, tab_strat, tab_editions, tab_partners, tab_domains, tab_exam_day = st.tabs([
-    "🃏 Flashcards", "📝 Strategies", "📋 Editions", "🤝 Partners", "📊 Domains", "⏱️ Exam Day"
+    f"🃏 {t('tab_flashcards')}", f"📝 {t('tab_strategies')}", f"📋 {t('tab_editions')}", f"🤝 {t('tab_partners')}", f"📊 {t('tab_domains')}", f"⏱️ {t('tab_exam_day')}"
 ])
 
 # ── TAB 1: FLASHCARDS ──
 with tab_fc:
-    st.markdown("### 🃏 Interactive Flashcards")
-    st.caption("Click to reveal answers. Use these to make handwritten flashcards.")
+    st.markdown(f"### 🃏 {t('interactive_flashcards')}")
+    st.caption(t("click_to_reveal"))
 
     def extract_flashcards_from_notes():
         notes = st.session_state.get("review_notes", {})
@@ -109,13 +115,13 @@ with tab_fc:
             ]
 
     fc_domains = ["All"] + sorted(set(c["domain"] for c in flashcards))
-    fc_filter = st.selectbox("Filter by domain", fc_domains, key="fc_domain_filter")
+    fc_filter = st.selectbox(t("filter_by_domain"), fc_domains, key="fc_domain_filter")
     filtered_cards = flashcards if fc_filter == "All" else [c for c in flashcards if c["domain"] == fc_filter]
 
-    if st.button("🔀 Shuffle cards", key="shuffle_fc"):
+    if st.button(f"🔀 {t('shuffle_cards')}", key="shuffle_fc"):
         random.shuffle(filtered_cards)
 
-    st.caption(f"Showing {len(filtered_cards)} flashcards")
+    st.caption(t("showing_flashcards").replace("{n}", str(len(filtered_cards))))
 
     for ci, card in enumerate(filtered_cards):
         domain = card["domain"]
@@ -128,11 +134,11 @@ with tab_fc:
             st.markdown(f"""
             <div style="background:rgba({_hex_to_rgb(color)},0.08); border-left:4px solid {color}; border-radius:8px; padding:14px 18px; margin:6px 0;">
                 <span style="font-size:0.75rem; color:{color}; font-weight:600;">{emoji} {short}</span><br>
-                <strong style="color:#FAFAFA;">{card['q']}</strong>
+                <strong style="color:inherit;">{card['q']}</strong>
             </div>
             """, unsafe_allow_html=True)
         with col2:
-            if st.button("👁️ Show", key=f"show_fc_{ci}", use_container_width=True):
+            if st.button(f"👁️ {t('show_btn')}", key=f"show_fc_{ci}", use_container_width=True):
                 st.session_state[f"fc_revealed_{ci}"] = not st.session_state.get(f"fc_revealed_{ci}", False)
 
         if st.session_state.get(f"fc_revealed_{ci}", False):
@@ -144,22 +150,22 @@ with tab_fc:
 
 # ── TAB 2: STRATEGIES ──
 with tab_strat:
-    st.markdown("### 📝 During Exam Strategies")
+    st.markdown(f"### 📝 {t('during_exam_strategies')}")
 
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.markdown("""
+        st.markdown(f"""
         <div class="domain-card domain-1">
-            <h3>📖 Reading Technique</h3>
+            <h3>📖 {t("reading_technique")}</h3>
             <p>1. Read the <strong>LAST sentence first</strong> (the actual question)<br>
             2. Then read the scenario context<br>
             3. Saves time — many scenarios are long but the question is simple</p>
         </div>
         """, unsafe_allow_html=True)
     with col2:
-        st.markdown("""
+        st.markdown(f"""
         <div class="domain-card domain-2">
-            <h3>🎯 Elimination Technique</h3>
+            <h3>🎯 {t("elimination_technique")}</h3>
             <p>1. Eliminate 2 obviously wrong answers first<br>
             2. Choose between remaining 2<br>
             3. If unsure — go with first instinct<br>
@@ -183,7 +189,7 @@ with tab_strat:
             )
         st.markdown(f"""
         <div class="domain-card domain-3">
-            <h3>⚡ Energy Management</h3>
+            <h3>⚡ {t("energy_management")}</h3>
             <p>{energy_text}</p>
         </div>
         """, unsafe_allow_html=True)
@@ -191,7 +197,7 @@ with tab_strat:
     st.markdown("<br>", unsafe_allow_html=True)
 
     # ADHD tips
-    st.markdown("### 🧠 ADHD-Specific Tips")
+    st.markdown(f"### 🧠 {t('adhd_tips')}")
     tips = [
         ("🎧", "Noise", "Use noise-cancelling headphones or earplugs. Test center noise is real."),
         ("⏸️", "Zone out?", "If you zone out mid-question, re-read the LAST sentence only."),
@@ -208,8 +214,8 @@ with tab_strat:
 
 # ── TAB 3: EDITION FEATURES ──
 with tab_editions:
-    st.markdown("### 📋 Edition Features Cheatsheet")
-    st.caption("Know which features require which edition — this is heavily tested.")
+    st.markdown(f"### 📋 {t('edition_cheatsheet')}")
+    st.caption(t("know_editions"))
 
     edition_data = [
         ("Virtual warehouses, MFA, encryption", True, True, True, True),
@@ -243,7 +249,7 @@ with tab_editions:
     <table style="width:100%; border-collapse:collapse; font-size:0.9rem;">
     <thead>
     <tr style="background:#1B2332;">
-        <th style="text-align:left; padding:10px 12px; color:#29B5E8;">Feature</th>
+        <th style="text-align:left; padding:10px 12px; color:#29B5E8;">{t("feature")}</th>
         <th style="text-align:center; padding:10px; color:#9CA3AF;">Standard</th>
         <th style="text-align:center; padding:10px; color:#FFD93D;">Enterprise</th>
         <th style="text-align:center; padding:10px; color:#FF6B6B;">Business Critical</th>
@@ -255,17 +261,17 @@ with tab_editions:
     """, unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
-    st.markdown("""
+    st.markdown(f"""
     <div class="mnemonic">
-        <strong>Memory trick:</strong> Standard = basics. Enterprise = everything cool (MV, masking, MCW, 90d TT).
+        <strong>{t("memory_trick")}</strong> Standard = basics. Enterprise = everything cool (MV, masking, MCW, 90d TT).
         Business Critical = security (Tri-Secret, PrivateLink, HIPAA). VPS = isolation.
     </div>
     """, unsafe_allow_html=True)
 
 # ── TAB 4: PARTNERS ──
 with tab_partners:
-    st.markdown("### 🤝 Partner Cheatsheet")
-    st.caption("When the exam asks 'which partner does X?' — know these categories.")
+    st.markdown(f"### 🤝 {t('partner_cheatsheet')}")
+    st.caption(t("partner_subtitle"))
 
     col1, col2 = st.columns(2)
     with col1:
@@ -322,8 +328,8 @@ with tab_partners:
 
 # ── TAB 5: DOMAIN WEIGHTS ──
 with tab_domains:
-    st.markdown("### 📊 Domain Weight Strategy")
-    st.caption("Focus your study time proportionally to exam weight.")
+    st.markdown(f"### 📊 {t('domain_weight_strategy')}")
+    st.caption(t("focus_proportionally"))
 
     if active_cert == "architect":
         DOMAINS_ORDERED = [
@@ -358,7 +364,7 @@ with tab_domains:
 
 # ── TAB 6: EXAM DAY TIMELINE ──
 with tab_exam_day:
-    st.markdown("### ⏱️ ADHD-Friendly Exam Day Timeline")
+    st.markdown(f"### ⏱️ {t('adhd_timeline')}")
 
     if active_cert == "architect":
         steps = [
@@ -397,5 +403,5 @@ with tab_exam_day:
     # Full strategy doc
     strategy_content = get_app_content("exam_strategy_partners", "en")
     if strategy_content:
-        with st.expander("Full strategy document"):
+        with st.expander(t("full_strategy_doc")):
             st.markdown(strategy_content)

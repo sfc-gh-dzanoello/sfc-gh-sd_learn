@@ -1,0 +1,516 @@
+{
+  "sub_topic": "1.5",
+  "sub_topic_name": "Authentication",
+  "domain": "Domain 1.0: Accounts and Security",
+  "total_questions": 13,
+  "difficulty_distribution": {
+    "advanced": 7,
+    "intermediate": 6
+  },
+  "exam_traps": [
+    {
+      "trap": "SCIM is separate from SSO -- SSO handles login, SCIM handles user provisioning",
+      "why_confusing": "Configuring SSO (SAML) does NOT automatically provision users or sync roles. SCIM must be configured separately. Without SCIM, you authenticate via SSO but must manually create users in Snowflake.",
+      "correct_answer": "SSO = authentication only. SCIM = user/role provisioning and sync.",
+      "doc_reference": "https://docs.snowflake.com/en/user-guide/admin-security-fed-auth-overview"
+    },
+    {
+      "trap": "ALLOW_CLIENT_MFA_CACHING must be set at ACCOUNT level, not session level",
+      "why_confusing": "The exam gives options for session-level vs account-level. MFA token caching can only be enabled at the account level by ACCOUNTADMIN. Setting it at session level does nothing.",
+      "correct_answer": "ALTER ACCOUNT SET ALLOW_CLIENT_MFA_CACHING = TRUE (account level only)",
+      "doc_reference": "https://docs.snowflake.com/en/user-guide/security-mfa"
+    },
+    {
+      "trap": "Key pair authentication: only ACCOUNTADMIN can create SCIM integrations",
+      "why_confusing": "The default role for creating security integrations (including SCIM) is ACCOUNTADMIN. SYSADMIN cannot create security integrations unless explicitly granted the privilege.",
+      "correct_answer": "ACCOUNTADMIN role is required for CREATE SECURITY INTEGRATION",
+      "doc_reference": "https://docs.snowflake.com/en/user-guide/admin-security-fed-auth-configure-snowflake"
+    },
+    {
+      "trap": "Multiple identity providers can be configured for the same Snowflake account",
+      "why_confusing": "Some think only one IdP is allowed. Snowflake supports multiple SAML IdPs, allowing different user groups to authenticate with different providers.",
+      "correct_answer": "Yes, multiple SAML identity providers are supported per account",
+      "doc_reference": "https://docs.snowflake.com/en/user-guide/admin-security-fed-auth-overview"
+    }
+  ],
+  "questions": [
+    {
+      "id": "architect_test1_q22",
+      "source": "architect_test1",
+      "question_num": 22,
+      "question": "When using Multi-Factor Authentication (MFA) with the following command:\n\n--mfa-passcode-in-password\nThe following password prompt is forced:\n$ snowsql ... -P ...\nWhat will the password be if the MFA token is 123456 and the password is SNOWFLAKE?\n\n123456-SNOWFLAKE",
+      "options": [
+        {
+          "text": "SNOWFLAKE123456",
+          "explanation": ""
+        },
+        {
+          "text": "123456SNOWFLAKE",
+          "explanation": ""
+        },
+        {
+          "text": "SNOWFLAKE-123456",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "When using SnowSQL with MFA, the password is concatenated as PASSWORD + MFA_TOKEN (no separator). For example, if password is SNOWFLAKE and token is 123456, the combined password would be SNOWFLAKE123456.",
+      "domain_raw": "",
+      "domain": "Domain 1.0: Accounts and Security",
+      "difficulty": "intermediate",
+      "sub_topic": "1.5",
+      "sub_topic_name": "Authentication"
+    },
+    {
+      "id": "architect_test1_q47",
+      "source": "architect_test1",
+      "question_num": 47,
+      "question": "An Architect configured single sign-on (SSO) using Okta with Muiti-Factor Authentication (MFA) on a Snowflake deployment. The Data Analyst team uses DBeaver to query data in Snowflake. The Analysts frequently get prompted to enter their credentials to the point where it impacts productivity. What change needs to be made to address this issue?",
+      "options": [
+        {
+          "text": "Configure ALLOW_CLIENT_MFA_CACHING at the session level in the JDBC connect string to Snowflake from DBeaver.",
+          "explanation": ""
+        },
+        {
+          "text": "Configure the CLIENT_SESSION_KEEP_ALIVE parameter at the session level in the JDBC connect string to Snowflake from DBeaver.",
+          "explanation": ""
+        },
+        {
+          "text": "Configure ALLOW_CLIENT_MFA_CACHING at the account level.",
+          "explanation": ""
+        },
+        {
+          "text": "Configure the CLIENT_SESSION_KEEP_ALIVE parameter at the account level.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        2
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "To address the frequent credential prompts experienced by the Data Analyst team while using DBeaver to query data in Snowflake, configuring ALLOW_CLIENT_MFA_CACHING at the account level will help. This setting allows the client to cache MFA tokens, reducing the need for repeated credential entries and improving overall productivity. Setting this parameter to true, users do not receive prompts for further MFA verification. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 1.0: Accounts and Security",
+      "difficulty": "advanced",
+      "sub_topic": "1.5",
+      "sub_topic_name": "Authentication"
+    },
+    {
+      "id": "architect_test2_q4",
+      "source": "architect_test2",
+      "question_num": 4,
+      "question": "Which security feature is required to connect to Snowflake directly from an AWS VPC?",
+      "options": [
+        {
+          "text": "SSO",
+          "explanation": ""
+        },
+        {
+          "text": "PrivateLink",
+          "explanation": ""
+        },
+        {
+          "text": "SCIM",
+          "explanation": ""
+        },
+        {
+          "text": "OAuth",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 1.0: Accounts and Security",
+      "difficulty": "intermediate",
+      "sub_topic": "1.5",
+      "sub_topic_name": "Authentication"
+    },
+    {
+      "id": "architect_test2_q12",
+      "source": "architect_test2",
+      "question_num": 12,
+      "question": "Which vendors do support Snowflake natively for federated authentication and SSO? (Choose two.)",
+      "options": [
+        {
+          "text": "Okta",
+          "explanation": ""
+        },
+        {
+          "text": "Onelogin",
+          "explanation": ""
+        },
+        {
+          "text": "Microsoft ADFS",
+          "explanation": ""
+        },
+        {
+          "text": "Google G Suite",
+          "explanation": ""
+        },
+        {
+          "text": "Microsoft Azure Active Directory",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0,
+        2
+      ],
+      "multi_select": true,
+      "multi_select_count": 2,
+      "overall_explanation": "Okta and Microsoft ADFS provide native Snowflake support for federated authentication and SSO. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 1.0: Accounts and Security",
+      "difficulty": "intermediate",
+      "sub_topic": "1.5",
+      "sub_topic_name": "Authentication"
+    },
+    {
+      "id": "architect_test2_q65",
+      "source": "architect_test2",
+      "question_num": 65,
+      "question": "A company is using a Snowflake account in Azure. The account has SAML SSO set up using ADFS as a SCIM identity provider. To validate Private Link connectivity, an Architect performed the following steps:\n\nConfirmed Private Link URLs are working by logging in with a username/password account\n\nVerified DNS resolution by running nslookups against Private Link URLs\n\nValidated connectivity using SnowCD\n\nDisabled public access using a network policy set to use the company’s IP address range\n\nHowever, the following error message is received when using SSO to log into the company account:\n\nIP XX.XXX.XX.XX is not allowed to access Snowflake. Contact your local security administrator.\n\nWhat steps should the Architect take to resolve this error and ensure that the account is accessed using only Private Link? (Choose two.)\n\nGenerate a new SCIM access token using system$generate_scim_access_token and save it to Azure AD.\n\nOpen a case with Snowflake Support to authorize the Private Link URLs’ access to the account.",
+      "options": [
+        {
+          "text": "Update the configuration of the Azure AD SSO to use the Private Link URLs.",
+          "explanation": ""
+        },
+        {
+          "text": "Update the Snowflake IDP metadata file to include Private Link URLs.",
+          "explanation": ""
+        },
+        {
+          "text": "Alter the Azure security integration to use the Private Link URLs.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0,
+        2
+      ],
+      "multi_select": true,
+      "multi_select_count": 2,
+      "overall_explanation": "A few comments:\n\nThe security integration defines how Snowflake communicates with Azure AD.\n\nSSO should use Private Link, not public endpoints.\n\nAfter modifying the private links, SSO will only work if we first update the security integration and then update the configuration at the Azure AD level.\n\nIf the SSO metadata URL in Azure AD still points to the public Snowflake endpoint, authentication will fail when public access is disabled.\n\nSCIM is for user provisioning, not authentication. This does not impact SSO login failures.\n\nFor more detailed information, refer to the official Snowflake documentation.\n\nhttps://community.snowflake.com/s/article/HOW-TO-Setup-SSO-with-Azure-AD-and-the-Snowflake-New-URL-Format-or-Privatelink",
+      "domain_raw": "",
+      "domain": "Domain 1.0: Accounts and Security",
+      "difficulty": "advanced",
+      "sub_topic": "1.5",
+      "sub_topic_name": "Authentication"
+    },
+    {
+      "id": "architect_test3_q35",
+      "source": "architect_test3",
+      "question_num": 35,
+      "question": "Which of the following statements are the best practices for the ACCOUNTADMIN role? (Choose three)",
+      "options": [
+        {
+          "text": "Assign this role only to a select/limited number of people in your organization.",
+          "explanation": ""
+        },
+        {
+          "text": "All users assigned the ACCOUNTADMIN role should also be required to use multi-factor authentication (MFA) for login.",
+          "explanation": ""
+        },
+        {
+          "text": "The ACCOUNTADMIN role should be used for all routine administrative tasks.",
+          "explanation": ""
+        },
+        {
+          "text": "Assign this role to only one user.",
+          "explanation": ""
+        },
+        {
+          "text": "Assign this role to at least two users.",
+          "explanation": ""
+        },
+        {
+          "text": "All users assigned the ACCOUNTADMIN role should be allowed to bypass security protocols.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0,
+        1,
+        4
+      ],
+      "multi_select": true,
+      "multi_select_count": 3,
+      "overall_explanation": "The first two statements are obvious. Regarding the last one, Snowflake follows strict security procedures for resetting a forgotten or lost password for users with the ACCOUNTADMIN role. These procedures can take up to two business days, and to avoid them, we should assign this role to two users at least, as the users can reset each other’s passwords.",
+      "domain_raw": "",
+      "domain": "Domain 1.0: Accounts and Security",
+      "difficulty": "advanced",
+      "sub_topic": "1.5",
+      "sub_topic_name": "Authentication"
+    },
+    {
+      "id": "architect_test4_q5",
+      "source": "architect_test4",
+      "question_num": 5,
+      "question": "A company wants to integrate its main enterprise identity provider with federated authentication with Snowflake. The authentication integration has been configured and roles have been created in Snowflake. However, the users are not automatically appearing in Snowflake when created and their group membership is not reflected in their assigned roles. How can the missing functionality be enabled with the LEAST amount of operational overhead?",
+      "options": [
+        {
+          "text": "OAuth must be configured between the identity provider and Snowflake. Then the authorization server must be configured with the right mapping of users and roles.",
+          "explanation": ""
+        },
+        {
+          "text": "SCIM must be enabled between the identity provider and Snowflake. Once both are synchronized through SCIM, their groups will get created as group accounts in Snowflake and the proper roles can be granted.",
+          "explanation": ""
+        },
+        {
+          "text": "OAuth must be configured between the identity provider and Snowflake. Then the authorization server must be configured with the right mapping of users, and the resource server must be configured with the right mapping of role assignment.",
+          "explanation": ""
+        },
+        {
+          "text": "SCIM must be enabled between the identity provider and Snowflake. Once both are synchronized through SCIM, users will automatically get created and their group membership will be reflected as roles in Snowflake.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        3
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "A few comments: OAuth is primarily focused on access tokens and does not handle the automatic creation or role assignment for users in Snowflake. Groups are synchronized as role assignments in Snowflake, not as separate \"group accounts.\" Enabling SCIM between Snowflake and the identity provider allows users to be created automatically in Snowflake based on their identity provider settings, and their group memberships are mapped to roles. For more detailed information about OAuth, refer to the official Snowflake documentation. For more detailed information about SCIM, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 1.0: Accounts and Security",
+      "difficulty": "advanced",
+      "sub_topic": "1.5",
+      "sub_topic_name": "Authentication"
+    },
+    {
+      "id": "architect_test4_q48",
+      "source": "architect_test4",
+      "question_num": 48,
+      "question": "A company wants to deploy its Snowflake accounts inside its corporate network with no visibility on the internet. The company is using a VPN infrastructure and Virtual Desktop Infrastructure (VDI) for its Snowflake users. The company also wants to re-use the login credentials set up for the VDI to eliminate redundancy when managing logins. What Snowflake functionality should be used to meet these requirements? (Choose two.)",
+      "options": [
+        {
+          "text": "Set up replication to allow users to connect from outside the company VPN.",
+          "explanation": ""
+        },
+        {
+          "text": "Use private connectivity from a cloud provider.",
+          "explanation": ""
+        },
+        {
+          "text": "Use a proxy Snowflake account outside the VPN, enabling client redirect for user logins.",
+          "explanation": ""
+        },
+        {
+          "text": "Set up SSO for federated authentication.",
+          "explanation": ""
+        },
+        {
+          "text": "Provision a unique company Tri-Secret Secure key.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1,
+        3
+      ],
+      "multi_select": true,
+      "multi_select_count": 2,
+      "overall_explanation": "Use private connectivity from a cloud provider: Private connectivity enables a secure, dedicated network connection between Snowflake and the company’s on-premises infrastructure over a VPN. This approach can provide the required network isolation and security while maintaining high performance and low latency. Set up SSO for federated authentication: Setting up SSO with a supported identity provider (IdP) allows the company to use its existing user accounts and credentials for authenticating and authorizing user access to Snowflake. This can help reduce the burden of managing multiple sets of credentials and improve the overall user experience.",
+      "domain_raw": "",
+      "domain": "Domain 1.0: Accounts and Security",
+      "difficulty": "intermediate",
+      "sub_topic": "1.5",
+      "sub_topic_name": "Authentication"
+    },
+    {
+      "id": "architect_test4_q60",
+      "source": "architect_test4",
+      "question_num": 60,
+      "question": "Which security, governance, and data protection features require, at a MINIMUM, the Business Critical edition of Snowflake? (Choose two.)",
+      "options": [
+        {
+          "text": "AWS, Azure, or Google Cloud private connectivity to Snowflake",
+          "explanation": ""
+        },
+        {
+          "text": "Federated authentication and SSO",
+          "explanation": ""
+        },
+        {
+          "text": "Extended Time Travel (up to 90 days)",
+          "explanation": ""
+        },
+        {
+          "text": "Customer-managed encryption keys through Tri-Secret Secure",
+          "explanation": ""
+        },
+        {
+          "text": "Periodic rekeying of encrypted data",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0,
+        3
+      ],
+      "multi_select": true,
+      "multi_select_count": 2,
+      "overall_explanation": "The security, governance, and data protection features that require, at a minimum, the Business Critical edition of Snowflake are: Customer-managed encryption keys through Tri-Secret Secure AWS, Azure, or Google Cloud private connectivity to Snowflake These features are essential for enhanced security and data management in the Business Critical edition. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 1.0: Accounts and Security",
+      "difficulty": "advanced",
+      "sub_topic": "1.5",
+      "sub_topic_name": "Authentication"
+    },
+    {
+      "id": "architect_new_q44",
+      "source": "architect_new",
+      "question_num": 44,
+      "question": "A company uses key-pair authentication for a service account. How should they rotate the RSA key pair without downtime?",
+      "options": [
+        {
+          "text": "Generate a new key pair and immediately replace the old one using ALTER USER ... SET RSA_PUBLIC_KEY.",
+          "explanation": ""
+        },
+        {
+          "text": "Set the new key as RSA_PUBLIC_KEY_2, update the service to use the new private key, then remove the old RSA_PUBLIC_KEY.",
+          "explanation": ""
+        },
+        {
+          "text": "Temporarily switch to password authentication during rotation.",
+          "explanation": ""
+        },
+        {
+          "text": "Key rotation is not supported -- a new user must be created.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Snowflake supports two active RSA public keys (RSA_PUBLIC_KEY and RSA_PUBLIC_KEY_2) for zero-downtime key rotation. Set the new key as the secondary key, update the client to use the new private key, verify it works, then remove the old primary key.",
+      "domain_raw": "",
+      "domain": "Domain 1.0: Accounts and Security",
+      "difficulty": "advanced",
+      "sub_topic": "1.5",
+      "sub_topic_name": "Authentication"
+    },
+    {
+      "id": "architect_new_q59",
+      "source": "architect_new",
+      "question_num": 59,
+      "question": "What does SCIM automate in Snowflake? (Choose two.)",
+      "options": [
+        {
+          "text": "Warehouse scaling policies.",
+          "explanation": ""
+        },
+        {
+          "text": "User provisioning and deprovisioning.",
+          "explanation": ""
+        },
+        {
+          "text": "Group membership synchronization as Snowflake roles.",
+          "explanation": ""
+        },
+        {
+          "text": "Data encryption key management.",
+          "explanation": ""
+        },
+        {
+          "text": "Query optimization.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1,
+        2
+      ],
+      "multi_select": true,
+      "multi_select_count": 2,
+      "overall_explanation": "SCIM (System for Cross-domain Identity Management) automates user lifecycle management: creating users when they join, deactivating when they leave, and synchronizing identity provider group memberships as Snowflake roles. It works with Okta, Azure AD, and other IdPs.",
+      "domain_raw": "",
+      "domain": "Domain 1.0: Accounts and Security",
+      "difficulty": "intermediate",
+      "sub_topic": "1.5",
+      "sub_topic_name": "Authentication"
+    },
+    {
+      "id": "architect_new_q68",
+      "source": "architect_new",
+      "question_num": 68,
+      "question": "What authentication mechanism does Snowflake use for SAML-based federated authentication?",
+      "options": [
+        {
+          "text": "The identity provider sends a SAML assertion to Snowflake, which validates it and creates a session.",
+          "explanation": ""
+        },
+        {
+          "text": "Snowflake sends credentials to the identity provider for validation.",
+          "explanation": ""
+        },
+        {
+          "text": "Both parties exchange OAuth tokens.",
+          "explanation": ""
+        },
+        {
+          "text": "Snowflake stores the IdP's password hash for comparison.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "In SAML-based SSO, the identity provider authenticates the user and sends a signed SAML assertion to Snowflake. Snowflake validates the assertion's signature using the IdP's certificate and creates a session. Snowflake never sees the user's password.",
+      "domain_raw": "",
+      "domain": "Domain 1.0: Accounts and Security",
+      "difficulty": "intermediate",
+      "sub_topic": "1.5",
+      "sub_topic_name": "Authentication"
+    },
+    {
+      "id": "architect_new_q70",
+      "source": "architect_new",
+      "question_num": 70,
+      "question": "What happens when ALLOW_CLIENT_MFA_CACHING is enabled at the account level?",
+      "options": [
+        {
+          "text": "MFA is disabled for all client connections.",
+          "explanation": ""
+        },
+        {
+          "text": "MFA tokens are cached so users don't need to re-authenticate with MFA for every session.",
+          "explanation": ""
+        },
+        {
+          "text": "Client applications can bypass MFA entirely.",
+          "explanation": ""
+        },
+        {
+          "text": "MFA prompts are cached in the browser for 30 days.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "ALLOW_CLIENT_MFA_CACHING allows MFA tokens to be cached on the client, reducing the frequency of MFA prompts. This is especially useful for tools like DBeaver or other JDBC clients that would otherwise prompt for MFA on every connection.",
+      "domain_raw": "",
+      "domain": "Domain 1.0: Accounts and Security",
+      "difficulty": "advanced",
+      "sub_topic": "1.5",
+      "sub_topic_name": "Authentication"
+    }
+  ]
+}

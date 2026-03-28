@@ -1,0 +1,539 @@
+{
+  "sub_topic": "2.5",
+  "sub_topic_name": "Replication & Failover",
+  "domain": "Domain 2.0: Snowflake Architecture",
+  "total_questions": 14,
+  "difficulty_distribution": {
+    "advanced": 6,
+    "beginner": 1,
+    "intermediate": 7
+  },
+  "exam_traps": [
+    {
+      "trap": "Target account pays for BOTH data transfer AND compute in database replication",
+      "why_confusing": "Intuition says the source (primary) account should pay for something. But Snowflake bills the TARGET account for both the data transfer charges and the compute charges of the replication operation.",
+      "correct_answer": "Target account is billed for both data transfer and compute",
+      "doc_reference": "https://docs.snowflake.com/en/user-guide/database-replication-billing"
+    },
+    {
+      "trap": "Client redirect allows transparent failover to secondary account",
+      "why_confusing": "Without client redirect, applications must manually change their connection URL during failover. With client redirect (connection URL using organization-level URL), Snowflake automatically redirects clients to the promoted secondary.",
+      "correct_answer": "Client redirect = transparent failover using org-level connection URL",
+      "doc_reference": "https://docs.snowflake.com/en/user-guide/client-redirect"
+    },
+    {
+      "trap": "Failover groups can include databases, shares, AND roles/users",
+      "why_confusing": "It's not just databases that replicate. Failover groups can include account objects like roles, users, warehouses, and resource monitors. But NOT all account objects are supported.",
+      "correct_answer": "Failover group objects: databases, shares, roles, users, warehouses, resource monitors, integrations",
+      "doc_reference": "https://docs.snowflake.com/en/user-guide/account-replication-config"
+    }
+  ],
+  "questions": [
+    {
+      "id": "architect_test3_q4",
+      "source": "architect_test3",
+      "question_num": 4,
+      "question": "When data is transferred from a Snowflake primary account to another target account using database replication, which account is billed for the data transfer and compute charges?",
+      "options": [
+        {
+          "text": "The primary account is charged for the compute charges and the target account is charged for the data transfer charges.",
+          "explanation": ""
+        },
+        {
+          "text": "The target account is charged for both the data transfer and compute charges.",
+          "explanation": ""
+        },
+        {
+          "text": "The primary account is charged for both the data transfer and compute charges.",
+          "explanation": ""
+        },
+        {
+          "text": "The primary account is charged for the data transfer charges and the target account is charged for the compute charges.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "For more detailed information, refer to the Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "intermediate",
+      "sub_topic": "2.5",
+      "sub_topic_name": "Replication & Failover"
+    },
+    {
+      "id": "architect_test3_q42",
+      "source": "architect_test3",
+      "question_num": 42,
+      "question": "A company that is in one region wants to share data with two different consumers who are both based in a second region How can this be accomplished with the MINIMUM duplication of data?",
+      "options": [
+        {
+          "text": "Replicate two copies of the data to the second region and share each one respectively with the two consumers",
+          "explanation": ""
+        },
+        {
+          "text": "Replicate one copy of the data to the second region, and share it with the two data consumers",
+          "explanation": ""
+        },
+        {
+          "text": "Create a direct share from the first region to the second region, and provide access to both data consumers",
+          "explanation": ""
+        },
+        {
+          "text": "Replicate two copies of the data to the second region, but only share one of the copies with the two data consumers",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "This is a typical case of database replication. As the consumers are in a different region it is necessary to enable the database replication functionality. The LESS way to duplicate data is to do a replication and from there a share to the two consumers.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "intermediate",
+      "sub_topic": "2.5",
+      "sub_topic_name": "Replication & Failover"
+    },
+    {
+      "id": "architect_test4_q8",
+      "source": "architect_test4",
+      "question_num": 8,
+      "question": "Which statements are true about database replication? (Select THREE).",
+      "options": [
+        {
+          "text": "The secondary database can be on a different cloud provider from the primary database provider.",
+          "explanation": ""
+        },
+        {
+          "text": "The secondary database can be in a different region from the primary database.",
+          "explanation": ""
+        },
+        {
+          "text": "Each transaction on the primary database is automatically transmitted in real time to the secondary database.",
+          "explanation": ""
+        },
+        {
+          "text": "The secondary database is read-only",
+          "explanation": ""
+        },
+        {
+          "text": "The secondary database cannot be on a different cloud provider than the primary database provider.",
+          "explanation": ""
+        },
+        {
+          "text": "Data transfer charges will be incurred on the account hosting the primary database.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0,
+        1,
+        3
+      ],
+      "multi_select": true,
+      "multi_select_count": 3,
+      "overall_explanation": "A few comments: All objects in a target account are read-only. DML/DDL operations occur on the primary database. Database replication is supported across regions and cloud platforms. Each read-only secondary database can be refreshed periodically with a snapshot of the primary database. For more detailed information about Database replication, refer to the official Snowflake documentation. For more detailed information about Account replication, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "advanced",
+      "sub_topic": "2.5",
+      "sub_topic_name": "Replication & Failover"
+    },
+    {
+      "id": "architect_test4_q9",
+      "source": "architect_test4",
+      "question_num": 9,
+      "question": "A large manufacturing company runs a dozen individual Snowflake accounts across its business divisions. The company wants to increase the level of data sharing to support supply chain optimizations and increase its purchasing leverage with multiple vendors. The company’s Snowflake Architects need to design a solution that would allow the business divisions to decide what to share, while minimizing the level of effort spent on configuration and management. Most of the company divisions use Snowflake accounts in the same cloud deployments with a few exceptions for European-based divisions. According to Snowflake recommended best practice, how should these requirements be met?",
+      "options": [
+        {
+          "text": "Deploy a Private Data Exchange and use replication to allow European data shares in the Exchange.",
+          "explanation": ""
+        },
+        {
+          "text": "Migrate the European accounts in the global region and manage shares in a connected graph architecture. Deploy a Data Exchange.",
+          "explanation": ""
+        },
+        {
+          "text": "Deploy a Private Data Exchange in combination with data shares for the European accounts.",
+          "explanation": ""
+        },
+        {
+          "text": "Deploy to the Snowflake Marketplace making sure that invoker_share() is used in all secure views.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "The key is this: Most of the company divisions use Snowflake accounts in the same cloud deployments with a few exceptions for European-based divisions. This makes it necessary to use database replication as the solution needs to integrate data from different clouds. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "intermediate",
+      "sub_topic": "2.5",
+      "sub_topic_name": "Replication & Failover"
+    },
+    {
+      "id": "architect_test4_q12",
+      "source": "architect_test4",
+      "question_num": 12,
+      "question": "Company A would like to share data in Snowflake with Company B. Company B is not on the same cloud platform as Company A. What is required to allow data sharing between these two companies?",
+      "options": [
+        {
+          "text": "Company A and Company B must agree to use a single cloud platform: Data sharing is only possible if the companies share the same cloud provider.",
+          "explanation": ""
+        },
+        {
+          "text": "Setup data replication to the region and cloud platform where the consumer resides.",
+          "explanation": ""
+        },
+        {
+          "text": "Ensure that all views are persisted, as views cannot be shared across cloud platforms.",
+          "explanation": ""
+        },
+        {
+          "text": "Create a pipeline to write shared data to a cloud storage location in the target cloud provider.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "This is a common case of data replication. To enable data sharing between Company A and Company B when they are on different cloud platforms, setting up data replication to the appropriate region and cloud platform where the consumer (Company B) is located is essential. This process allows data to be transferred and accessed seamlessly across different cloud environments. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "beginner",
+      "sub_topic": "2.5",
+      "sub_topic_name": "Replication & Failover"
+    },
+    {
+      "id": "architect_test4_q46",
+      "source": "architect_test4",
+      "question_num": 46,
+      "question": "Which organization-related tasks can be performed by the ORGADMIN role? (Choose three.)",
+      "options": [
+        {
+          "text": "Creating an account",
+          "explanation": ""
+        },
+        {
+          "text": "Dropping all the accounts in the organization",
+          "explanation": ""
+        },
+        {
+          "text": "Changing the edition of organization accounts",
+          "explanation": ""
+        },
+        {
+          "text": "Enabling the replication for an account",
+          "explanation": ""
+        },
+        {
+          "text": "Viewing a list of organization accounts",
+          "explanation": ""
+        },
+        {
+          "text": "Changing the name of the organization",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0,
+        3,
+        4
+      ],
+      "multi_select": true,
+      "multi_select_count": 3,
+      "overall_explanation": "A few comments: Although it is possible to delete the organization's accounts, to delete the last one and therefore the organization, you have to contact Snowflake support. To change the name, please contact Snowflake support. To change the edition of the accounts, contact Snowflake support. Creating accounts, viewing the list, enabling replication, deleting accounts, renaming them, managing their URL, etc. is possible with the ORGADMIN role. For more detailed information about ORGADMIN capabilities, refer to the official Snowflake documentation. For more detailed information about Organizations, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "advanced",
+      "sub_topic": "2.5",
+      "sub_topic_name": "Replication & Failover"
+    },
+    {
+      "id": "architect_test5_q26",
+      "source": "architect_test5",
+      "question_num": 26,
+      "question": "A Snowflake Architect is setting up database replication to support a disaster recovery plan. The primary database has external tables. How should the database be replicated?",
+      "options": [
+        {
+          "text": "Replicate the database, external tables will be skipped.",
+          "explanation": ""
+        },
+        {
+          "text": "Share the primary database with an account in the same region that the database will be replicated to.",
+          "explanation": ""
+        },
+        {
+          "text": "Replicate the database ensuring the replicated database is in the same region as the external tables.",
+          "explanation": ""
+        },
+        {
+          "text": "Move the external tables to a database that is not replicated, then replicate the primary database.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "A few comments: Customers can replicate across all regions within a region group. External tables are not currently supported for replication. Until early 2024, when replicating a database that contains an external table, the presence of the external table in the primary database would cause the replication to fail. Since 2024 this behavior has changed and it is now possible to replicate databases containing external tables. Replicating external tables is not possible right now. If we try to replicate a database containing external tables, it will simply skip the tables of that type. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "intermediate",
+      "sub_topic": "2.5",
+      "sub_topic_name": "Replication & Failover"
+    },
+    {
+      "id": "architect_test5_q27",
+      "source": "architect_test5",
+      "question_num": 27,
+      "question": "A company is going to publish a personalized listing in the Snowflake Marketplace. The company will need to fulfill listing requests from customers whose data resides in other regions outside of the account region where the listing is located. How should this be addressed?",
+      "options": [
+        {
+          "text": "Use Cross-Cloud Auto Fulfillment",
+          "explanation": ""
+        },
+        {
+          "text": "Snowsight will automatically detect whether or not the target account is in a different region and enable auto-fulfillment",
+          "explanation": ""
+        },
+        {
+          "text": "Use Secure Data Sharing with the customer for fulfillment",
+          "explanation": ""
+        },
+        {
+          "text": "Set up replication of the data to the customer's region before fulfilling the request",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "For personalized listings in the Snowflake Marketplace that need to fulfill requests from customers in different regions, Cross-Cloud Auto-Fulfillment is the recommended and proper solution. Cross-Cloud Auto-Fulfillment automatically: Synchronizes your data product across all required consumer regions. Streamlines the provisioning and secure management of share areas. Executes autonomous data replication to remote regions. Enables consumers to access listings faster, eliminating manual setup or intervention. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "intermediate",
+      "sub_topic": "2.5",
+      "sub_topic_name": "Replication & Failover"
+    },
+    {
+      "id": "architect_test5_q35",
+      "source": "architect_test5",
+      "question_num": 35,
+      "question": "A company has implemented Snowflake replication between two Snowflake accounts, both of which are running on a Snowflake Enterprise edition. The replication is for the database APP_DB containing only one schema, APP_SCHEMA. The company's Time Travel retention policy is currently set for 30 days for both accounts. A Data Engineer has been asked to extend the Time Travel retention policy to 60 days on the secondary database only. How can this requirement be met?",
+      "options": [
+        {
+          "text": "Set the data retention policy on the schemas in the secondary database to 60 days.",
+          "explanation": ""
+        },
+        {
+          "text": "Set the data retention policy on the secondary database to 60 days.",
+          "explanation": ""
+        },
+        {
+          "text": "Set the data retention policy on the primary database to 30 days and the schemas to 60 days.",
+          "explanation": ""
+        },
+        {
+          "text": "Set the data retention policy on the primary database to 60 days.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "A few comments: Time Travel and Fail-safe data in a secondary database are maintained separately and are not copied from the primary database. Querying tables and views using Time Travel in a secondary database may yield different results than the same query in the primary database. Additionally, explicitly set database-level parameters in a secondary database remain unchanged during replication. For instance, if DATA_RETENTION_TIME_IN_DAYS is set to 1 in the secondary database and 10 in the primary database, the secondary database retains its value of 1 after replication. For more detailed information about Account Replication, refer to the official Snowflake documentation. For more detailed information about database replication, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "intermediate",
+      "sub_topic": "2.5",
+      "sub_topic_name": "Replication & Failover"
+    },
+    {
+      "id": "architect_test5_q42",
+      "source": "architect_test5",
+      "question_num": 42,
+      "question": "The company, myorg, has multiple Snowflake accounts. An Architect found one of the accounts, account1, does not have replication enabled. Executing which query will enable replication on account1?DA. SELECT SELECT SYSTEM$GLOBAL_ACCOUNT_SET_PARAMETER('myorg.account1', 'SYSTEM$DISABLE_DATABASE_REPLICATION', 'false');",
+      "options": [
+        {
+          "text": "SELECT SYSTEM$GLOBAL_ACCOUNT_SET_PARAMETER('myorg.account1', 'ENABLE_ACCOUNT_DATABASE_REPLICATION', 'true');",
+          "explanation": ""
+        },
+        {
+          "text": "SYSTEM$DISABLE_DATABASE_REPLICATION('myorg.account1'), 'false';",
+          "explanation": ""
+        },
+        {
+          "text": "SELECT SYSTEM$GLOBAL_ACCOUNT_SET_PARAMETER('myorg.account1', 'true');",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "SYSTEM$GLOBAL_ACCOUNT_SET_PARAMETER enables replication and failover features for a specified account within an organization. Once an organization administrator executes this function, the account gains access to the following features such as Replication and Client Redirect. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "advanced",
+      "sub_topic": "2.5",
+      "sub_topic_name": "Replication & Failover"
+    },
+    {
+      "id": "architect_test5_q48",
+      "source": "architect_test5",
+      "question_num": 48,
+      "question": "A company needs to ensure that its analytics platform running on Snowflake can continue operating with minimal disruption in the event of a failure in the primary region. The solution should ensure real-time data availability across regions. Which disaster recovery solution meets these requirements?",
+      "options": [
+        {
+          "text": "Use Time Travel to access historical data from another region when needed.",
+          "explanation": ""
+        },
+        {
+          "text": "Schedule daily full backups of the database and restore them in another region in case of failure.",
+          "explanation": ""
+        },
+        {
+          "text": "Implement database replication to replicate data across regions and configure automatic failover.",
+          "explanation": ""
+        },
+        {
+          "text": "Use Cross-Cloud Auto Fulfillment to share data in real-time between regions.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        2
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "A few comments: Database replication combined with automatic failover ensures data availability and minimal disruption during a regional failure. This approach allows a secondary region to take over seamlessly. Cross-Cloud Auto Fulfillment is used for sharing listings. Daily backups introduces significant recovery delays and is not real-time. Time Travel is limited to the same region and is not a cross-region DR solution.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "intermediate",
+      "sub_topic": "2.5",
+      "sub_topic_name": "Replication & Failover"
+    },
+    {
+      "id": "architect_new_q45",
+      "source": "architect_new",
+      "question_num": 45,
+      "question": "After a failover event promotes a secondary account to primary, what is the process to restore the original primary account?",
+      "options": [
+        {
+          "text": "The original primary automatically becomes secondary and can be promoted back.",
+          "explanation": ""
+        },
+        {
+          "text": "Failback requires recreating the replication group from scratch.",
+          "explanation": ""
+        },
+        {
+          "text": "The administrator must reverse the replication direction and then promote the original primary.",
+          "explanation": ""
+        },
+        {
+          "text": "Failback is not possible -- the failover is permanent.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        2
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Failback (restoring the original primary) requires the administrator to refresh and reverse the replication direction so the new primary replicates to the original account. Once caught up, the original account can be promoted back to primary. This is a manual, deliberate process.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "advanced",
+      "sub_topic": "2.5",
+      "sub_topic_name": "Replication & Failover"
+    },
+    {
+      "id": "architect_new_q46",
+      "source": "architect_new",
+      "question_num": 46,
+      "question": "What is the difference between failover groups and database replication?",
+      "options": [
+        {
+          "text": "Failover groups replicate databases only; database replication handles all object types.",
+          "explanation": ""
+        },
+        {
+          "text": "Failover groups bundle multiple object types (databases, shares, roles, etc.) for coordinated failover; database replication only handles individual databases.",
+          "explanation": ""
+        },
+        {
+          "text": "They are identical features with different names.",
+          "explanation": ""
+        },
+        {
+          "text": "Database replication is for cross-region; failover groups are for same-region only.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Failover groups can bundle databases, shares, network policies, parameters, and other objects into a single unit for coordinated failover. Database replication only replicates individual databases. Failover groups ensure all related objects fail over together consistently.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "advanced",
+      "sub_topic": "2.5",
+      "sub_topic_name": "Replication & Failover"
+    },
+    {
+      "id": "architect_new_q57",
+      "source": "architect_new",
+      "question_num": 57,
+      "question": "What is the purpose of client redirect in Snowflake?",
+      "options": [
+        {
+          "text": "Redirecting HTTP API calls to a different endpoint.",
+          "explanation": ""
+        },
+        {
+          "text": "Automatically redirecting client connections from a failed primary to a secondary account.",
+          "explanation": ""
+        },
+        {
+          "text": "Redirecting query results to a different table.",
+          "explanation": ""
+        },
+        {
+          "text": "Routing clients to the nearest regional endpoint for lower latency.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Client redirect enables automatic failover of client connections. When configured, if the primary account becomes unavailable, client connections are automatically redirected to the promoted secondary account using a connection URL that resolves dynamically.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "advanced",
+      "sub_topic": "2.5",
+      "sub_topic_name": "Replication & Failover"
+    }
+  ]
+}

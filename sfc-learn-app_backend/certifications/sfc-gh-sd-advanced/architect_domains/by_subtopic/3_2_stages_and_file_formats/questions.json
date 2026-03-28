@@ -1,0 +1,1016 @@
+{
+  "sub_topic": "3.2",
+  "sub_topic_name": "Stages & File Formats",
+  "domain": "Domain 3.0: Data Engineering",
+  "total_questions": 27,
+  "difficulty_distribution": {
+    "advanced": 6,
+    "beginner": 2,
+    "intermediate": 19
+  },
+  "exam_traps": [
+    {
+      "trap": "Table stage (@%tablename) vs Named stage (@stagename) vs User stage (@~)",
+      "why_confusing": "Each table has an implicit table stage (@%tablename). Each user has @~. Named stages are explicit. The exam asks 'COPY INTO from @%tablea' -- that's the TABLE stage. Re-uploading same-named file to table stage after fixing it will load because the failed file isn't in the 64-day metadata.",
+      "correct_answer": "@~ = user stage, @%table = table stage, @stagename = named stage",
+      "doc_reference": "https://docs.snowflake.com/en/user-guide/data-load-overview"
+    },
+    {
+      "trap": "FILE_ROW_NUMBER metadata column gives line number in the source file, not the table",
+      "why_confusing": "The exam shows metadata columns like $1, METADATA$FILENAME, METADATA$FILE_ROW_NUMBER. FILE_ROW_NUMBER is the line number in the source file, not a table row number.",
+      "correct_answer": "METADATA$FILE_ROW_NUMBER = source file line number. Stage reference = @stagename.",
+      "doc_reference": "https://docs.snowflake.com/en/user-guide/querying-metadata"
+    },
+    {
+      "trap": "ON_ERROR options: CONTINUE, SKIP_FILE, ABORT_STATEMENT (default), SKIP_FILE_<n>",
+      "why_confusing": "The exam tests whether you know the default is ABORT_STATEMENT. With SKIP_FILE, the entire file is skipped on any error. CONTINUE loads valid rows and skips bad ones.",
+      "correct_answer": "Default = ABORT_STATEMENT. SKIP_FILE = skip entire file. CONTINUE = skip bad rows.",
+      "doc_reference": "https://docs.snowflake.com/en/sql-reference/sql/copy-into-table"
+    }
+  ],
+  "questions": [
+    {
+      "id": "architect_test1_q14",
+      "source": "architect_test1",
+      "question_num": 14,
+      "question": "An Architect is designing a file ingestion recovery solution. The project will use an internal named stage for file storage. Currently, in the case of an ingestion failure, the Operations team must manually download the failed file and check for errors. Which downloading method should the Architect recommend that requires the LEAST amount of operational overhead?",
+      "options": [
+        {
+          "text": "Use the GET command in Snowsight to retrieve the file.",
+          "explanation": ""
+        },
+        {
+          "text": "Use the Snowflake Connector for Python, connect to remote storage and download the file.",
+          "explanation": ""
+        },
+        {
+          "text": "Use the Snowflake API endpoint and download the file.",
+          "explanation": ""
+        },
+        {
+          "text": "Use the GET command in SnowSQL to retrieve the file.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        3
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "GET command in SnowSQL can be executed directly in SnowSQL, Snowflake's CLI client. It is simple and doesn't require additional development or configuration (only basic connection configuration), making it the least operationally intensive. GET command downloads data files from one of the following internal stage types to a local directory or folder on a client machine About other options: The Snowflake Connector for Python allows for process automation but requires additional setup and scripting, which can lead to increased operational overhead. Additionally, the GET command in Snowsight cannot be executed from the Worksheets page in the Snowflake web interface. Instead, users should utilize the SnowSQL client to download data files or refer to the documentation for the specific Snowflake client to confirm support for this command. Snowflake API endpoint necessitates further setup for authentication, scripting, and potentially managing API rate limits and other configurations, contributing to more operational overhead. For more detailed information about SnowSQL, refer to the official Snowflake documentation. For more detailed information about GET command, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "advanced",
+      "sub_topic": "3.2",
+      "sub_topic_name": "Stages & File Formats"
+    },
+    {
+      "id": "architect_test1_q16",
+      "source": "architect_test1",
+      "question_num": 16,
+      "question": "What considerations need to be taken when using database cloning as a tool for data lifecycle management in a development environment? (Choose two.)",
+      "options": [
+        {
+          "text": "Any pipes in the source referring to external stages are not cloned.",
+          "explanation": ""
+        },
+        {
+          "text": "The clone inherits all granted privileges of all child objects in the source object, excluding the database.",
+          "explanation": ""
+        },
+        {
+          "text": "Any pipes in the source referring to internal stages are not cloned.",
+          "explanation": ""
+        },
+        {
+          "text": "The clone inherits all granted privileges of all child objects in the source object, including the database.",
+          "explanation": ""
+        },
+        {
+          "text": "Any pipes in the source are not cloned.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1,
+        2
+      ],
+      "multi_select": true,
+      "multi_select_count": 2,
+      "overall_explanation": "A few comments: Only pipes that reference external stages are cloned. When a database or schema is cloned, any pipes within the source container that refer to an internal (i.e., Snowflake) stage will not be included in the clone. Note that the clone of the container itself (database or schema) does not inherit the privileges granted on the source container. A clone inherits all grants for child objects but not for the database itself. If the source object is a database or schema, the clone will inherit all granted privileges on the clones of any child objects contained within the source object. For databases, these child objects include schemas, tables, views, and more. For schemas, the contained objects consist of tables and views. It’s important to note that the clone of the container itself (whether it be a database or schema) does not inherit the privileges granted on the original container. For more detailed information about Cloning Pipes, refer to the official Snowflake documentation. For more detailed information about cloning objects, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "intermediate",
+      "sub_topic": "3.2",
+      "sub_topic_name": "Stages & File Formats"
+    },
+    {
+      "id": "architect_test1_q33",
+      "source": "architect_test1",
+      "question_num": 33,
+      "question": "Company A has recently acquired company B. The Snowflake deployment for company B is located in the Azure West Europe region. As part of the integration process, an Architect has been asked to consolidate company B's sales data into company A’s Snowflake account which is located in the AWS us-east-1 region. How can this requirement be met?",
+      "options": [
+        {
+          "text": "Migrate company B's Snowflake deployment to the same region as company A's Snowflake deployment, ensuring data locality. Then perform a direct database-to-database merge of the sales data.",
+          "explanation": ""
+        },
+        {
+          "text": "Build a custom data pipeline using Azure Data Factory or a similar tool to extract the sales data from company B's Snowflake account. Transform the data, then load it into company A's Snowflake account.",
+          "explanation": ""
+        },
+        {
+          "text": "Replicate the sales data from Company B's original account using cross-region data replication within Snowflake. Company B should create a new Snowflake account in Company A's region. Configure a direct share from company B's account to company A's account.",
+          "explanation": ""
+        },
+        {
+          "text": "Export the sales data from company B's Snowflake account as CSV files, and transfer the files to company A's Snowflake account. Import the data using Snowflake's data loading capabilities.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        2
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "To consolidate company B's sales data into company A’s Snowflake account, we have to take advantage of the data replication and data sharing tools offered by Snowflake. Snowflake supports cross-region and cross-cloud data replication. This feature allows you to replicate databases from one Snowflake account to another, even if they are hosted in different regions and on different cloud platforms (Azure to AWS in this case). This ensures that the data is kept in sync and up-to-date across different locations. After setting up replication, you can use Snowflake’s Secure Data Sharing feature to share the replicated data. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "intermediate",
+      "sub_topic": "3.2",
+      "sub_topic_name": "Stages & File Formats"
+    },
+    {
+      "id": "architect_test1_q43",
+      "source": "architect_test1",
+      "question_num": 43,
+      "question": "What step will improve the performance of queries executed against an external table?",
+      "options": [
+        {
+          "text": "Convert the source files' character encoding to UTF-8.",
+          "explanation": ""
+        },
+        {
+          "text": "Shorten the names of the source files.",
+          "explanation": ""
+        },
+        {
+          "text": "Use an internal stage instead of an external stage to store the source files.",
+          "explanation": ""
+        },
+        {
+          "text": "Partition the external table.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        3
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Partitioning the external table improves query performance by allowing Snowflake to process only the relevant partitions of data instead of scanning the entire dataset, significantly reducing query execution time when dealing with large amounts of external data. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "intermediate",
+      "sub_topic": "3.2",
+      "sub_topic_name": "Stages & File Formats"
+    },
+    {
+      "id": "architect_test1_q45",
+      "source": "architect_test1",
+      "question_num": 45,
+      "question": "What is a characteristic of event notifications in Snowpipe?",
+      "options": [
+        {
+          "text": "Snowflake can process all older notifications when a paused pipe Is resumed.",
+          "explanation": ""
+        },
+        {
+          "text": "When a pipe Is paused, event messages received for the pipe enter a limited retention period.",
+          "explanation": ""
+        },
+        {
+          "text": "The load history is stored In the metadata of the target table.",
+          "explanation": ""
+        },
+        {
+          "text": "Notifications identify the cloud storage event and the actual data in the files.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "When a Snowpipe is paused, the event messages received for that pipe enter a limited retention period, which is 14 days by default. If the pipe remains paused for longer than 14 days, it becomes stale, meaning the messages older than 14 days are no longer available for processing, and any unprocessed data might need to be re-sent to the pipe once it is resumed. About other options: Snowpipe's load history is stored separately from the metadata of the target table and can be accessed using Snowflake’s metadata functions. This separation allows tracking and auditing of the load operations independently of the table’s metadata. Additionally, event notifications used by Snowpipe only signal that new files are available for loading. These notifications do not contain the actual data but merely trigger the process to load the files into Snowflake from the external stage. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "beginner",
+      "sub_topic": "3.2",
+      "sub_topic_name": "Stages & File Formats"
+    },
+    {
+      "id": "architect_test1_q49",
+      "source": "architect_test1",
+      "question_num": 49,
+      "question": "A company has an external vendor who puts data into Google Cloud Storage. The company's Snowflake account is set up in Azure. What would be the MOST efficient way to load data from the vendor into Snowflake?",
+      "options": [
+        {
+          "text": "Copy the data from Google Cloud Storage to Azure Blob storage using external tools and load data from Blob storage to Snowflake.",
+          "explanation": ""
+        },
+        {
+          "text": "Create a Snowflake Account in the Google Cloud Platform (GCP), ingest data into this account and use data replication to move the data from GCP to Azure.",
+          "explanation": ""
+        },
+        {
+          "text": "Ask the vendor to create a Snowflake account, load the data into Snowflake and create a data share.",
+          "explanation": ""
+        },
+        {
+          "text": "Create an external stage on Google Cloud Storage and use the external table to load the data into Snowflake.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        3
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Snowflake can use external stages to directly read data from external cloud storage (in this case, Google Cloud Storage) without needing to move the data physically to Azure. About other options: Asking the vendor to create a separate Snowflake account adds unnecessary complexity and overhead. Setting up a separate Snowflake account in GCP and using replication introduces even more complexity and higher costs, as it requires managing two Snowflake accounts and paying for data replication across different cloud regions.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "intermediate",
+      "sub_topic": "3.2",
+      "sub_topic_name": "Stages & File Formats"
+    },
+    {
+      "id": "architect_test1_q61",
+      "source": "architect_test1",
+      "question_num": 61,
+      "question": "A Data Architect is designing a near real-time ingestion pipeline for a retail company to ingest event logs into Snowflake to derive insights. A Snowflake Architect is asked to define security best practices to configure access control privileges for the data load for auto-ingest to Snowpipe. What are the MINIMUM object privileges required for the Snowpipe user to execute Snowpipe?",
+      "options": [
+        {
+          "text": "CREATE on the named pipe, USAGE and READ on the named stage, USAGE on the target database and schema, and INSERT end SELECT on the target table",
+          "explanation": ""
+        },
+        {
+          "text": "USAGE on the named pipe, named stage, target database, and schema, and INSERT and SELECT on the target table",
+          "explanation": ""
+        },
+        {
+          "text": "OWNERSHIP on the named pipe, USAGE on the named stage, target database, and schema, and INSERT and SELECT on the target table",
+          "explanation": ""
+        },
+        {
+          "text": "OWNERSHIP on the named pipe, USAGE and READ on the named stage, USAGE on the target database and schema, and INSERT and SELECT on the target table",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        2
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "A few comments: To view the details of a pipe, you need to utilize a role that possesses either the MONITOR or OWNERSHIP privilege on the pipe, along with the USAGE privilege on both the database and schema containing the pipe. Pipe itself does not have a USAGE privilege, and the external stage associated with it does not need a READ privilege. For more detailed information about Snowpipe management, refer to the official Snowflake documentation. For more detailed information about configuring security for auto-ingest in Snowpipe, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "advanced",
+      "sub_topic": "3.2",
+      "sub_topic_name": "Stages & File Formats"
+    },
+    {
+      "id": "architect_test2_q5",
+      "source": "architect_test2",
+      "question_num": 5,
+      "question": "An Architect runs the following SQL query:",
+      "options": [
+        {
+          "text": "How can this query be interpreted?",
+          "explanation": ""
+        },
+        {
+          "text": "FILEROWS is a stage. FILE_ROW_NUMBER is line number in file.",
+          "explanation": ""
+        },
+        {
+          "text": "FILEROWS is the file format location. FILE_ROW_NUMBER is a stage.",
+          "explanation": ""
+        },
+        {
+          "text": "FILEROWS is a file. FILE_ROW_NUMBER is the file format location.",
+          "explanation": ""
+        },
+        {
+          "text": "FILEROWS is the table. FILE_ROW_NUMBER is the line number in the table.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "intermediate",
+      "sub_topic": "3.2",
+      "sub_topic_name": "Stages & File Formats"
+    },
+    {
+      "id": "architect_test2_q7",
+      "source": "architect_test2",
+      "question_num": 7,
+      "question": "Which copy options are supported by the CREATE PIPE...AS COPY FROM command? (Select TWO).",
+      "options": [
+        {
+          "text": "SKIP_HEADER = <integer>",
+          "explanation": ""
+        },
+        {
+          "text": "ON_ERROR = ABORT_STATEMENT",
+          "explanation": ""
+        },
+        {
+          "text": "STRIP_OUTER_ARRAY = TRUE | FALSE",
+          "explanation": ""
+        },
+        {
+          "text": "FILES = ( 'file_name1' [ , 'file_name2', ... ] )",
+          "explanation": ""
+        },
+        {
+          "text": "PURGE = TRUE I FALSE",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0,
+        2
+      ],
+      "multi_select": true,
+      "multi_select_count": 2,
+      "overall_explanation": "For more detailed information about syntax, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "intermediate",
+      "sub_topic": "3.2",
+      "sub_topic_name": "Stages & File Formats"
+    },
+    {
+      "id": "architect_test2_q9",
+      "source": "architect_test2",
+      "question_num": 9,
+      "question": "Consider the following COPY command which is loading data with CSV format into a Snowflake table from an internal stage through a data transformation query. This command results in the following error:",
+      "options": [
+        {
+          "text": "SQL compilation error: invalid parameter 'validation_mode'",
+          "explanation": ""
+        },
+        {
+          "text": "Assuming the syntax is correct, what is the cause of this error?",
+          "explanation": ""
+        },
+        {
+          "text": "The value return_all_errors of the option VALIDATION_MODE is causing a compilation error.",
+          "explanation": ""
+        },
+        {
+          "text": "The VALIDATION_MODE parameter does not support COPY statements that transform data during a load.",
+          "explanation": ""
+        },
+        {
+          "text": "The VALIDATION_MODE parameter supports COPY statements that load data from external stages only.",
+          "explanation": ""
+        },
+        {
+          "text": "The VALIDATION_MODE parameter does not support COPY statements with CSV file formats.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        3
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "In Snowflake, the VALIDATION_MODE option is not compatible with COPY commands that involve transformations during the loading process, which is why this command fails. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "advanced",
+      "sub_topic": "3.2",
+      "sub_topic_name": "Stages & File Formats"
+    },
+    {
+      "id": "architect_test2_q17",
+      "source": "architect_test2",
+      "question_num": 17,
+      "question": "A company has several sites in different regions from which the company wants to ingest data. Which of the following will enable this type of data ingestion?",
+      "options": [
+        {
+          "text": "The company should provision a reader account to each site and ingest the data through the reader accounts.",
+          "explanation": ""
+        },
+        {
+          "text": "The company must have a Snowflake account in each cloud region to be able to ingest data to that account.",
+          "explanation": ""
+        },
+        {
+          "text": "The company should use a storage integration for the external stage.",
+          "explanation": ""
+        },
+        {
+          "text": "The company must replicate data between Snowflake accounts.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        2
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "The company should use a storage integration for the external stage. A storage integration allows Snowflake to connect to external cloud storage accounts such as Amazon S3, Microsoft Azure, and Google Cloud Storage. This means that the company can ingest data from multiple sites, regardless of the location, without having to create a Snowflake account in each region. Data is simply staged in the external cloud storage and then accessed by Snowflake through the storage integration.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "intermediate",
+      "sub_topic": "3.2",
+      "sub_topic_name": "Stages & File Formats"
+    },
+    {
+      "id": "architect_test2_q63",
+      "source": "architect_test2",
+      "question_num": 63,
+      "question": "A Snowflake Architect wants to unload data from a relational table sized 5 GB using CSV. The extract needs to be as performant as possible. What should the Architect do?",
+      "options": [
+        {
+          "text": "Use Parquet as the unload file format, using Parquet's default compression feature.",
+          "explanation": ""
+        },
+        {
+          "text": "Use a regular expression in the stage specification of the COPY command to restrict parsing time.",
+          "explanation": ""
+        },
+        {
+          "text": "Increase the default MAX_FILE_SIZE to 5 GB and set SINGLE = true to produce a single file.",
+          "explanation": ""
+        },
+        {
+          "text": "Leave the default MAX_FILE_SIZE to 16 MB to take advantage of parallel operations.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        3
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Snowflake can perform the unload operation in parallel, which significantly increases the performance of extracting data. This allows for more efficient resource utilization and faster processing compared to using a single large file. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "intermediate",
+      "sub_topic": "3.2",
+      "sub_topic_name": "Stages & File Formats"
+    },
+    {
+      "id": "architect_test2_q64",
+      "source": "architect_test2",
+      "question_num": 64,
+      "question": "While loading CSV data using the COPY INTO statement, a Data Architect encounters the following error. Number of columns in file (15) does not match that of the corresponding table (14)",
+      "options": [
+        {
+          "text": "Which approach should the Data Architect take to solve this problem and load all the fields in the file into the table? (Choose two.)",
+          "explanation": ""
+        },
+        {
+          "text": "Modify the file data to enclose fields with a delimiter. Leverage the FIELD_OPTIONALLY_ENCLOSED_BY option in the file format during the load process.",
+          "explanation": ""
+        },
+        {
+          "text": "Set the copy option FORCE to true.",
+          "explanation": ""
+        },
+        {
+          "text": "Modify the file data to use a different file format. Change the file format type in the file format options during the loading process.",
+          "explanation": ""
+        },
+        {
+          "text": "Do not modify the file data. Change the ERROR_ON_COLUMN_COUNT_MISMATCH option in the file format to false during the loading process.",
+          "explanation": ""
+        },
+        {
+          "text": "Make necessary changes in the table DDL to support all the columns in the file.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        4,
+        5
+      ],
+      "multi_select": true,
+      "multi_select_count": 2,
+      "overall_explanation": "A few comments: Make necessary changes in the table DDL to support all the columns in the file: Adjusting the table schema to match the number of columns in the file ensures all data is loaded properly without errors. Do not modify the file data. Change the ERROR_ON_COLUMN_COUNT_MISMATCH option in the file format to false during the loading process: This allows the data to load even if the file has more columns than the table, skipping the mismatch error during the process. ERROR_ON_COLUMN_COUNT_MISMATCH, if set to FALSE, an error is not generated and the load continues. If the file is successfully loaded: Modifying the file data to use a different file format or modifying the file data to enclose fields with a delimiter will not fix the column mismatch.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "advanced",
+      "sub_topic": "3.2",
+      "sub_topic_name": "Stages & File Formats"
+    },
+    {
+      "id": "architect_test3_q5",
+      "source": "architect_test3",
+      "question_num": 5,
+      "question": "A Data Engineer is designing a near real-time ingestion pipeline for a retail company to ingest event logs from Amazon S3 into Snowflake to derive insights. A Snowflake Architect is asked to define security best practices to configure access control privileges for the data load for auto-ingest to Snowpipe. What are the MINIMUM object privileges required for the Snowpipe user to execute Snowpipe?",
+      "options": [
+        {
+          "text": "OWNERSHIP on the named pipe, USAGE and READ on the named stage, USAGE on the target database and schema, and INSERT and SELECT on the target table.",
+          "explanation": ""
+        },
+        {
+          "text": "USAGE on the named pipe, named stage, target database, and schema, and INSERT and SELECT on the target table.",
+          "explanation": ""
+        },
+        {
+          "text": "OWNERSHIP on the named pipe, USAGE on the named stage, target database, and schema, and INSERT and SELECT on the target table.",
+          "explanation": ""
+        },
+        {
+          "text": "CREATE on the named pipe, USAGE and READ on the named stage, USAGE on the target database and schema, and INSERT end SELECT on the target table.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        2
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "A few comments: To access details about the pipe, you need to use a role that has the MONITOR or OWNERSHIP privilege on the pipe, along with the USAGE privilege on both the database and schema containing the pipe. The question asks about the minimum privileges. In this case, it also indicates that auto-ingest is used with Snowpipe, so we have to imply the use of Snowpipe on an external stage. For external stage, the necessary privilege on the stage is USAGE. If we add the READ privilege it would obviously work, but we would not be responding with the minimum privileges. For more detailed information about Snowpipe management, refer to the documentation. For more detailed information about ALTER PIPE command, refer to the Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "advanced",
+      "sub_topic": "3.2",
+      "sub_topic_name": "Stages & File Formats"
+    },
+    {
+      "id": "architect_test3_q18",
+      "source": "architect_test3",
+      "question_num": 18,
+      "question": "A Snowflake Architect set up a COPY INTO command to continuously load data from an external stage. The destination Snowflake table has much more data than expected. Why is this occurring?",
+      "options": [
+        {
+          "text": "The ON_ERROR copy option is set to CONTINUE, which is causing duplicate file loading.",
+          "explanation": ""
+        },
+        {
+          "text": "LOAD_UNCERTAIN_FILES is set to FALSE.",
+          "explanation": ""
+        },
+        {
+          "text": "The PURGE option is set to FALSE, and files are not being deleted from the stage after loading.",
+          "explanation": ""
+        },
+        {
+          "text": "The FORCE copy option is set to TRUE, and staged files are being loaded even if they have been loaded already.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        3
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "When the FORCE option is set to TRUE in the COPY INTO command, Snowflake reloads files from the stage even if they have already been processed, which can lead to duplicate data being loaded into the destination table. For more detailed information, refer to the Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "intermediate",
+      "sub_topic": "3.2",
+      "sub_topic_name": "Stages & File Formats"
+    },
+    {
+      "id": "architect_test3_q28",
+      "source": "architect_test3",
+      "question_num": 28,
+      "question": "Which pipes are cloned when cloning a database or schema?",
+      "options": [
+        {
+          "text": "Both",
+          "explanation": ""
+        },
+        {
+          "text": "Pipes that reference internal stages",
+          "explanation": ""
+        },
+        {
+          "text": "Pipes that reference Snowflake streams",
+          "explanation": ""
+        },
+        {
+          "text": "Pipes that reference external stages",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        3
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "When a database or schema is cloned, any pipes in the source container that reference an internal (that is, Snowflake) stage are not cloned. For more detailed information, refer to the Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "intermediate",
+      "sub_topic": "3.2",
+      "sub_topic_name": "Stages & File Formats"
+    },
+    {
+      "id": "architect_test3_q45",
+      "source": "architect_test3",
+      "question_num": 45,
+      "question": "A Data Architect is importing JSON data from an external stage into a table with a VARIANT column using the COPY INTO command. During testing, the Architect discovers that the import sometimes fails, with parsing errors, due to malformed JSON values. The Architect decides to set the VARIANT column to NULL when a parsing error is encountered. Which function should be used to meet this requirement?",
+      "options": [
+        {
+          "text": "TRY_PARSE_JSON",
+          "explanation": ""
+        },
+        {
+          "text": "PARSE_JSON",
+          "explanation": ""
+        },
+        {
+          "text": "VALIDATE",
+          "explanation": ""
+        },
+        {
+          "text": "TO_JSON",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "TRY_PARSE_JSON function attempts to parse JSON data and returns NULL if the parsing fails, allowing the Architect to handle malformed JSON values without causing errors during the import process. For more detailed information, refer to the Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "intermediate",
+      "sub_topic": "3.2",
+      "sub_topic_name": "Stages & File Formats"
+    },
+    {
+      "id": "architect_test3_q47",
+      "source": "architect_test3",
+      "question_num": 47,
+      "question": "Which of the following options is not a compression technique for AVRO file formats?",
+      "options": [
+        {
+          "text": "BZ2",
+          "explanation": ""
+        },
+        {
+          "text": "ZSTD",
+          "explanation": ""
+        },
+        {
+          "text": "GZIP",
+          "explanation": ""
+        },
+        {
+          "text": "AUTO",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "AVRO compression techniques are very similar to XML, JSON, and CSV; the only difference is that it doesn’t accept BZ2 compression. You can see the different compression types for each file format in the following table:",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "intermediate",
+      "sub_topic": "3.2",
+      "sub_topic_name": "Stages & File Formats"
+    },
+    {
+      "id": "architect_test3_q55",
+      "source": "architect_test3",
+      "question_num": 55,
+      "question": "Why does the REMOVE command from a stage improve the COPY INTO command the next time it’s executed?",
+      "options": [
+        {
+          "text": "Because it will have fewer files to copy",
+          "explanation": ""
+        },
+        {
+          "text": "Because it will compress files more easily",
+          "explanation": ""
+        },
+        {
+          "text": "Because it will avoid duplication of data",
+          "explanation": ""
+        },
+        {
+          "text": "Because it will scan fewer files",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        3
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Removing files from a stage using the REMOVE command improves the performance when loading data because it reduces the number of files that the COPY INTO <table> command must scan to verify whether existing files in a stage were loaded already.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "intermediate",
+      "sub_topic": "3.2",
+      "sub_topic_name": "Stages & File Formats"
+    },
+    {
+      "id": "architect_test4_q20",
+      "source": "architect_test4",
+      "question_num": 20,
+      "question": "What actions are permitted when using the Snowflake SQL REST API? (Select TWO). The use of a CALL command to a stored procedure which returns a table The use of a PUT command",
+      "options": [
+        {
+          "text": "The use of a ROLLBACK command",
+          "explanation": ""
+        },
+        {
+          "text": "The use of a GET command",
+          "explanation": ""
+        },
+        {
+          "text": "Submitting multiple SQL statements in a single call",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0,
+        2
+      ],
+      "multi_select": true,
+      "multi_select_count": 2,
+      "overall_explanation": "A few comments: Submitting a request containing multiple statements to the Snowflake SQL API is possible. Commands that perform explicit transactions (i.e. ROLLBACK) are supported only within a request that specifies multiple statements. The PUT command is not supported The GET command is not supported While you can call stored procedures through the SQL REST API, Snowflake stored procedures do not return tables directly For more detailed information about SQL API Rest limitations, refer to the official Snowflake documentation. For more detailed information about statements submitting, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "intermediate",
+      "sub_topic": "3.2",
+      "sub_topic_name": "Stages & File Formats"
+    },
+    {
+      "id": "architect_test4_q22",
+      "source": "architect_test4",
+      "question_num": 22,
+      "question": "What is a characteristic of loading data into Snowflake using the Snowflake Connector for Kafka?",
+      "options": [
+        {
+          "text": "The Connector only works in Snowflake regions that use Azure infrastructure.",
+          "explanation": ""
+        },
+        {
+          "text": "The Connector works with all file formats, including text, JSON, Avro, Ore, Parquet, and XML.",
+          "explanation": ""
+        },
+        {
+          "text": "The Connector creates and manages its own stage, table, and pipe objects.",
+          "explanation": ""
+        },
+        {
+          "text": "Loads using the Connector will ingest data in real time.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        2
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "For each topic, the connector establishes the following objects: one table for each topic, a pipe that ingests the data files for every partition of the topic and an internal stage designated for temporarily storing data files related to the topic. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "beginner",
+      "sub_topic": "3.2",
+      "sub_topic_name": "Stages & File Formats"
+    },
+    {
+      "id": "architect_test4_q32",
+      "source": "architect_test4",
+      "question_num": 32,
+      "question": "Which of the following features is not supported by Snowpipe for data loading?",
+      "options": [
+        {
+          "text": "Detection of duplication of files while loading",
+          "explanation": ""
+        },
+        {
+          "text": "PURGE copy (after loading)",
+          "explanation": ""
+        },
+        {
+          "text": "Column Reordering",
+          "explanation": ""
+        },
+        {
+          "text": "Semi-structured data loading",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Pipe objects do not support the PURGE copy option, meaning that Snowpipe cannot automatically delete staged files once the data has been successfully loaded into tables. To eliminate staged files that are no longer needed, Snowflake recommends periodically executing the REMOVE command to clean up these files. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "intermediate",
+      "sub_topic": "3.2",
+      "sub_topic_name": "Stages & File Formats"
+    },
+    {
+      "id": "architect_test5_q10",
+      "source": "architect_test5",
+      "question_num": 10,
+      "question": "Where can a data file format be specified in Snowflake? (Select THREE)",
+      "options": [
+        {
+          "text": "As part of a COPY INTO command",
+          "explanation": ""
+        },
+        {
+          "text": "As part of a CREATE STORAGE INTEGRATION command",
+          "explanation": ""
+        },
+        {
+          "text": "As part of a CREATE WAREHOUSE command",
+          "explanation": ""
+        },
+        {
+          "text": "As part of a CREATE STAGE command",
+          "explanation": ""
+        },
+        {
+          "text": "As part of a CREATE TABLE command",
+          "explanation": ""
+        },
+        {
+          "text": "As part of a CREATE SCHEMA command",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0,
+        3,
+        4
+      ],
+      "multi_select": true,
+      "multi_select_count": 3,
+      "overall_explanation": "A few comments: It's recommended to explicitly specify data loading options directly in the COPY INTO <table> statement. Copy options can also be set in the table or named stage definitions, but this is not recommended due to potential conflicts and lack of clarity. When options are specified in multiple locations, the COPY INTO <table> statement takes precedence, followed by the stage definition, and then the table definition. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "advanced",
+      "sub_topic": "3.2",
+      "sub_topic_name": "Stages & File Formats"
+    },
+    {
+      "id": "architect_test5_q17",
+      "source": "architect_test5",
+      "question_num": 17,
+      "question": "A company has built a data pipeline using Snowpipe to ingest files from an Amazon S3 bucket. Snowpipe is configured to load data into staging database tables. Then a task runs to load the data from the staging database tables into the reporting database tables. The company is satisfied with the availability of the data in the reporting database tables, but the reporting tables are not pruning effectively. Currently, a size 4X-Large virtual warehouse is being used to query all of the tables in the reporting database. What step can be taken to improve the pruning of the reporting tables?",
+      "options": [
+        {
+          "text": "Increase the size of the virtual warehouse to a size 5X-Large.",
+          "explanation": ""
+        },
+        {
+          "text": "Eliminate the use of Snowpipe and load the files into internal stages using PUT commands.",
+          "explanation": ""
+        },
+        {
+          "text": "Use an ORDER BY <cluster_key (s)> command to load the reporting tables.",
+          "explanation": ""
+        },
+        {
+          "text": "Create larger files for Snowpipe to ingest and ensure the staging frequency does not exceed 1 minute.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        2
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "A few comments: By loading the reporting tables with an ORDER BY clause on specific cluster keys, we can improve data clustering by using manual sorting. Optimizing data clustering and pruning is more effective and cheaper than merely increasing warehouse size. Snowpipe’s data loading method does not directly impact how data is organized or queried in the reporting tables. Larger files might reduce the number of load operations, but this does not improve data organization or pruning in the reporting tables.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "intermediate",
+      "sub_topic": "3.2",
+      "sub_topic_name": "Stages & File Formats"
+    },
+    {
+      "id": "architect_test5_q23",
+      "source": "architect_test5",
+      "question_num": 23,
+      "question": "An Architect uses an ETL tool to transform data where intermediate results are unloaded into temporary internal stages. The Architect wants to apply the principle of least privilege with the fewest amount of operational overhead in their new solution to continue functioning. Which action will meet these requirements?",
+      "options": [
+        {
+          "text": "Set PREVENT_UNLOAD_TO_INLINE_URL = FALSE at the session level",
+          "explanation": ""
+        },
+        {
+          "text": "Set PREVENT_UNLOAD_TO_INTERNAL_STAGES = FALSE at the session level",
+          "explanation": ""
+        },
+        {
+          "text": "Set PREVENT_UNLOAD_TO_INLINE_URL = FALSE at the user level",
+          "explanation": ""
+        },
+        {
+          "text": "Set PREVENT_UNLOAD_TO_INTERNAL_STAGES = FALSE at the user level",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        3
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "A few comments: It is important to know these parameters to control the information that is extracted to Stages from Snowflake. Both the PREVENT_UNLOAD_TO_INTERNAL_STAGES parameter and the PREVENT_UNLOAD_TO_INLINE_URL parameter exist, but one refers to the INTERNAL STAGE and the other to the EXTERNAL STAGE. Both parameters can be defined at account and user level. If we want to reduce the operational overhead, it is better to define it at user level. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "intermediate",
+      "sub_topic": "3.2",
+      "sub_topic_name": "Stages & File Formats"
+    },
+    {
+      "id": "architect_test5_q28",
+      "source": "architect_test5",
+      "question_num": 28,
+      "question": "An Architect has designed a data pipeline that is receiving small CSV files from multiple sources. All of the files are landing in one location. Specific files are filtered for loading into Snowflake tables using the copy command. The loading performance is poor. What changes can be made to improve the data loading performance?",
+      "options": [
+        {
+          "text": "Create a multi-cluster warehouse and merge smaller files to create bigger files.",
+          "explanation": ""
+        },
+        {
+          "text": "Create a specific storage landing bucket to avoid file scanning.",
+          "explanation": ""
+        },
+        {
+          "text": "Change the file format from CSV to JSON.",
+          "explanation": ""
+        },
+        {
+          "text": "Increase the size of the virtual warehouse.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "A few comments: Changing the file format doesn’t necessarily improve loading performance. CSV files are generally performant in Snowflake, and the issue is with file size rather than format. Increasing the size of the warehouse doesn't solve the core problem of having many small files, although it will work better since we will have more threads in the warehouse to parallelize files. Snowflake operates more efficiently with fewer, larger files, so relying solely on larger warehouse sizes won't address this inefficiency.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "intermediate",
+      "sub_topic": "3.2",
+      "sub_topic_name": "Stages & File Formats"
+    },
+    {
+      "id": "architect_test5_q41",
+      "source": "architect_test5",
+      "question_num": 41,
+      "question": "A company is trying to ingest 10 TB of CSV data into a Snowflake table as part of its migration from a legacy database platform. The records need to be ingested in the MOST performant and cost-effective way. How can these requirements be met?",
+      "options": [
+        {
+          "text": "Use PURGE = FALSE in the copy into command.",
+          "explanation": ""
+        },
+        {
+          "text": "Use on error = SKIP_FILE in the copy into command.",
+          "explanation": ""
+        },
+        {
+          "text": "Use PURGE = TRUE in the copy into command.",
+          "explanation": ""
+        },
+        {
+          "text": "Use ON_ERROR = continue in the copy into command.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        2
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "A few comments: 10TB would cost more than $200 in most Cloud storage systems, so the best option is to purge the files as they are ingested. SKIP_FILE option is slower than either CONTINUE or ABORT_STATEMENT. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "intermediate",
+      "sub_topic": "3.2",
+      "sub_topic_name": "Stages & File Formats"
+    }
+  ]
+}

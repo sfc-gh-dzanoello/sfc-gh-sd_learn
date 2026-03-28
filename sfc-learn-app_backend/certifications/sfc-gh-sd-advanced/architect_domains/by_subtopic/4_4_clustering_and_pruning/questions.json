@@ -1,0 +1,772 @@
+{
+  "sub_topic": "4.4",
+  "sub_topic_name": "Clustering & Pruning",
+  "domain": "Domain 4.0: Performance Optimization",
+  "total_questions": 20,
+  "difficulty_distribution": {
+    "advanced": 4,
+    "beginner": 2,
+    "intermediate": 14
+  },
+  "exam_traps": [
+    {
+      "trap": "High average_depth and average_overlaps = poorly clustered table",
+      "why_confusing": "SYSTEM$CLUSTERING_INFORMATION returns average_depth and average_overlaps. Higher values = worse clustering. Zero constant_partitions = no partitions can be fully pruned. The exam shows query output and asks you to interpret it.",
+      "correct_answer": "High depth/overlap = bad clustering. High constant_partitions = good pruning potential.",
+      "doc_reference": "https://docs.snowflake.com/en/user-guide/tables-clustering-micropartitions"
+    },
+    {
+      "trap": "Automatic clustering is a background service that RE-clusters data (not initial load)",
+      "why_confusing": "Defining a clustering key does NOT instantly re-organize data. Automatic Clustering is a serverless service that gradually reclusters over time. It costs credits. Natural clustering from the load order may already be good enough for many tables.",
+      "correct_answer": "Clustering key = metadata hint. Automatic Clustering = background re-organization service (costs credits).",
+      "doc_reference": "https://docs.snowflake.com/en/user-guide/tables-auto-reclustering"
+    },
+    {
+      "trap": "Data skew: scaling UP doesn't help because work is concentrated on one node",
+      "why_confusing": "If 90% of join values are the same, one node processes most of the data regardless of warehouse size. Adding more nodes (scale up) doesn't help because the bottleneck is the skewed data, not the number of nodes. Fix the query or data distribution instead.",
+      "correct_answer": "Data skew = one node overloaded. Scale up doesn't fix it. Restructure query/data.",
+      "doc_reference": "https://docs.snowflake.com/en/user-guide/ui-query-profile"
+    }
+  ],
+  "questions": [
+    {
+      "id": "architect_test1_q18",
+      "source": "architect_test1",
+      "question_num": 18,
+      "question": "A table for IOT devices that measures water usage is created. The table quickly becomes large and contains more than 2 billion rows.\n\nThe general query patterns for the table are:\n\n1. Deviceld, IOT_timestamp and Customerld are frequently used in the filter predicate for the select statement\n\n2. The columns City and DeviceManufacturer are often retrieved\n\n3. There is often a count on Uniqueld\n\nWhich field(s) should be used for the clustering key?",
+      "options": [
+        {
+          "text": "IOT_timestamp",
+          "explanation": ""
+        },
+        {
+          "text": "UniqueId",
+          "explanation": ""
+        },
+        {
+          "text": "DeviceId and CustomerId",
+          "explanation": ""
+        },
+        {
+          "text": "City and DeviceManufacturer",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        2
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Based on the provided information about the table water_iot and the general query patterns, the best field(s) to use for the clustering key are those that are frequently used in filter predicates. This will help to optimize query performance by clustering data that is commonly queried together.\n\nGiven this information about general query patterns, the optimal clustering key would be DeviceId and CustomerId.\n\nAbout the options:\n\nDeviceId and CustomerId are frequently used in filter predicates, clustering the data based on these fields will improve query performance for common queries. But, what about IOT_timestamp?\n\nIOT_timestamp is also frequently used in filters, combining it with DeviceId and CustomerId may not be as beneficial as DeviceId and CustomerId together but timestamp fields have high cardinality. A column with very high cardinality is also typically not a good candidate to use as a clustering key directly. For example, a column that contains nanosecond timestamp values would not make a good clustering key.\n\nCity and DeviceManufacturer are often retrieved but are not primarily used in filter predicates.\n\nUniqueId is often used for counting, but it doesn't help with filtering and clustering related data together.",
+      "domain_raw": "",
+      "domain": "Domain 4.0: Performance Optimization",
+      "difficulty": "intermediate",
+      "sub_topic": "4.4",
+      "sub_topic_name": "Clustering & Pruning"
+    },
+    {
+      "id": "architect_test1_q34",
+      "source": "architect_test1",
+      "question_num": 34,
+      "question": "A Snowflake Architect is defining a clustering strategy that needs to optimize the performance of queries against a large table, while minimizing re-clustering costs. The Architect wants to leverage the output of the SYSTEM$CLUSTERING_INFORMATION function for the analysis What will be true about the data output?",
+      "options": [
+        {
+          "text": "The average_overlaps field in the output will indicate how many partitions, on average, a partition's minimum values overlap.",
+          "explanation": ""
+        },
+        {
+          "text": "The total_partition_count field in the ouput will indicate the current total count of partitions, not the partitions needed for Time Travel.",
+          "explanation": ""
+        },
+        {
+          "text": "The output of the function will provide statistics related to only what the current clustering state is, not the \"what-if\" state if clustered on a different key.",
+          "explanation": ""
+        },
+        {
+          "text": "The output of the function will provide a stand-alone measure of whether a clustering key strategy is working.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "average_overlaps metric represents the average number of overlapping micro-partitions for each micro-partition in the table. A high value suggests that the table is not well-clustered, indicating potential inefficiencies in data retrieval. About other options: You can use this argument to return clustering information for any columns in the table, regardless of whether a clustering key is defined for the table. In other words, you can use this to help you decide what clustering to use in the future. Average number of overlapping micro-partitions for each micro-partition in the table. A high number indicates the table is not well-clustered (not overlap of partition's minimum values) The output of SYSTEM$CLUSTERING_INFORMATION provides useful metrics like overlapping micro-partitions and partition depth, but it does not independently determine clustering efficiency. It requires interpretation alongside query patterns and performance metrics to evaluate clustering strategy. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 4.0: Performance Optimization",
+      "difficulty": "intermediate",
+      "sub_topic": "4.4",
+      "sub_topic_name": "Clustering & Pruning"
+    },
+    {
+      "id": "architect_test1_q44",
+      "source": "architect_test1",
+      "question_num": 44,
+      "question": "What is a key consideration when setting up search optimization service for a table?",
+      "options": [
+        {
+          "text": "Search optimization service can help to optimize storage usage by compressing the data into a GZIP format.",
+          "explanation": ""
+        },
+        {
+          "text": "The table must be clustered with a key having multiple columns for effective search optimization.",
+          "explanation": ""
+        },
+        {
+          "text": "Search optimization service works best with a column that has a minimum of 100 K distinct values.",
+          "explanation": ""
+        },
+        {
+          "text": "Search optimization service can significantly improve query performance on partitioned external tables.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        2
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 4.0: Performance Optimization",
+      "difficulty": "beginner",
+      "sub_topic": "4.4",
+      "sub_topic_name": "Clustering & Pruning"
+    },
+    {
+      "id": "architect_test2_q13",
+      "source": "architect_test2",
+      "question_num": 13,
+      "question": "The table contains five columns and it has millions of records. The cardinality distribution of the columns is shown below:\n\nColumn C4 and C5 are mostly used by SELECT queries in the GROUP BY and ORDER BY clauses. Whereas columns C1, C2 and C3 are heavily used in filter and join conditions of SELECT queries.\n\nThe Architect must design a clustering key for this table to improve the query performance.\n\nBased on Snowflake recommendations, how should the clustering key columns be ordered while defining the multi-column clustering key?",
+      "options": [
+        {
+          "text": "C1, C3, C2",
+          "explanation": ""
+        },
+        {
+          "text": "C3, C4, C5",
+          "explanation": ""
+        },
+        {
+          "text": "C2, C1, C3",
+          "explanation": ""
+        },
+        {
+          "text": "C5, C4, C2",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        2
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Columns with lower cardinality should come first, as they help reduce the search range more efficiently. In this case, column C2 has the lowest cardinality with only 108 distinct values, followed by C1 with 10,790, and then C3 with 302,605. This ordering improves query performance, especially for filtering and joining conditions, since lower cardinality columns make the search process more efficient.",
+      "domain_raw": "",
+      "domain": "Domain 4.0: Performance Optimization",
+      "difficulty": "intermediate",
+      "sub_topic": "4.4",
+      "sub_topic_name": "Clustering & Pruning"
+    },
+    {
+      "id": "architect_test2_q26",
+      "source": "architect_test2",
+      "question_num": 26,
+      "question": "When would you usually consider to add clustering key to a table? (Choose two)",
+      "options": [
+        {
+          "text": "The number of users querying the table has increased.",
+          "explanation": ""
+        },
+        {
+          "text": "The table has more than 20 columns.",
+          "explanation": ""
+        },
+        {
+          "text": "It is a multi-terabyte size table.",
+          "explanation": ""
+        },
+        {
+          "text": "The performance of the query has deteriorated over a period of time.",
+          "explanation": ""
+        },
+        {
+          "text": "The data in the table is mostly static and does not change frequently.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        2,
+        3
+      ],
+      "multi_select": true,
+      "multi_select_count": 2,
+      "overall_explanation": "For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 4.0: Performance Optimization",
+      "difficulty": "intermediate",
+      "sub_topic": "4.4",
+      "sub_topic_name": "Clustering & Pruning"
+    },
+    {
+      "id": "architect_test2_q40",
+      "source": "architect_test2",
+      "question_num": 40,
+      "question": "One query takes a lot of time, and you see in the query profiler the following information:",
+      "options": [
+        {
+          "text": "What might be the cause of this?",
+          "explanation": ""
+        },
+        {
+          "text": "The query is only selecting a few columns",
+          "explanation": ""
+        },
+        {
+          "text": "The query is too large to fit in memory.",
+          "explanation": ""
+        },
+        {
+          "text": "There is inefficient pruning.",
+          "explanation": ""
+        },
+        {
+          "text": "A \"exploding join\" issue might be the problem.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        4
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "A \"exploding join\" issue is produced when users join tables without providing a join condition (resulting in a \"Cartesian product\") or providing a condition where records from one table match multiple records from another table, producing more tuples than it consumes. As we can see, it's a case of exploding join because Snowflake has produced hundreds of thousands of records (235.8k) with an input of hundreds of records (772 & 816). For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 4.0: Performance Optimization",
+      "difficulty": "advanced",
+      "sub_topic": "4.4",
+      "sub_topic_name": "Clustering & Pruning"
+    },
+    {
+      "id": "architect_test2_q48",
+      "source": "architect_test2",
+      "question_num": 48,
+      "question": "After running the function SYSTEM$CLUSTERING_INFORMATION in a table, it returns the following information:",
+      "options": [
+        {
+          "text": "What parameters indicate that the table is not well-clustered? (Choose three.)",
+          "explanation": ""
+        },
+        {
+          "text": "High total partition count value.",
+          "explanation": ""
+        },
+        {
+          "text": "Most micro-partitions are grouped at the lower end of the histogram, with most micro-partitions having an overlap depth between 64 and 128.",
+          "explanation": ""
+        },
+        {
+          "text": "High average of overlapping micro-partitions.",
+          "explanation": ""
+        },
+        {
+          "text": "Zero (0) constant micro-partitions out of 1156 total micro-partitions.",
+          "explanation": ""
+        },
+        {
+          "text": "Low average of overlap depth across micro-partitions.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        2,
+        3,
+        4
+      ],
+      "multi_select": true,
+      "multi_select_count": 3,
+      "overall_explanation": "A high number in the average_depth and average_overlaps indicates the table is not well-clustered; the higher the number of constant micro-partitions is, the more micro-partitions can be pruned from queries executed on the table, and in this case, is 0. Even if it doesn’t appear in the question picture, the query also returns some advice to help you identify it. For example, after running it in my Snowflake account:",
+      "domain_raw": "",
+      "domain": "Domain 4.0: Performance Optimization",
+      "difficulty": "advanced",
+      "sub_topic": "4.4",
+      "sub_topic_name": "Clustering & Pruning"
+    },
+    {
+      "id": "architect_test2_q52",
+      "source": "architect_test2",
+      "question_num": 52,
+      "question": "How can we add a clustering key to the existing table MYTABLE in the columns USER and CREATED_AT?",
+      "options": [
+        {
+          "text": "ALTER TABLE MYTABLE CREATE CLUSTER_KEY (USER, CREATED_AT)",
+          "explanation": ""
+        },
+        {
+          "text": "ALTER TABLE MYTABLE CLUSTER BY (USER, CREATED_AT)",
+          "explanation": ""
+        },
+        {
+          "text": "ALTER TABLE MYTABLE CLUSTER BY USER AND CLUSTER BY CREATED_AT",
+          "explanation": ""
+        },
+        {
+          "text": "ALTER TABLE MYTABLE ADD CLUSTER_KEY (USER, CREATED_AT)",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "The CLUSTER BY param specifies one or more columns or column expressions in the table as the clustering. By default, no clustering key is defined for the table, as clustering keys are not intended or recommended for all tables.",
+      "domain_raw": "",
+      "domain": "Domain 4.0: Performance Optimization",
+      "difficulty": "intermediate",
+      "sub_topic": "4.4",
+      "sub_topic_name": "Clustering & Pruning"
+    },
+    {
+      "id": "architect_test2_q60",
+      "source": "architect_test2",
+      "question_num": 60,
+      "question": "What Snowflake features should be leveraged when modeling using Data Vault?",
+      "options": [
+        {
+          "text": "Scaling up the virtual warehouses will support parallel processing of new source loads",
+          "explanation": ""
+        },
+        {
+          "text": "Data needs to be pre-partitioned to obtain a superior data access performance",
+          "explanation": ""
+        },
+        {
+          "text": "Snowflake’s ability to hash keys so that hash key joins can run faster than integer joins",
+          "explanation": ""
+        },
+        {
+          "text": "Snowflake’s support of multi-table inserts into the data model’s Data Vault tables",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        3
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Another cool feature in Snowflake is the ability to load multiple tables at the same time using a single data source. This is called multi-table insert (MTI). This is very useful for loading the Raw Data Vault layer in Data Vault2 modeling, where Hubs, Links and Sats are loaded simultaneously.",
+      "domain_raw": "",
+      "domain": "Domain 4.0: Performance Optimization",
+      "difficulty": "intermediate",
+      "sub_topic": "4.4",
+      "sub_topic_name": "Clustering & Pruning"
+    },
+    {
+      "id": "architect_test3_q9",
+      "source": "architect_test3",
+      "question_num": 9,
+      "question": "Which system functions does Snowflake provide to monitor clustering information within a table (Choose two.)",
+      "options": [
+        {
+          "text": "SYSTEM$CLUSTERING_DEPTH",
+          "explanation": ""
+        },
+        {
+          "text": "SYSTEM$CLUSTERING_PERCENT",
+          "explanation": ""
+        },
+        {
+          "text": "SYSTEM$CLUSTERING_USAGE",
+          "explanation": ""
+        },
+        {
+          "text": "SYSTEM$CLUSTERING_INFORMATION",
+          "explanation": ""
+        },
+        {
+          "text": "SYSTEM$CLUSTERING_KEYS",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0,
+        3
+      ],
+      "multi_select": true,
+      "multi_select_count": 2,
+      "overall_explanation": "SYSTEM$CLUSTERING_INFORMATION: This system function provides detailed information about how well a table is clustered based on the defined clustering key. SYSTEM$CLUSTERING_DEPTH: This function provides insights into the depth of the clustering in a table, helping to evaluate the efficiency of the clustering structure over time. For more detailed information, refer to the Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 4.0: Performance Optimization",
+      "difficulty": "intermediate",
+      "sub_topic": "4.4",
+      "sub_topic_name": "Clustering & Pruning"
+    },
+    {
+      "id": "architect_test3_q10",
+      "source": "architect_test3",
+      "question_num": 10,
+      "question": "Which of the below commands will use warehouse credits?",
+      "options": [
+        {
+          "text": "SELECT COUNT(FLAKE_ID) FROM SNOWFLAKE GROUP BY FLAKE_ID;",
+          "explanation": ""
+        },
+        {
+          "text": "SELECT MAX(FLAKE_ID) FROM SNOWFLAKE;",
+          "explanation": ""
+        },
+        {
+          "text": "SELECT COUNT(*) FROM SNOWFLAKE;",
+          "explanation": ""
+        },
+        {
+          "text": "SHOW TABLES LIKE 'SNOWFL%';",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "A few comments: Metadata operations do not require a compute warehouse and therefore do not consume warehouse credits. Metadata about each column for the micro-partition is stored by Snowflake in its metadata cache in the cloud services layer. This metadata is used to provide extremely fast results for basic analytical queries such as count(*) and max(column). SHOW TABLES is a metadata query that retrieves information about tables in Snowflake.",
+      "domain_raw": "",
+      "domain": "Domain 4.0: Performance Optimization",
+      "difficulty": "intermediate",
+      "sub_topic": "4.4",
+      "sub_topic_name": "Clustering & Pruning"
+    },
+    {
+      "id": "architect_test3_q37",
+      "source": "architect_test3",
+      "question_num": 37,
+      "question": "Which steps are recommended best practices for prioritizing cluster keys in Snowflake? (Choose two.)",
+      "options": [
+        {
+          "text": "Choose cluster columns that are most actively used in selective filters.",
+          "explanation": ""
+        },
+        {
+          "text": "Choose cluster columns that are actively used in the GROUP BY clauses.",
+          "explanation": ""
+        },
+        {
+          "text": "Choose lower cardinality columns to support clustering keys and cost effectiveness.",
+          "explanation": ""
+        },
+        {
+          "text": "Choose columns that are frequently used in join predicates.",
+          "explanation": ""
+        },
+        {
+          "text": "Choose TIMESTAMP columns with nanoseconds for the highest number of unique rows.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0,
+        3
+      ],
+      "multi_select": true,
+      "multi_select_count": 2,
+      "overall_explanation": "A few comments: When designing cluster keys, it's important to prioritize columns that are frequently involved in queries with selective filters (such as WHERE clauses). This helps Snowflake reduce the amount of data it needs to scan, which can significantly improve query performance by targeting the most relevant data more efficiently. Clustering on columns that are commonly used in join operations ensures that related data is physically stored closer together. This optimizes the performance of join queries, as Snowflake can retrieve and process matching rows more quickly, reducing the overall compute resources and time required for query execution. For more detailed information, refer to the Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 4.0: Performance Optimization",
+      "difficulty": "intermediate",
+      "sub_topic": "4.4",
+      "sub_topic_name": "Clustering & Pruning"
+    },
+    {
+      "id": "architect_test3_q63",
+      "source": "architect_test3",
+      "question_num": 63,
+      "question": "After performing the following query:\n\nSELECT *\nFROM MYTABLE\nWHERE email=’test@test.com’\nyou see in the query profiler the following information:\n\nCan you spot the issue?",
+      "options": [
+        {
+          "text": "Union without ALL",
+          "explanation": ""
+        },
+        {
+          "text": "The query is too large to fit in memory.",
+          "explanation": ""
+        },
+        {
+          "text": "A \"exploding join\" issue might be the problem.",
+          "explanation": ""
+        },
+        {
+          "text": "There is inefficient pruning",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        3
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "All the previous answers are the most common query problems you can identify in the Query Profile (essential to know). The pruning efficiency can be observed by comparing Partitions scanned and Partitions total statistics in the TableScan operators.\n\nPruning is efficient if the former is a small fraction of the latter. If not, the pruning did not have an effect. In this case, Snowflake scans all the partitions to get the rows with the value test@test.com in the email. This means this column is not well clustered, as it shouldn't scan so many partitions. We should create a cluster key on the EMAIL column.",
+      "domain_raw": "",
+      "domain": "Domain 4.0: Performance Optimization",
+      "difficulty": "advanced",
+      "sub_topic": "4.4",
+      "sub_topic_name": "Clustering & Pruning"
+    },
+    {
+      "id": "architect_test4_q7",
+      "source": "architect_test4",
+      "question_num": 7,
+      "question": "How can an Architect enable optimal clustering to enhance performance for different access paths on a given table?",
+      "options": [
+        {
+          "text": "Create super projections that will automatically create clustering.",
+          "explanation": ""
+        },
+        {
+          "text": "Create multiple materialized views with different cluster keys.",
+          "explanation": ""
+        },
+        {
+          "text": "Create a clustering key that contains all columns used in the access paths.",
+          "explanation": ""
+        },
+        {
+          "text": "Create multiple clustering keys for a table.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "The solution to the problem lies with two new features in Snowflake: materialized views and auto-clustering. To enable optimal clustering for various access paths on a given table, we should create multiple materialized views, each with different clustering keys. This approach allows for tailored data organization based on specific query patterns, improving query performance across diverse access paths. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 4.0: Performance Optimization",
+      "difficulty": "intermediate",
+      "sub_topic": "4.4",
+      "sub_topic_name": "Clustering & Pruning"
+    },
+    {
+      "id": "architect_test5_q5",
+      "source": "architect_test5",
+      "question_num": 5,
+      "question": "A company has a source system that provides JSON records for various IoT operations. The JSON is loading directly into a persistent table with a variant field. The data is quickly growing to hundreds of millions of records and performance is becoming an issue. There is a generic access pattern that is used to filter on the create_date key within the variant field. What can be done to improve performance?",
+      "options": [
+        {
+          "text": "Alter the target table to include additional fields pulled from the JSON records. This would include a create_date field with a datatype of date. When this field is used in the filter, partition pruning will occur.",
+          "explanation": ""
+        },
+        {
+          "text": "Validate the size of the warehouse being used. If the record count is approaching hundreds of millions, size XL will be the minimum size required to process this amount of data.",
+          "explanation": ""
+        },
+        {
+          "text": "Incorporate the use of multiple tables partitioned by date ranges. When a user or process needs to query a particular date range, ensure the appropriate base table is used.",
+          "explanation": ""
+        },
+        {
+          "text": "Alter the target table to include additional fields pulled from the JSON records. This would include a create_date field with a datatype of varchar. When this field is used in the filter, partition pruning will occur.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "A few comments: Using a varchar data type for dates would not be as efficient as using a date. Increasing the warehouse size may improve performance temporarily but will incur higher costs without addressing the underlying issue of data organization. The only thing we will achieve if we partition data across several tables based on date ranges is to increase complexity. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 4.0: Performance Optimization",
+      "difficulty": "intermediate",
+      "sub_topic": "4.4",
+      "sub_topic_name": "Clustering & Pruning"
+    },
+    {
+      "id": "architect_test5_q16",
+      "source": "architect_test5",
+      "question_num": 16,
+      "question": "A table contains 10 distinct values in one of the columns. Assuming the table has 10 micro-partitions and each of the 10 values is stored exclusively on a different micro-partition, what is the clustering depth of the table for this column?",
+      "options": [
+        {
+          "text": "5",
+          "explanation": ""
+        },
+        {
+          "text": "10",
+          "explanation": ""
+        },
+        {
+          "text": "1",
+          "explanation": ""
+        },
+        {
+          "text": "0",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        2
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "A few comments: Since each value is fully contained within one micro-partition, the clustering depth = 1 (only one micro-partition needs to be scanned per value). Clustering depth would be 10 if every value was scattered across all 10 micro-partitions, but here, each value is contained in a single partition. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 4.0: Performance Optimization",
+      "difficulty": "beginner",
+      "sub_topic": "4.4",
+      "sub_topic_name": "Clustering & Pruning"
+    },
+    {
+      "id": "architect_test5_q22",
+      "source": "architect_test5",
+      "question_num": 22,
+      "question": "How can an Architect enable optimal clustering to enhance performance for different access paths on a given table?",
+      "options": [
+        {
+          "text": "Create multiple clustering keys for a table",
+          "explanation": ""
+        },
+        {
+          "text": "Create multiple materialized views with different cluster keys",
+          "explanation": ""
+        },
+        {
+          "text": "Create super projections that will automatically create clustering",
+          "explanation": ""
+        },
+        {
+          "text": "Create a clustering key that contains all columns used in the access paths",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "A few comments: Snowflake only supports one clustering key per table, so you cannot optimize for multiple access patterns directly on the base table. To support multiple access paths, the best practice is to create multiple materialized views, each clustered on a different key aligned with a specific query pattern. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 4.0: Performance Optimization",
+      "difficulty": "intermediate",
+      "sub_topic": "4.4",
+      "sub_topic_name": "Clustering & Pruning"
+    },
+    {
+      "id": "architect_test5_q36",
+      "source": "architect_test5",
+      "question_num": 36,
+      "question": "A Snowflake Architect anticipates that a table will contain several terabytes of data, and so defines a custom cluster key of three columns to optimize query performance. However, the table still takes a long time to query. Why is this occurring?",
+      "options": [
+        {
+          "text": "The custom cluster key cardinality is too high.",
+          "explanation": ""
+        },
+        {
+          "text": "The table needs to be manually re-clustered to partition the key.",
+          "explanation": ""
+        },
+        {
+          "text": "The cluster key should not exceed two columns.",
+          "explanation": ""
+        },
+        {
+          "text": "A multi-cluster virtual warehouse is not being used.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "A few comments: The use of a MCW is not relevant when we want to use clustering. The query indicates that the table has several terabytes and the cluster key is defined on 3 columns. This looks good. From the available options, knowing that the conditions for clustering the table are good, we have to think that the cardinality of some of the columns we use in the cluster key is too high.",
+      "domain_raw": "",
+      "domain": "Domain 4.0: Performance Optimization",
+      "difficulty": "intermediate",
+      "sub_topic": "4.4",
+      "sub_topic_name": "Clustering & Pruning"
+    },
+    {
+      "id": "architect_test5_q38",
+      "source": "architect_test5",
+      "question_num": 38,
+      "question": "An Architect is investigating a performance issue with an existing architecture and found a query where the Query Profile indicates a high number of bytes spilled to remote storage. The query includes a WHERE clause that filters out a high percentage of records. What actions can be taken to reduce the spillage to remote storage and improve the query performance? (Select TWO)",
+      "options": [
+        {
+          "text": "Increase the maximum number of clusters for the virtual warehouse",
+          "explanation": ""
+        },
+        {
+          "text": "Decrease the data retention period for tables referenced by the query",
+          "explanation": ""
+        },
+        {
+          "text": "Define a clustering key on columns used for selective filtering with a high clustering depth",
+          "explanation": ""
+        },
+        {
+          "text": "Ensure primary keys and foreign keys are defined for large tables referenced by the query",
+          "explanation": ""
+        },
+        {
+          "text": "Increase the size of the virtual warehouse",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        2,
+        4
+      ],
+      "multi_select": true,
+      "multi_select_count": 2,
+      "overall_explanation": "A few comments: A larger warehouse provides more memory, reducing the likelihood of spilling intermediate results to remote storage. Define a clustering key on columns used for selective filtering with a high clustering depth will improve data pruning and efficiency, reducing the volume of data processed and cached in memory. Other options do not directly impact memory usage or remote spilling during query execution.",
+      "domain_raw": "",
+      "domain": "Domain 4.0: Performance Optimization",
+      "difficulty": "advanced",
+      "sub_topic": "4.4",
+      "sub_topic_name": "Clustering & Pruning"
+    },
+    {
+      "id": "architect_test5_q40",
+      "source": "architect_test5",
+      "question_num": 40,
+      "question": "Which performance optimization techniques may impact storage costs? (Select TWO)",
+      "options": [
+        {
+          "text": "Using the search optimization service",
+          "explanation": ""
+        },
+        {
+          "text": "Rewriting a query",
+          "explanation": ""
+        },
+        {
+          "text": "Creating a multi-cluster virtual warehouse",
+          "explanation": ""
+        },
+        {
+          "text": "Increasing the MIN_CLUSTER_COUNT in a multi-cluster virtual warehouse",
+          "explanation": ""
+        },
+        {
+          "text": "Enabling Automatic Clustering",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0,
+        4
+      ],
+      "multi_select": true,
+      "multi_select_count": 2,
+      "overall_explanation": "A few comments: Search Optimization Service, Query Acceleration Service and Clustering the Table have storage and compute costs. For more detailed information, refer to the official Snowflake documentation. Search optimization service creates additional data structures to accelerate selective query performance. Clustering has an impact on storage by reordering micropartitions (also Time Travel cost). Other options mainly affect compute performance or concurrency, not storage. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 4.0: Performance Optimization",
+      "difficulty": "intermediate",
+      "sub_topic": "4.4",
+      "sub_topic_name": "Clustering & Pruning"
+    }
+  ]
+}

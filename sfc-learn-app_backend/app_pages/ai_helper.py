@@ -143,12 +143,11 @@ def render_ai_button(key, topic_name, concept_text, button_label=None):
             response = ai_explain(topic_str, concept_str, lang)
             st.session_state[f"_ai_loading_{key}"] = False
             if response:
-                st.markdown(f"""
-                <div style="background:rgba(41,181,232,0.1); border-left:4px solid #29B5E8;
-                            border-radius:8px; padding:14px 18px; margin:8px 0;">
-                    <strong style="color:#29B5E8;">🤖 AI Tutor</strong><br>
-                    <span style="color:#FAFAFA;">{response}</span>
-                </div>
-                """, unsafe_allow_html=True)
+                st.markdown(
+'<div style="background:rgba(41,181,232,0.1); border-left:4px solid #29B5E8;'
+' border-radius:8px; padding:14px 18px; margin:8px 0;">'
+f'<strong style="color:#29B5E8;">AI Tutor</strong><br>'
+f'<span style="color:inherit;">{response}</span>'
+'</div>', unsafe_allow_html=True)
             else:
                 st.warning("Could not get AI response. Check your Snowflake connection.")

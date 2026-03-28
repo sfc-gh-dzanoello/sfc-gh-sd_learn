@@ -11,12 +11,8 @@ from i18n import t, get_text
 from app_pages.data_layer import get_tracks, get_topic_content
 from app_pages.persistence import load_learn_progress
 
-DIFFICULTY_COLORS = {
-    "beginner": "#4ECB71",
-    "intermediate": "#FFD93D",
-    "advanced": "#FF6B6B",
-    "expert": "#C084FC",
-}
+from theme import T
+DIFFICULTY_COLORS = T.DIFFICULTY
 
 
 def load_tracks():

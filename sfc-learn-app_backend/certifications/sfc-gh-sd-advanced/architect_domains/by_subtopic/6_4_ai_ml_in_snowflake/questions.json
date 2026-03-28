@@ -1,0 +1,89 @@
+{
+  "sub_topic": "6.4",
+  "sub_topic_name": "AI/ML in Snowflake",
+  "domain": "Domain 6.0: DevOps & Ecosystem",
+  "total_questions": 2,
+  "difficulty_distribution": {
+    "intermediate": 2
+  },
+  "exam_traps": [
+    {
+      "trap": "Cortex AI functions run inside Snowflake -- no external API calls needed",
+      "why_confusing": "SNOWFLAKE.CORTEX functions (COMPLETE, SUMMARIZE, TRANSLATE, etc.) run entirely within Snowflake using pre-deployed LLMs. No API keys or external endpoints required.",
+      "correct_answer": "Cortex = in-Snowflake AI. No external setup. Just SQL function calls.",
+      "doc_reference": "https://docs.snowflake.com/en/user-guide/snowflake-cortex/llm-functions"
+    }
+  ],
+  "questions": [
+    {
+      "id": "architect_new_q26",
+      "source": "architect_new",
+      "question_num": 26,
+      "question": "What is the difference between Cortex LLM functions and Snowflake ML Functions?",
+      "options": [
+        {
+          "text": "Cortex functions are for text/language tasks; ML Functions are for structured data tasks like forecasting.",
+          "explanation": ""
+        },
+        {
+          "text": "They are the same thing with different names.",
+          "explanation": ""
+        },
+        {
+          "text": "Cortex functions require Python; ML Functions are SQL-only.",
+          "explanation": ""
+        },
+        {
+          "text": "ML Functions are deprecated in favor of Cortex functions.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Cortex LLM functions (COMPLETE, SUMMARIZE, SENTIMENT, etc.) handle text and language tasks. Snowflake ML Functions (FORECAST, ANOMALY_DETECTION, CLASSIFICATION) handle structured data tasks like time-series forecasting and anomaly detection. Both are accessible via SQL.",
+      "domain_raw": "",
+      "domain": "Domain 6.0: DevOps & Ecosystem",
+      "difficulty": "intermediate",
+      "sub_topic": "6.4",
+      "sub_topic_name": "AI/ML in Snowflake"
+    },
+    {
+      "id": "architect_new_q35",
+      "source": "architect_new",
+      "question_num": 35,
+      "question": "What is the Snowflake Model Registry used for?",
+      "options": [
+        {
+          "text": "Tracking and versioning machine learning models deployed in Snowflake.",
+          "explanation": ""
+        },
+        {
+          "text": "Registering external data sources for ingestion.",
+          "explanation": ""
+        },
+        {
+          "text": "Cataloging all database objects in an account.",
+          "explanation": ""
+        },
+        {
+          "text": "Managing Docker images for SPCS.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "The Model Registry provides versioning, metadata tracking, and deployment management for ML models. Models (scikit-learn, XGBoost, PyTorch, etc.) can be logged, versioned, and deployed as inference services within Snowflake.",
+      "domain_raw": "",
+      "domain": "Domain 6.0: DevOps & Ecosystem",
+      "difficulty": "intermediate",
+      "sub_topic": "6.4",
+      "sub_topic_name": "AI/ML in Snowflake"
+    }
+  ]
+}

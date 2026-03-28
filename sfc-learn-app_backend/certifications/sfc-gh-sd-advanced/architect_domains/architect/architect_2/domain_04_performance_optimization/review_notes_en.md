@@ -1,0 +1,748 @@
+# Domain 4: Performance — Tools, Best Practices & Troubleshooting
+
+> **ARA-C01 Weight:** ~20-25% of the exam. This is a HIGH-PRIORITY domain.
+> Focus on: Query Profile interpretation, warehouse sizing, caching layers, clustering, and performance services.
+
+---
+
+## 4.1 QUERY PROFILE
+
+The Query Profile is your **single most important diagnostic tool** in Snowflake.
+
+### Key Concepts
+
+- Access via: **History tab → query → Query Profile** (or `GET_QUERY_OPERATOR_STATS()`)
+- Shows a **DAG (directed acyclic graph)** of operators — data flows bottom to top
+- Each operator node shows: **% of total time**, rows processed, bytes scanned
+
+**Critical operators to know:**
+
+| Operator | What It Does | Red Flag |
+|----------|-------------|----------|
+| TableScan | Reads micro-partitions | High partitions scanned vs. total = bad pruning |
+| Filter | Applies WHERE clauses | Should appear AFTER pruning, not instead of it |
+| Aggregate | GROUP BY / DISTINCT | High memory = possible spilling |
+| SortWithLimit | ORDER BY + LIMIT | Expensive on large datasets |
+| JoinFilter | Hash join / merge join | Exploding rows = bad join condition |
+| ExternalScan | External tables / stages | Always slower than native tables |
+| WindowFunction | OVER() clauses | Memory-intensive, watch for spilling |
+| Flatten | VARIANT/array expansion | Row explosion risk |
+
+**Spilling indicators:**
+
+- **Bytes spilled to local storage** — warehouse SSD used (moderate issue)
+- **Bytes spilled to remote storage** — S3/Azure Blob/GCS used (SEVERE issue)
+- Fix: use a **larger warehouse** (more memory/SSD) or optimize the query
+
+**Pruning statistics (on TableScan):**
+
+- **Partitions scanned** vs. **Partitions total** — goal is scanned << total
+- If scanned ≈ total → clustering key is missing or filter doesn't match clustering
+
+### Why This Matters
+
+You have a report query taking 45 minutes. Query Profile shows a JoinFilter with 50B rows output from two 10M-row tables. The join condition is missing a key column — cartesian join. Without Query Profile, you'd just upsize the warehouse and waste credits.
+
+### Best Practices
+
+- Check **"Most Expensive Nodes"** panel first — the top 1-2 nodes are usually the bottleneck
+- Look at **Statistics → Spilling** before upsizing warehouses
+- Use `SYSTEM$EXPLAIN_PLAN()` for quick checks without running the query
+- Compare pruning stats before/after adding clustering keys
+
+**Exam traps:**
+
+- Exam trap: IF YOU SEE "Query is slow, increase warehouse size" → WRONG because you should diagnose with Query Profile first; the problem might be a bad join or missing filter, not insufficient compute
+- Exam trap: IF YOU SEE "Spilling to local disk is a critical issue" → WRONG because local spilling is a moderate concern; spilling to **remote storage** is the severe one
+- Exam trap: IF YOU SEE "Query Profile shows execution plan before running" → WRONG because Query Profile shows **actual execution** stats; use `EXPLAIN_PLAN` for pre-execution plans
+
+### Query Profile Metric Details
+
+- **"Processing" indicator:** Means the operator is spending time on **CPU computation**. High processing time = complex calculations or functions.
+- **"Local Disk IO" indicator:** Means the operator is **blocked waiting for local disk access** (SSD reads/writes). May indicate spilling to local storage.
+- **"Percentage scanned from cache":** Refers to the **local disk cache** (warehouse SSD), NOT the result cache. High percentage = good cache utilization.
+- **"Bytes scanned" location:** Found in the **Statistics panel**, NOT in the Execution Time screen. Common exam trick.
+- **"Bytes sent over the network":** Visible in the Statistics panel. Shows data fetched from **remote storage** (not from cache). High value = poor cache utilization; data is being pulled from cloud storage instead of warehouse SSD.
+- **COMPILATION_TIME > EXECUTION_TIME:** When the query spends more time compiling than executing, the cause is overly complex query logic (many joins, nested views, complex functions). Compilation happens in the **cloud services layer**, not the warehouse. Fixes: simplify query, materialize subqueries, reduce nested views. NOT fixed by: SOS, clustering, bigger warehouse, or more clusters.
+
+**Exam traps:**
+
+- **Exam trap:** IF YOU SEE "Compilation time can be reduced by upsizing the warehouse" → WRONG because compilation happens in the cloud services layer, not the warehouse. Fix complex queries, not compute
+- **Exam trap:** IF YOU SEE "Percentage scanned from cache refers to the result cache" → WRONG because it refers to the **local disk cache** (warehouse SSD)
+- **Exam trap:** IF YOU SEE "Bytes scanned is shown in the Execution Time panel" → WRONG because it's in the **Statistics panel**
+
+### Common Questions (FAQ)
+
+**Q: Can I see Query Profile for queries run by other users?**
+A: Yes, if you have ACCOUNTADMIN or MONITOR privilege on the warehouse. Otherwise, you only see your own queries.
+
+**Q: How long are Query Profiles retained?**
+A: 14 days in the web UI. Use ACCOUNT_USAGE.QUERY_HISTORY for up to 365 days (but without the visual DAG).
+
+### Example Scenario Questions — Query Profile
+
+**Scenario:** A nightly reporting job that used to complete in 10 minutes now takes 3 hours. The data engineering team's first instinct is to upsize the warehouse from Large to 2XL. Before approving the cost increase, what should the architect require?
+**Answer:** Require a Query Profile analysis before any warehouse resizing. Open the Query Profile for the slow query and check: (1) the "Most Expensive Nodes" panel to identify the bottleneck operator, (2) spilling statistics — if the query spills to remote storage, upsizing may help; if there's no spilling, more compute won't help, (3) TableScan pruning stats — if partitions scanned is close to partitions total, the issue is poor pruning (fix with clustering keys, not bigger warehouse), (4) JoinFilter — check for row explosion from bad join conditions. The root cause is often a missing filter, a cartesian join, or degraded clustering — none of which are fixed by upsizing.
+
+**Scenario:** An analyst reports that a join between two 10-million-row tables produces a Query Profile showing a JoinFilter operator with 50 billion output rows. The warehouse eventually runs out of memory and the query fails. What is the likely root cause and how should the architect fix it?
+**Answer:** The 50 billion rows from a join of two 10M-row tables indicates a cartesian or near-cartesian join — the join condition is either missing a key column or using a non-selective predicate. Check the Query Profile's JoinFilter node for the join condition. The fix is correcting the SQL join logic (adding the missing key column), not upsizing the warehouse. Even a 6XL warehouse cannot efficiently process 50 billion rows from what should be a 10M-row result. Use `SYSTEM$EXPLAIN_PLAN()` to verify the corrected query plan before running it.
+
+---
+
+## 4.2 WAREHOUSES
+
+Warehouses are your **compute engines**. Sizing them correctly is the #1 cost lever.
+
+### Key Concepts
+
+**Warehouse sizes (T-shirt sizing):**
+
+| Size | Nodes | Credits/hr | Use Case |
+|------|-------|-----------|----------|
+| X-Small | 1 | 1 | Dev, simple queries |
+| Small | 2 | 2 | Light analytics |
+| Medium | 4 | 4 | Moderate workloads |
+| Large | 8 | 8 | Complex joins, transforms |
+| X-Large | 16 | 16 | Heavy ETL |
+| 2XL–6XL | 32–128 | 32–128 | Massive workloads |
+
+**Doubling rule:** Each size up = **2x nodes, 2x credits, 2x memory/SSD**. Does NOT guarantee 2x speed.
+
+**Snowpark-Optimized Warehouses:**
+
+- 16x more memory per node than standard
+- Purpose: ML training, large UDFs, Snowpark DataFrames, Java/Python UDTFs
+- Cost: ~1.5x more credits per hour than standard same-size
+
+**Multi-cluster warehouses (Enterprise+):**
+
+- **Min clusters** and **Max clusters** settings
+- **Scaling policies:**
+  - **Standard (default):** Spins up new cluster when a query is queued. Conservative scale-down.
+  - **Economy:** Waits until enough load to keep new cluster busy for 6 minutes. Saves credits but increases queuing.
+
+**Auto-suspend / Auto-resume:**
+
+- Auto-suspend: set in **seconds** (minimum 60 seconds for non-zero values)
+- `AUTO_SUSPEND = 0` or `NULL` = **never auto-suspend** (warehouse stays running until manually suspended)
+- Auto-resume: `TRUE` by default — warehouse starts when a query hits it
+- Suspended warehouses consume **zero credits**
+- Each resume incurs provisioning time (~1-2 seconds typically)
+
+### Why This Matters
+
+Your data engineering team runs ETL at 2 AM on a 2XL warehouse that auto-suspends after 10 minutes. But 50 small queries trickle in every few minutes during the day, each resuming the warehouse. You're paying 2XL credits for X-Small workloads. Solution: separate warehouses by workload type.
+
+### Best Practices
+
+- **Separate warehouses by workload** (ETL vs. BI vs. data science)
+- Start small, scale up only after checking Query Profile
+- Auto-suspend: **60 seconds** for ETL, **300-600 seconds** for BI (avoids constant resume)
+- Use **Economy** scaling policy for cost-sensitive, latency-tolerant workloads
+- Use **Standard** scaling policy for user-facing, latency-sensitive workloads
+
+**Exam traps:**
+
+- Exam trap: IF YOU SEE "Larger warehouse always means faster queries" → WRONG because query speed depends on the bottleneck; a bad query plan won't improve with more compute
+- Exam trap: IF YOU SEE "Multi-cluster warehouses run a single query across multiple clusters" → WRONG because each cluster runs separate queries; multi-cluster is for **concurrency**, not single-query parallelism
+- Exam trap: IF YOU SEE "Snowpark-optimized warehouses are always better" → WRONG because they cost more and only help memory-intensive workloads (ML, large UDFs); standard is fine for SQL
+- Exam trap: IF YOU SEE "AUTO_SUSPEND = 0 suspends the warehouse immediately" → WRONG because `AUTO_SUSPEND = 0` (or `NULL`) means **NEVER auto-suspend** — the warehouse runs indefinitely. The minimum non-zero auto-suspend value is 60 seconds. To suspend immediately, use `ALTER WAREHOUSE ... SUSPEND`
+
+### Multi-Cluster Modes & Parameters
+
+- **Auto-scale mode vs Maximized mode:**
+
+| Mode | Behavior | Cost | Use Case |
+|---|---|---|---|
+| Auto-scale | Clusters scale between min and max based on load | Cost-effective | Most production workloads |
+| Maximized | ALL clusters run at all times (min = max) | Higher cost | Predictable high-concurrency workloads |
+
+- **Scaling policies are NOT modes:** Standard and Economy are the only two scaling policies. "Auto-scale" and "Maximized" are warehouse **modes**, not policies. Exam tests this distinction.
+- **MAX_CONCURRENCY_LEVEL parameter:** Default is 8. Controls how many queries can run concurrently on a single cluster. Increase for many small concurrent queries. Set to 1 to give a single query ALL warehouse resources (useful for memory-intensive Snowpark procedures).
+- **OPERATE privilege for warehouse resume:** When `AUTO_RESUME = FALSE`, a user needs the **OPERATE** privilege (not USAGE, not MODIFY, not MONITOR) to manually resume a suspended warehouse.
+- **Data skew:** When data is non-uniformly distributed, one node processes significantly more data than others. Upsizing the warehouse does NOT help because the bottleneck is a single node. Fix: redistribute data, rewrite the query, or change the clustering key.
+- **Warehouse sizing recommendation:** Snowflake officially recommends **experimenting** with different warehouse sizes on the same workload and comparing. Not "always start with X-Small" or "use defaults."
+
+**Exam traps:**
+
+- **Exam trap:** IF YOU SEE "Economy is a warehouse mode" → WRONG because Economy is a **scaling policy**. Auto-scale and Maximized are modes
+- **Exam trap:** IF YOU SEE "USAGE privilege is needed to resume a warehouse" → WRONG because you need **OPERATE** privilege to resume a suspended warehouse
+- **Exam trap:** IF YOU SEE "MAX_CONCURRENCY_LEVEL = 1 limits the warehouse to 1 query" → WRONG because it means each query gets the **full cluster resources**; the warehouse can still queue additional queries. Use this for memory-intensive operations (Snowpark, large UDFs)
+- **Exam trap:** IF YOU SEE "Upsizing always fixes slow queries" → WRONG because data skew causes bottlenecks on single nodes that persist regardless of warehouse size
+
+### Common Questions (FAQ)
+
+**Q: Does warehouse size affect compilation time?**
+A: No. Compilation happens in the cloud services layer, not the warehouse.
+
+**Q: Can I resize a warehouse while queries are running?**
+A: Yes. Running queries use the old size; new queries use the new size.
+
+### Example Scenario Questions — Warehouses
+
+**Scenario:** A company uses a single 2XL warehouse for all workloads: ETL at 2 AM, BI dashboards during business hours, and ad-hoc data science queries throughout the day. BI users complain about slow dashboards during ETL runs, and costs are high because the 2XL runs 24/7. How should the architect redesign the warehouse strategy?
+**Answer:** Separate warehouses by workload type. Create a dedicated ETL warehouse (Large or XL, auto-suspend 60 seconds) that runs only during the 2 AM batch window. Create a BI warehouse (Medium, multi-cluster with Standard scaling policy, auto-suspend 300-600 seconds) for dashboard queries — the multi-cluster handles concurrency spikes during business hours, and the longer auto-suspend avoids constant resume overhead and preserves SSD cache. Create a data science warehouse (Snowpark-optimized if running ML/UDFs, standard otherwise, auto-suspend 120 seconds). This eliminates contention between workloads and right-sizes each warehouse independently.
+
+**Scenario:** A data science team runs ML training jobs using Snowpark Python UDFs that process large in-memory datasets. Jobs frequently fail with out-of-memory errors on a standard XL warehouse. What should the architect recommend?
+**Answer:** Switch to a Snowpark-optimized warehouse. Snowpark-optimized warehouses provide 16x more memory per node compared to standard warehouses — specifically designed for memory-intensive workloads like ML training, large UDFs, and Snowpark DataFrames. The cost is approximately 1.5x more credits per hour than a standard warehouse of the same size, but the increased memory eliminates OOM failures and reduces spilling. Do not simply upsize to a standard 4XL — that adds compute nodes but doesn't provide the same memory density per node as a Snowpark-optimized warehouse.
+
+---
+
+## 4.3 CACHING
+
+Snowflake has **three caching layers**. Understanding them is critical for exam and real life.
+
+### Key Concepts
+
+**1. Result Cache (Cloud Services Layer)**
+
+- Stores **exact query results** for 24 hours. Each time the cached result is reused, the 24-hour counter resets, up to a **maximum of 31 days** from the original caching
+- Reused when: same query text + same data (no underlying changes) + same role (result cache is **role-specific**)
+- **Free** — no warehouse needed
+- Persists even if warehouse is suspended
+- Invalidated when underlying data changes (DML) or the 24-hour/31-day window expires
+- Can be disabled: `ALTER SESSION SET USE_CACHED_RESULT = FALSE;`
+
+**2. Metadata Cache (Cloud Services Layer)**
+
+- Stores min/max/count/null_count per micro-partition per column
+- Powers: `SELECT COUNT(*)`, `MIN()`, `MAX()` on full tables — **instant, no warehouse**
+- Works even on tables the warehouse hasn't queried before (metadata is maintained by cloud services)
+- Always active, cannot be disabled
+
+**3. Local Disk Cache (Warehouse SSD)**
+
+- Caches **raw micro-partition data** on warehouse SSD
+- Lost when warehouse suspends (SSD cleared)
+- Shared across queries on the same warehouse
+- Helps repeat scans of the same data within a session
+- Reason why longer auto-suspend can sometimes save money (avoid re-fetching data)
+
+### Why This Matters
+
+A dashboard refreshes every 5 minutes with the same 10 queries. If underlying data hasn't changed, all 10 hit the result cache — zero warehouse credits. But if someone inserts one row, all 10 caches invalidate and the warehouse spins up. Understanding this shapes your ELT scheduling.
+
+### Best Practices
+
+- Schedule data loads at predictable intervals so result cache stays valid between loads
+- Don't disable result cache unless debugging
+- Balance auto-suspend timeout: too short = lose SSD cache; too long = waste credits
+- Use dedicated warehouses per workload to maximize SSD cache hits
+- Metadata cache means `SELECT COUNT(*) FROM big_table` is always instant — no need to cache this yourself
+
+**Exam traps:**
+
+- Exam trap: IF YOU SEE "Result cache works across different roles" → WRONG because result cache is **role-specific**; same query with different roles = cache miss
+- Exam trap: IF YOU SEE "Suspending a warehouse clears the result cache" → WRONG because result cache lives in **cloud services layer**, not the warehouse; SSD/local disk cache is what gets cleared
+- Exam trap: IF YOU SEE "Result cache lasts 24 hours no matter what" → WRONG because any DML on the underlying tables **invalidates** the cache immediately; also, each reuse resets the 24-hour counter (up to 31 days max from original caching)
+
+### Caching Edge Cases (Exam Details)
+
+- **Metadata cache -- which queries need a warehouse:**
+
+| Query Type | Needs Warehouse? | Why |
+|---|---|---|
+| `SELECT COUNT(*) FROM table` | No | Metadata cache (full table count) |
+| `SELECT MIN(col) FROM table` | No | Metadata cache (min/max per partition) |
+| `SELECT MAX(col) FROM table` | No | Metadata cache |
+| `SELECT COUNT(col) FROM table GROUP BY x` | **Yes** | GROUP BY requires scanning data |
+| `SELECT * FROM table WHERE x = 1` | **Yes** | WHERE requires scanning data |
+| `EXPLAIN ...` | No | Uses cloud services only |
+
+- **RESULT_SCAN behavior:** `SELECT * FROM TABLE(RESULT_SCAN(...))` is **free** (reads from cache, no warehouse). But wrapping it in CTAS: `CREATE TABLE t AS SELECT * FROM TABLE(RESULT_SCAN(...))` **costs credits** because INSERT requires warehouse compute.
+- **Result cache characteristics (exam-tested):** Persists for 24 hours (reuse resets the counter). Maximum lifetime is 31 days from original caching. NOT shared across different warehouses. NOT related to Time Travel. Does NOT consume storage.
+- **Result cache invalidation details:**
+  - Exact SQL text match required (whitespace/case differences = cache miss)
+  - Disabled by non-deterministic functions (`CURRENT_TIMESTAMP()`, `RANDOM()`, `UUID_STRING()`, etc.)
+  - Result cache is **NOT used** if the query contains a UDF
+  - Any DML on underlying tables invalidates immediately
+- **Result cache pre-warming strategy:** Run key queries via a **scheduled task** before users arrive (e.g., 7 AM). Results get cached for 24 hours. Users hit the cache = zero compute cost. Budget-friendly strategy for "improve performance without increasing cost."
+
+**Exam traps:**
+
+- **Exam trap:** IF YOU SEE "COUNT(*) requires a running warehouse" → WRONG because COUNT(*) on a full table uses the metadata cache and needs no warehouse
+- **Exam trap:** IF YOU SEE "RESULT_SCAN with CTAS is free" → WRONG because INSERT operations (including CTAS) require warehouse compute even when reading from cache
+- **Exam trap:** IF YOU SEE "Result cache is shared across warehouses" → WRONG because result cache is specific to the query context, not shared across different warehouses
+
+### Common Questions (FAQ)
+
+**Q: Does result cache count toward cloud services billing?**
+A: No. Result cache retrieval is free. Cloud services billing only kicks in if cloud services exceed 10% of total compute.
+
+**Q: If two users run the same query with the same role, does user B benefit from user A's result cache?**
+A: Yes — result cache is shared across users if the query text, role, and data are identical.
+
+### Example Scenario Questions — Caching
+
+**Scenario:** A BI dashboard refreshes 20 queries every 5 minutes. The underlying data is only updated once per hour via a scheduled ETL job. The architect notices the BI warehouse is consuming significant credits despite the data being mostly static. How should caching be optimized?
+**Answer:** Between ETL runs (55 minutes out of every hour), all 20 queries should hit the result cache since the underlying data hasn't changed and the queries use the same role. The result cache is free — no warehouse credits consumed. Verify that: (1) result cache is not disabled (`USE_CACHED_RESULT = TRUE`), (2) all dashboard queries use the same role (result cache is role-specific), (3) the ETL job doesn't do unnecessary DML that would invalidate the cache prematurely. If the dashboard auto-refreshes with slightly different query text each time (e.g., dynamic timestamps), standardize the query text to maximize cache hits. This should reduce warehouse usage by ~90%.
+
+**Scenario:** An analytics team sets warehouse auto-suspend to 10 seconds to save credits. However, they notice that recurring queries throughout the day are slower than expected, and the warehouse is constantly resuming and suspending. What is happening and how should the architect fix it?
+**Answer:** The 10-second auto-suspend is clearing the local disk cache (warehouse SSD) too frequently. When the warehouse suspends, all cached micro-partition data on the SSD is lost. When it resumes, queries must re-fetch data from remote storage, making them slower. Increase the auto-suspend to 300-600 seconds for BI workloads — this keeps the SSD cache warm between queries, reducing remote storage reads. The slightly higher idle cost (a few minutes of credits) is offset by faster queries and fewer resume cycles. For ETL warehouses that run in discrete bursts, 60 seconds is appropriate since there's no cache to preserve between jobs.
+
+---
+
+## 4.4 CLUSTERING & PRUNING
+
+Micro-partition pruning is how Snowflake avoids full table scans. Clustering controls how data is organized.
+
+### Key Concepts
+
+**Micro-partitions:**
+
+- Snowflake stores data in **50-500 MB uncompressed** micro-partitions (immutable, columnar)
+- Each partition has **metadata**: min/max values per column
+- Queries use this metadata to **skip** irrelevant partitions = pruning
+
+**Natural clustering:**
+
+- Data is clustered by **ingestion order** by default
+- Works great if you always filter by a timestamp column and load data chronologically
+- Degrades with random inserts, updates, or merges over time
+
+**Clustering keys:**
+
+- Defined with `ALTER TABLE ... CLUSTER BY (col1, col2)`
+- Best for: large tables (multi-TB), frequently filtered columns, low-to-medium cardinality
+- Snowflake's **Automatic Clustering** service re-organizes data in the background (serverless, costs credits)
+- Check clustering quality: `SYSTEM$CLUSTERING_INFORMATION('table', '(col)')`
+  - `average_depth` — lower is better (1.0 = perfect)
+  - `average_overlap` — lower is better (0.0 = no overlap)
+
+**Key selection guidelines:**
+
+- Pick columns used in WHERE, JOIN, ORDER BY
+- 3-4 columns max in a clustering key
+- Put **low-cardinality columns first** (e.g., `region` before `order_id`)
+- Expressions allowed: `CLUSTER BY (TO_DATE(created_at), region)`
+
+### Why This Matters
+
+A 500 TB fact table with `WHERE event_date = '2025-01-15'` scans 500 TB without clustering. With `CLUSTER BY (event_date)`, it scans maybe 100 MB. That's the difference between a 30-minute query and a 2-second query.
+
+### Best Practices
+
+- Only cluster tables > 1 TB (or with poor pruning visible in Query Profile)
+- Monitor auto-clustering credits in ACCOUNT_USAGE.AUTOMATIC_CLUSTERING_HISTORY
+- Don't cluster by high-cardinality columns alone (e.g., UUID) — ineffective
+- Combine with time-based columns for event/log tables: `CLUSTER BY (TO_DATE(ts), category)`
+- Re-evaluate clustering keys quarterly as query patterns evolve
+
+**Exam traps:**
+
+- Exam trap: IF YOU SEE "Clustering keys sort the data like a traditional index" → WRONG because Snowflake doesn't have indexes; clustering keys guide **micro-partition organization** for better pruning
+- Exam trap: IF YOU SEE "You should cluster every table" → WRONG because small tables don't benefit; clustering has ongoing maintenance cost (auto-clustering credits)
+- Exam trap: IF YOU SEE "Clustering keys are free to maintain" → WRONG because Automatic Clustering is a **serverless feature that consumes credits**
+- Exam trap: IF YOU SEE "High-cardinality column is the best clustering key" → WRONG because low-to-medium cardinality provides better partition pruning; high cardinality means too many distinct values per partition
+
+### Clustering Diagnostics (System Functions)
+
+- **SYSTEM$CLUSTERING_INFORMATION output fields:**
+  - `cluster_by_keys`: The current clustering key definition for the table
+  - `average_depth`: Average number of micro-partitions a value spans. Lower is better (1.0 = perfect).
+  - `average_overlaps`: Average number of overlapping micro-partitions (value ranges that intersect). Lower is better (0.0 = no overlap).
+  - `total_partition_count`: Total micro-partitions in the table (current data, not Time Travel partitions).
+  - `total_constant_partition_count`: Partitions where the clustering key column has a single distinct value (perfectly clustered partitions). Higher is better.
+- **Poor clustering indicators:** `average_depth` > 2-3, `average_overlaps` high, zero `total_constant_partition_count`, or partitions scanned > 50% of total for selective queries = poorly clustered table.
+- **SYSTEM$CLUSTERING_DEPTH:** Returns a single depth value for quick assessment. Evaluates how well data is organized for **any** set of columns (not just the current clustering key). Useful for "what-if" analysis before changing the key. Depth = 1 is perfect.
+- **Clustering key with expressions:** Use functions to reduce granularity of high-cardinality columns. Examples: `TO_DATE(ts)`, `MONTH(created_at)`, `SUBSTR(name, 1, 2)`, `YEAR(order_date) || QUARTER(order_date)`. Common pattern: `CLUSTER BY (TO_DATE(created_at), region)`.
+- **Define alternate clustering via materialized view:** Create an MV with a different clustering key to serve queries that filter on columns not in the base table's clustering key. The MV acts as an alternate access path. Multiple MVs with different cluster keys = optimal clustering for multiple query patterns on the same table.
+
+**Exam traps:**
+
+- **Exam trap:** IF YOU SEE "SYSTEM$CLUSTERING_DEPTH only works with the current clustering key" → WRONG because you can evaluate clustering depth for **any** columns, even ones not in the current key
+
+### Common Questions (FAQ)
+
+**Q: Can I have multiple clustering keys on one table?**
+A: No. One clustering key per table, but it can be a **compound key** with multiple columns.
+
+**Q: Does clustering affect DML performance?**
+A: Not directly. But Automatic Clustering runs in the background and consumes serverless credits when data changes.
+
+### Example Scenario Questions — Clustering & Pruning
+
+**Scenario:** A 200 TB event log table is queried primarily by `event_date` and `region`. Queries filtering by `event_date` alone are fast, but queries filtering by both `event_date` and `region` still scan 60% of partitions. The table currently has `CLUSTER BY (event_date)`. How should the architect improve pruning?
+**Answer:** Change the clustering key to a compound key: `ALTER TABLE events CLUSTER BY (TO_DATE(event_ts), region)`. Put the lower-cardinality column (`region`, perhaps 10-20 values) first for maximum pruning efficiency, followed by the date expression. This organizes micro-partitions so that data for a specific region and date is co-located, allowing queries with both filters to prune much more aggressively. After changing the key, monitor `SYSTEM$CLUSTERING_INFORMATION('events', '(TO_DATE(event_ts), region)')` — `average_depth` should decrease toward 1.0 and `average_overlap` toward 0.0 over time as Automatic Clustering reorganizes data. Monitor auto-clustering credits in `AUTOMATIC_CLUSTERING_HISTORY`.
+
+**Scenario:** A product manager asks the architect to add clustering keys to all 500 tables in the analytics database to "make everything faster." What should the architect's response be?
+**Answer:** Clustering should only be applied to large tables (typically >1 TB) with demonstrably poor pruning visible in Query Profile. Small tables fit in a few micro-partitions and don't benefit from clustering — Snowflake already scans all partitions quickly. Clustering also has ongoing maintenance costs: Automatic Clustering is a serverless feature that consumes credits whenever data changes. For the 500 tables, the architect should analyze Query Profile pruning statistics and `SYSTEM$CLUSTERING_INFORMATION` for the top 10-20 most-queried large tables first, then only apply clustering where partitions scanned is significantly higher than necessary. Re-evaluate clustering keys quarterly as query patterns evolve.
+
+---
+
+## 4.5 PERFORMANCE SERVICES
+
+Three serverless services that accelerate specific query patterns.
+
+### Key Concepts
+
+**1. Query Acceleration Service (QAS)**
+
+- Offloads **portions** of a query to shared serverless compute
+- Best for: queries with large scans + selective filters (ad-hoc analytics)
+- Enabled per warehouse: `ALTER WAREHOUSE SET ENABLE_QUERY_ACCELERATION = TRUE;`
+- `QUERY_ACCELERATION_MAX_SCALE_FACTOR` — limits serverless compute (0 = unlimited, default 8)
+- Check eligibility: `SYSTEM$ESTIMATE_QUERY_ACCELERATION('query_id')`
+- **Not helpful for:** queries limited by single-threaded operations, small scans, or CPU bottlenecks
+
+**2. Search Optimization Service (SOS)**
+
+- Builds a **persistent, server-maintained** search access path
+- Best for: **selective point lookups** on large tables (WHERE id = X, CONTAINS, GEO)
+- Supports: equality predicates, IN, SUBSTRING, GEOGRAPHY/GEOMETRY functions, VARIANT fields
+- Enabled per table or per column: `ALTER TABLE t ADD SEARCH OPTIMIZATION ON EQUALITY(col)`
+- Costs: serverless credits for building + storage for search structures
+- **Not helpful for:** range scans, full table analytics, small tables
+
+**3. Materialized Views (MVs)**
+
+- Pre-computed, automatically maintained query results stored as micro-partitions
+- Best for: repeated subqueries, pre-aggregations, commonly joined subsets
+- Snowflake **auto-refreshes** MVs when base table changes (serverless credits)
+- Query optimizer can **auto-rewrite** queries to use MVs even if not referenced directly
+- Limitations: single base table only, no joins, no UDFs, no HAVING, limited window functions
+- Enterprise Edition required
+
+### Why This Matters
+
+An analytics platform has 200 users running ad-hoc queries on a 100 TB table. Some queries scan 80 TB, some scan 100 MB. QAS helps the large-scan queries share serverless compute. SOS helps the point-lookup queries skip straight to the right partitions. MVs pre-compute the top-10 dashboard aggregations.
+
+### Best Practices
+
+- QAS: enable on warehouses serving **unpredictable, ad-hoc** query patterns
+- SOS: use for **known high-selectivity** lookup patterns (ID lookups, search filters)
+- MVs: use for **stable, repeated** aggregations or filtered views
+- Monitor all three in ACCOUNT_USAGE: QAS history, SOS history, MV refresh history
+- Don't enable all three blindly — each has ongoing serverless costs
+
+**Exam traps:**
+
+- Exam trap: IF YOU SEE "QAS replaces the warehouse entirely" → WRONG because QAS **supplements** the warehouse; the warehouse still runs the query, QAS offloads scan-intensive portions
+- Exam trap: IF YOU SEE "Search Optimization is like a traditional B-tree index" → WRONG because it's a **search access path** maintained serverlessly; it's not a user-managed index
+- Exam trap: IF YOU SEE "Materialized views can join multiple tables" → WRONG because MVs in Snowflake support **single base table only** — no joins
+- Exam trap: IF YOU SEE "Materialized views must be referenced in the query to be used" → WRONG because the optimizer can **auto-rewrite** queries to use MVs transparently
+
+### Additional Performance Service Details
+
+- **SOS key consideration:** Works best with columns having at least **100K distinct values**. Low-cardinality columns don't benefit.
+- **Performance services cost and use-case comparison:**
+
+| Service | Trigger | Cost Type | Best For |
+|---------|---------|-----------|----------|
+| QAS | Per-query acceleration | Serverless compute only | Large scan + selective filter (ad-hoc analytics) |
+| SOS | Background maintenance | Serverless compute + storage | Point lookups, IN lists, CONTAINS, GEO (100K+ distinct values) |
+| MV | Background refresh | Serverless compute + storage | Repeated aggregations on single table |
+| Clustering | Background reorganization | Serverless compute + storage | Range/equality filters on large (multi-TB) tables |
+
+- **JSON/VARIANT performance optimization:** Extract frequently-filtered keys from VARIANT into native typed columns (use DATE type, not VARCHAR). Native typed columns enable **partition pruning** which VARIANT columns cannot. VARIANT columns cluster poorly because metadata (min/max) is less effective on semi-structured data.
+
+**Exam traps:**
+
+- **Exam trap:** IF YOU SEE "QAS has storage costs" → WRONG because QAS only has compute costs. Clustering, SOS, and MVs all have both compute AND storage costs
+
+### Common Questions (FAQ)
+
+**Q: Can QAS and Search Optimization be used together?**
+A: Yes. They solve different problems — QAS for large scans, SOS for point lookups.
+
+**Q: Do materialized views consume storage?**
+A: Yes. They are stored as micro-partitions and contribute to your storage bill.
+
+### Example Scenario Questions — Performance Services
+
+**Scenario:** An analytics platform serves 200 analysts running ad-hoc queries on a 100 TB sales fact table. Some queries scan 80 TB (broad date ranges), while others look up individual orders by `order_id`. The warehouse is frequently overloaded. Which performance services should the architect enable?
+**Answer:** Enable Query Acceleration Service (QAS) on the warehouse to help large-scan ad-hoc queries offload scan-intensive portions to shared serverless compute. For the point-lookup queries by `order_id`, add Search Optimization Service (SOS) on the `order_id` column: `ALTER TABLE sales ADD SEARCH OPTIMIZATION ON EQUALITY(order_id)`. SOS builds a persistent search access path for selective point lookups, skipping directly to the relevant partitions. For the most common dashboard aggregations that are queried repeatedly, create materialized views (MVs) on single-table aggregations — the optimizer auto-rewrites queries to use them. Each service addresses a different query pattern: QAS for large scans, SOS for point lookups, MVs for repeated aggregations. Monitor serverless costs for all three via ACCOUNT_USAGE.
+
+**Scenario:** A BI team's top-10 dashboard shows pre-aggregated metrics (total sales by region, average order value by category) from a single large fact table. These queries run every 5 minutes and always return the same aggregation patterns. The architect wants to pre-compute these results. Should they use a materialized view or a dynamic table?
+**Answer:** Use a materialized view (MV). MVs are purpose-built for single-table aggregations with no joins — exactly this use case. Snowflake auto-refreshes the MV when the base table changes (serverless credits) and the optimizer can auto-rewrite queries to use the MV even if the query doesn't reference it directly. A dynamic table would also work but is heavier — dynamic tables are better suited for multi-table transformations with joins, which MVs don't support. For simple single-table aggregations, MVs are more efficient and integrate transparently with the optimizer. Enterprise edition is required.
+
+---
+
+## 4.6 TROUBLESHOOTING
+
+Know where to look and what tools to use.
+
+### Key Concepts
+
+**INFORMATION_SCHEMA vs. ACCOUNT_USAGE:**
+
+| Feature | INFORMATION_SCHEMA | ACCOUNT_USAGE |
+|---------|-------------------|---------------|
+| Latency | Real-time | 15 min – 3 hr lag |
+| Retention | 7 days–6 months (varies) | **365 days** |
+| Scope | Current database | Entire account |
+| Dropped objects | Not included | **Included** |
+| Access | Any role with DB access | ACCOUNTADMIN (or granted) |
+
+**Key ACCOUNT_USAGE views for performance:**
+
+- `QUERY_HISTORY` — all queries, execution time, bytes scanned, warehouse, errors
+- `WAREHOUSE_METERING_HISTORY` — credit consumption per warehouse
+- `AUTOMATIC_CLUSTERING_HISTORY` — auto-clustering credit usage
+- `SEARCH_OPTIMIZATION_HISTORY` — SOS credit usage
+- `MATERIALIZED_VIEW_REFRESH_HISTORY` — MV refresh credit usage
+- `QUERY_ACCELERATION_HISTORY` — QAS credit usage
+- `STORAGE_USAGE` — storage trends over time
+- `LOGIN_HISTORY` — auth issues
+
+**Resource Monitors:**
+
+- Track **credit consumption** at account or warehouse level
+- Actions at thresholds: **Notify, Notify & Suspend, Notify & Suspend Immediately**
+- Set with: `CREATE RESOURCE MONITOR` + assign to warehouse or account
+- Only ACCOUNTADMIN can create account-level monitors
+- Can set **start time, frequency (daily/weekly/monthly), credit quota**
+
+**Alerts & Event Tables:**
+
+- **Alerts** (`CREATE ALERT`): scheduled SQL condition checks → trigger action (email, task, etc.)
+- **Event Table**: centralized store for **logs, traces, metrics** from UDFs, procedures, Streamlit
+- One event table per account: `ALTER ACCOUNT SET EVENT_TABLE = db.schema.events`
+- Query event data with standard SQL: `SELECT * FROM db.schema.events WHERE ...`
+
+**Logging & Tracing:**
+
+- Set log level: `ALTER SESSION SET LOG_LEVEL = 'INFO';` (OFF, TRACE, DEBUG, INFO, WARN, ERROR, FATAL)
+- Set trace level: `ALTER SESSION SET TRACE_LEVEL = 'ON_EVENT';` (OFF, ALWAYS, ON_EVENT)
+- Logs go to the **event table** — queryable via SQL
+- Available in UDFs (Python, Java, Scala, JavaScript), stored procedures, Streamlit apps
+
+### Why This Matters
+
+Production dashboard is slow. You check ACCOUNT_USAGE.QUERY_HISTORY and find 500 queries queued on a single warehouse. Resource monitors show you're burning 2x expected credits. Alerts you set up caught the spike and emailed the team. Without these tools, you wouldn't know until users complained.
+
+### Best Practices
+
+- Use ACCOUNT_USAGE for historical analysis (365-day retention)
+- Use INFORMATION_SCHEMA for real-time debugging (current session/database)
+- Set resource monitors on **every production warehouse** — non-negotiable
+- Create alerts for: long-running queries, spilling, warehouse queue depth, login failures
+- Enable logging (INFO level minimum) for all production UDFs and procedures
+- Review WAREHOUSE_METERING_HISTORY weekly to catch cost anomalies early
+
+**Exam traps:**
+
+- Exam trap: IF YOU SEE "INFORMATION_SCHEMA has 365-day retention" → WRONG because that's **ACCOUNT_USAGE**; INFORMATION_SCHEMA varies (7 days to 6 months by view)
+- Exam trap: IF YOU SEE "Resource monitors can limit storage costs" → WRONG because resource monitors only track **compute credits**, not storage
+- Exam trap: IF YOU SEE "ACCOUNT_USAGE data is real-time" → WRONG because ACCOUNT_USAGE has **15 minutes to 3 hours latency**
+- Exam trap: IF YOU SEE "Any role can create account-level resource monitors" → WRONG because only **ACCOUNTADMIN** can create account-level resource monitors
+
+### Additional Troubleshooting Details
+
+- **STATEMENT_TIMEOUT_IN_SECONDS:** Can be set at Account, User, Session, and Warehouse levels. Maximum default is **172,800 seconds (48 hours)**. Most specific level wins.
+- **Cloud services billing threshold:** Cloud services usage up to **10% of daily compute credits** is included free. Only the excess beyond 10% is billed. Example: if you use 100 compute credits in a day, up to 10 cloud services credits are free. This matters for metadata-heavy workloads with small or no warehouses.
+- **INFORMATION_SCHEMA vs ACCOUNT_USAGE for performance:**
+  - Use INFORMATION_SCHEMA for real-time monitoring (currently running queries, active sessions, current-database scope)
+  - Use ACCOUNT_USAGE for historical analysis (query patterns over months, cost trends, cross-database analysis, dropped objects)
+  - QUERY_HISTORY in ACCOUNT_USAGE has **45-minute latency** but **365-day retention**
+  - Other ACCOUNT_USAGE views may have up to 2-3 hour latency
+
+### Common Questions (FAQ)
+
+**Q: Can I grant ACCOUNT_USAGE access to non-ACCOUNTADMIN roles?**
+A: Yes. Grant the `IMPORTED PRIVILEGES` on the SNOWFLAKE database to any role.
+
+**Q: Do resource monitors prevent queries from starting?**
+A: With "Suspend Immediately", yes — running queries are killed and new ones blocked. With "Suspend", running queries finish but no new ones start.
+
+**Q: What's the difference between an Alert and a Task?**
+A: A Task runs on a schedule unconditionally. An Alert runs on a schedule but **only triggers its action if a SQL condition is true**.
+
+---
+
+## DON'T MIX -- Performance Concepts the Exam Deliberately Confuses
+
+### QAS vs SOS vs Materialized View -- The Performance Service Triangle
+
+All three "make queries faster." The exam gives you a scenario and wants the RIGHT one.
+
+| | Query Acceleration (QAS) | Search Optimization (SOS) | Materialized View (MV) |
+|---|---|---|---|
+| What it accelerates | Large SCANS with selective filters | Point LOOKUPS (WHERE id = X) | Repeated AGGREGATIONS |
+| How it works | Offloads scan portions to serverless compute | Builds persistent search access paths | Pre-computes and stores results |
+| Enabled on | Warehouse | Table (or specific columns) | Defined as a new object |
+| Best query pattern | Ad-hoc analytics on huge tables | Needle-in-haystack (find one row in billions) | Same GROUP BY query run 100x/day |
+| Joins? | Yes (it accelerates part of any query) | N/A (lookup acceleration) | NO (single table only) |
+| Cost model | Serverless credits during query | Serverless credits for building + storage | Serverless credits for refresh + storage |
+
+**RULE:** Big scan, unpredictable filters = QAS. Find-one-row = SOS. Same aggregation repeated = MV.
+
+**The trap:** "Use QAS for point lookups" -- WRONG. QAS helps large scans. For `WHERE id = 12345` on a billion-row table, SOS is the answer.
+
+**The trap:** "Use an MV for a join-based dashboard" -- WRONG. MVs cannot join. Use a Dynamic Table instead.
+
+**The trap:** "SOS is like a traditional index" -- WRONG. It's a serverless-maintained search access path. You don't create/manage it like a B-tree.
+
+### Scale UP vs Scale OUT
+
+This one catches people who think in traditional infrastructure.
+
+| | Scale UP | Scale OUT |
+|---|---|---|
+| What changes | Warehouse SIZE (Small -> Large) | Number of CLUSTERS (1 -> 4) |
+| Solves | Single-query speed (more memory, SSD, CPU per query) | CONCURRENCY (more parallel queries) |
+| Helps spilling? | YES (bigger warehouse = more memory) | NO (each cluster is same size) |
+| Feature | Any warehouse | Multi-cluster warehouse (Enterprise+) |
+
+**RULE:** Slow query = scale UP (bigger size). Many queued queries = scale OUT (more clusters).
+
+**The trap:** "Query is slow, add more clusters" -- WRONG. Multi-cluster doesn't make ONE query faster. It runs MORE queries in parallel. For a slow single query, you need a bigger warehouse size.
+
+**The trap:** "Multi-cluster warehouses split one query across clusters" -- WRONG. Each cluster runs separate queries. Multi-cluster = concurrency, not parallelism within a query.
+
+### The Three Caches -- What Lives Where
+
+| | Result Cache | Metadata Cache | Local Disk (SSD) Cache |
+|---|---|---|---|
+| Where | Cloud Services layer | Cloud Services layer | Warehouse nodes |
+| What's cached | Exact query results | Min/max/count per column per partition | Raw micro-partition data |
+| Survives warehouse suspend? | YES | YES | NO (cleared on suspend) |
+| Cost to use | FREE | FREE | Included in warehouse credits |
+| Invalidated by | DML on underlying data, 24h timeout, role change | Never (always current) | Warehouse suspend |
+| Can be disabled? | Yes (`USE_CACHED_RESULT = FALSE`) | No (always on) | No (always on while warehouse runs) |
+
+**RULE:** Result cache = exact same query, free, role-specific. Metadata = COUNT/MIN/MAX instant. SSD = warm data on warehouse, lost on suspend.
+
+**The trap:** "Suspending the warehouse clears the result cache" -- WRONG. Result cache is in Cloud Services, not the warehouse. What gets cleared is the SSD/local disk cache.
+
+**The trap:** "Result cache works across roles" -- WRONG. It's role-specific. Same query + different role = cache miss.
+
+**The trap:** "Set auto-suspend to 10 seconds to save money" -- may COST more because you constantly lose SSD cache, causing slower queries and more remote storage reads.
+
+### Clustering Key vs Search Optimization
+
+Both improve query filtering. Different mechanisms entirely.
+
+| | Clustering Key | Search Optimization |
+|---|---|---|
+| How it works | Physically re-organizes micro-partitions | Builds a search access path (like an index) |
+| Best for | Range filters, WHERE date BETWEEN, low-cardinality GROUP BY | Point lookups, WHERE id = X, CONTAINS, GEO |
+| Maintenance | Automatic Clustering (serverless, ongoing) | Search Optimization Service (serverless, ongoing) |
+| Apply to | Table level (one compound key) | Column level (can pick specific columns) |
+| Works on | Native tables, Iceberg tables | Native tables |
+
+**RULE:** Clustering = organize data for range scans. SOS = build lookup paths for point queries. They can coexist on the same table for different columns.
+
+### INFORMATION_SCHEMA vs ACCOUNT_USAGE
+
+| | INFORMATION_SCHEMA | ACCOUNT_USAGE |
+|---|---|---|
+| Latency | Real-time | 15 min to 3 hours |
+| Retention | 7 days to 6 months (varies by view) | 365 days |
+| Scope | Current database only | Entire account |
+| Dropped objects | NOT shown | Shown |
+| Default access | Any role with DB privileges | ACCOUNTADMIN (can be granted) |
+| Use for | "What's happening RIGHT NOW?" | "What happened last quarter?" |
+
+**RULE:** Debugging now = INFORMATION_SCHEMA. Historical analysis = ACCOUNT_USAGE. The exam loves to swap the retention periods.
+
+**The trap:** "INFORMATION_SCHEMA has 365-day retention" -- WRONG. That's ACCOUNT_USAGE. INFORMATION_SCHEMA varies (7 days to 6 months).
+
+**The trap:** "ACCOUNT_USAGE is real-time" -- WRONG. It has 15 min to 3 hours of latency.
+
+### Resource Monitor vs Budget
+
+| | Resource Monitor | Budget |
+|---|---|---|
+| Tracks | Compute CREDITS (warehouse usage) | Dollar SPEND (broader) |
+| Can suspend warehouse? | YES (Notify & Suspend actions) | No (notification only) |
+| Scope | Account-level or per-warehouse | Account or custom groups |
+| Created by | ACCOUNTADMIN only (for account-level) | ACCOUNTADMIN |
+
+**RULE:** Resource Monitor = credit guardrail with teeth (can suspend). Budget = spending visibility with alerts only.
+
+---
+
+### Example Scenario Questions — Troubleshooting
+
+**Scenario:** A production data platform has no cost controls in place. Last month, a developer accidentally left a 4XL warehouse running over a weekend, consuming $15,000 in credits. The CFO demands guardrails. What monitoring and control mechanisms should the architect implement?
+**Answer:** Create resource monitors on every production warehouse with tiered thresholds: Notify at 75% of the daily/weekly quota, Notify & Suspend at 100%. For the account level, create an account-level resource monitor (ACCOUNTADMIN only) as an overall safety net. Set up alerts (`CREATE ALERT`) to check for long-running queries (e.g., queries exceeding 30 minutes) and warehouse queue depth, triggering email notifications. Review `ACCOUNT_USAGE.WAREHOUSE_METERING_HISTORY` weekly to catch anomalies early. Resource monitors track compute credits only (not storage), so pair them with `STORAGE_USAGE` monitoring for complete cost visibility. Set appropriate auto-suspend timeouts on all warehouses (60s for ETL, 300-600s for BI).
+
+**Scenario:** A Python UDF in production is intermittently failing with cryptic errors. The data engineering team has no visibility into what happens inside the UDF. How should the architect enable observability for UDFs and stored procedures?
+**Answer:** Set up an event table for the account: `ALTER ACCOUNT SET EVENT_TABLE = db.schema.events`. Set the log level to at least INFO: `ALTER SESSION SET LOG_LEVEL = 'INFO'`. Inside the Python UDF, add structured logging using Python's `logging` module — these logs automatically flow to the event table. Set `TRACE_LEVEL = 'ON_EVENT'` for tracing. The event table is queryable via standard SQL: `SELECT * FROM db.schema.events WHERE RESOURCE_ATTRIBUTES['snow.executable.name'] = 'MY_UDF'`. This provides full observability — logs, traces, and metrics — for all UDFs, stored procedures, and Streamlit apps. Enable INFO-level logging as a minimum for all production code.
+
+**Scenario:** An architect needs to investigate a performance issue from 3 months ago. INFORMATION_SCHEMA shows no data for that period. Where should they look?
+**Answer:** Use `SNOWFLAKE.ACCOUNT_USAGE` views, which have 365-day retention. `INFORMATION_SCHEMA` retention varies by view (7 days to 6 months) and is scoped to the current database only. `ACCOUNT_USAGE.QUERY_HISTORY` provides all query details (execution time, bytes scanned, warehouse, errors) for up to 365 days across the entire account. Note that ACCOUNT_USAGE has 15 minutes to 3 hours of latency (not real-time), and access requires ACCOUNTADMIN or the `IMPORTED PRIVILEGES` grant on the SNOWFLAKE database. For real-time debugging of current issues, use INFORMATION_SCHEMA; for historical analysis, always use ACCOUNT_USAGE.
+
+---
+
+## FLASHCARDS — Domain 4
+
+**Q1: What are the three caching layers in Snowflake?**
+A1: Result cache (cloud services, 24h, free), Metadata cache (cloud services, always on), Local disk cache (warehouse SSD, lost on suspend).
+
+**Q2: A query spills to remote storage. What's the fix?**
+A2: Use a **larger warehouse** (more memory/SSD). Also check if the query can be optimized to reduce data volume.
+
+**Q3: What scaling policy should you use for a user-facing BI warehouse?**
+A3: **Standard** — scales up quickly when queries queue. Economy is for cost-sensitive, latency-tolerant workloads.
+
+**Q4: How do you check if a table would benefit from clustering?**
+A4: `SYSTEM$CLUSTERING_INFORMATION('table', '(columns)')` — check `average_depth` and `average_overlap`. High values = poor clustering.
+
+**Q5: What is the maximum retention period for ACCOUNT_USAGE views?**
+A5: **365 days**.
+
+**Q6: Can materialized views join multiple base tables?**
+A6: **No.** Snowflake MVs support a single base table only.
+
+**Q7: What does Query Acceleration Service (QAS) do?**
+A7: Offloads scan-intensive portions of eligible queries to serverless compute, supplementing the warehouse.
+
+**Q8: Result cache is invalidated when ____?**
+A8: Underlying data changes (DML), 24 hours pass without reuse (though each reuse resets the 24-hour counter, up to 31 days max), or the querying role changes.
+
+**Q9: What's the minimum auto-suspend setting?**
+A9: **60 seconds** is the minimum non-zero value. `AUTO_SUSPEND = 0` or `NULL` means **never auto-suspend**.
+
+**Q10: Snowpark-optimized warehouses have ___x more memory.**
+A10: **16x** more memory per node compared to standard warehouses.
+
+**Q11: INFORMATION_SCHEMA shows data for which scope?**
+A11: The **current database** only. For account-wide data, use ACCOUNT_USAGE.
+
+**Q12: How does Search Optimization Service work?**
+A12: Builds a persistent search access path (serverless-maintained) for selective point lookups, equality predicates, and geo functions.
+
+**Q13: Resource monitors track what?**
+A13: **Compute credits** only. They do NOT track storage costs.
+
+**Q14: Where do UDF/procedure logs go?**
+A14: The **event table** — a single account-level table set via `ALTER ACCOUNT SET EVENT_TABLE`.
+
+**Q15: What columns should go first in a clustering key?**
+A15: **Low-cardinality columns first** (e.g., region, status) for maximum pruning efficiency.
+
+---
+
+## EXPLAIN LIKE I'M 5 — Domain 4
+
+**ELI5 #1: Query Profile**
+Imagine you're building a LEGO castle and someone takes a photo at each step. Query Profile is those photos — it shows you exactly which step took the longest and where things got stuck.
+
+**ELI5 #2: Warehouse Sizing**
+A warehouse is like hiring workers. X-Small = 1 worker, Small = 2, Medium = 4. More workers cost more money. But if the job needs a special tool (better SQL), hiring more workers won't help.
+
+**ELI5 #3: Result Cache**
+You ask your mom "What's for dinner?" She says "Pasta." You ask again 5 minutes later — she remembers and says "Pasta" instantly without checking the kitchen. That's result cache. But if she starts cooking something else, the answer changes.
+
+**ELI5 #4: Micro-partition Pruning**
+You have 1,000 labeled toy boxes. Each label says what's inside (e.g., "cars from 2020"). When you want "cars from 2020", you only open the boxes labeled "2020" instead of all 1,000.
+
+**ELI5 #5: Clustering Keys**
+You organize your bookshelf by color first, then by size. Now when someone asks for "all blue books," you go straight to the blue section instead of checking every shelf.
+
+**ELI5 #6: Spilling**
+Your desk is too small for your puzzle. You spill pieces onto the floor (local disk) — slower but okay. If the floor fills up, you move pieces to the garage (remote storage) — much slower. Bigger desk = bigger warehouse.
+
+**ELI5 #7: Multi-cluster Warehouses**
+One ice cream shop with long lines. Multi-cluster = opening more shops when the line gets too long. Standard policy: open a new shop as soon as someone waits. Economy policy: only open if the line is really, really long.
+
+**ELI5 #8: Search Optimization**
+Your teacher made an index at the back of the textbook. Instead of reading every page to find "dinosaurs," you look at the index, get "page 42," and go straight there.
+
+**ELI5 #9: Resource Monitors**
+Your parents give you $20 for arcade games. A resource monitor is like a tracker: at $15 it warns you, at $20 it takes the money away so you can't overspend.
+
+**ELI5 #10: Materialized Views**
+Every morning your teacher writes "Today's Lunch Menu" on the board. Instead of everyone walking to the cafeteria to check, they just look at the board. When the menu changes, the teacher updates the board automatically.

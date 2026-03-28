@@ -1,0 +1,652 @@
+{
+  "sub_topic": "2.1",
+  "sub_topic_name": "Data Modeling",
+  "domain": "Domain 2.0: Snowflake Architecture",
+  "total_questions": 17,
+  "difficulty_distribution": {
+    "advanced": 5,
+    "beginner": 1,
+    "intermediate": 11
+  },
+  "exam_traps": [
+    {
+      "trap": "Valid data models in Snowflake: Kimball/Star, Inmon/3NF, Data Vault -- NOT Bayesian or Graph",
+      "why_confusing": "The exam lists 'Bayesian hierarchical model', 'Graph model', 'Data lake' as distractors. These are NOT data modeling approaches for table design. Data Vault 2.0, Star Schema, and 3NF are the three valid answers.",
+      "correct_answer": "Dimensional/Kimball, Inmon/3NF, Data Vault",
+      "doc_reference": "https://docs.snowflake.com/en/user-guide/data-modeling"
+    },
+    {
+      "trap": "Star schema vs 3NF: Star = simple/fast queries, 3NF = reduced duplication",
+      "why_confusing": "The exam asks WHY choose star over 3NF. Wrong answer: 'Snowflake can't handle 3NF joins' (it can). Right answers: star is simpler for BI tools and end users. 3NF removes duplication. Star has duplication by design.",
+      "correct_answer": "Star = BI-friendly, flat views. 3NF = normalized, less duplication. Snowflake handles both.",
+      "doc_reference": "https://docs.snowflake.com/en/user-guide/data-modeling"
+    },
+    {
+      "trap": "Data Vault uses hash keys for parallelism, not surrogate keys in the traditional sense",
+      "why_confusing": "Multi-table INSERT in Snowflake supports Data Vault loading because it can insert into hubs and satellites in PARALLEL using hash keys. The exam says 'parallel to hubs and satellites using surrogate keys' -- this is correct. 'Sequential' options are wrong.",
+      "correct_answer": "Data Vault loads are parallel to hubs/satellites. Snowflake multi-table INSERT enables this.",
+      "doc_reference": "https://docs.snowflake.com/en/sql-reference/sql/insert-multi-table"
+    }
+  ],
+  "questions": [
+    {
+      "id": "architect_test1_q5",
+      "source": "architect_test1",
+      "question_num": 5,
+      "question": "Which data models can be used when modeling tables in a Snowflake environment? (Choose three.)",
+      "options": [
+        {
+          "text": "Bayesian hierarchical model",
+          "explanation": ""
+        },
+        {
+          "text": "Dimensional/Kimball",
+          "explanation": ""
+        },
+        {
+          "text": "Graph model",
+          "explanation": ""
+        },
+        {
+          "text": "Data lake",
+          "explanation": ""
+        },
+        {
+          "text": "Inmon/3NF",
+          "explanation": ""
+        },
+        {
+          "text": "Data vault",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1,
+        4,
+        5
+      ],
+      "multi_select": true,
+      "multi_select_count": 3,
+      "overall_explanation": "Actually this is not a Snowflake related question, it is quite simple to answer with basic data modeling knowledge. About the options: Dimensional/Kimball, widely known type of modeling introduced by the father of the DWH, Kimball. It organizes data into fact and dimension tables, facilitating fast retrieval for analytical queries. Inmon/3NF, Inmon's approach focuses on creating a normalized data model (3NF) to ensure data integrity and minimize redundancy. Data Vault, Lindsted's approach is designed for long-term historical storage of data from multiple operational systems. It provides a highly scalable way to manage and track historical data, focusing on auditability and resilience.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "advanced",
+      "sub_topic": "2.1",
+      "sub_topic_name": "Data Modeling"
+    },
+    {
+      "id": "architect_test1_q31",
+      "source": "architect_test1",
+      "question_num": 31,
+      "question": "Is it possible for a data provider account with a Snowflake Business Critical edition to share data with an Enterprise edition data consumer account?",
+      "options": [
+        {
+          "text": "If a user in the provider account with role authority to CREATE or ALTER SHARE adds an Enterprise account as a consumer, it can import the share.",
+          "explanation": ""
+        },
+        {
+          "text": "A Business Critical account cannot be a data sharing provider to an Enterprise consumer. Any consumer accounts must also be Business Critical.",
+          "explanation": ""
+        },
+        {
+          "text": "If a user in the provider account with a share owning role which also has OVERRIDE SHARE RESTRICTIONS privilege SHARE_RESTRICTIONS set to False when adding an Enterprise consumer account, it can import the share.",
+          "explanation": ""
+        },
+        {
+          "text": "If a user in the provider account with a share owning role sets SHARE_RESTRICTIONS to False when adding an Enterprise consumer account, it can import the share.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        2
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "intermediate",
+      "sub_topic": "2.1",
+      "sub_topic_name": "Data Modeling"
+    },
+    {
+      "id": "architect_test2_q1",
+      "source": "architect_test2",
+      "question_num": 1,
+      "question": "Why does a conditional multi-table INSERT option support the Data Vault data model?",
+      "options": [
+        {
+          "text": "Data can be inserted in parallel to hubs and satellites using surrogate keys.",
+          "explanation": ""
+        },
+        {
+          "text": "Data can be inserted in sequence to hubs and satellites using surrogate keys.",
+          "explanation": ""
+        },
+        {
+          "text": "Data can be inserted in parallel to dimensions and facts using surrogate keys.",
+          "explanation": ""
+        },
+        {
+          "text": "Data can be inserted in sequence to dimensions and facts using surrogate keys.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "A few comments: Another question we may encounter about Data Vault in the Advanced Architect certification. Although it is not strictly related to Snowflake, it is useful to have some basic notions about this type of modeling (both version 1.0 and 2.0) and how it fits within the Snowflake architecture. It is important to know the advantages that Snowflake offers to manage some of the basic DV features. DV is composed in its Raw Data Vault layer of Hubs, Links and Satellites of many types. The relationships between these entities are made by using hash keys, favoring the parallelism of the loads in this layer. Snowflake helps us to manage this parallelism with the Multi-table INSERT feature.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "intermediate",
+      "sub_topic": "2.1",
+      "sub_topic_name": "Data Modeling"
+    },
+    {
+      "id": "architect_test2_q35",
+      "source": "architect_test2",
+      "question_num": 35,
+      "question": "A company needs to share a Snowflake data table with data consumers who do not have Snowflake accounts. What is the recommended way to to this?",
+      "options": [
+        {
+          "text": "Create users for the consumers that have the built-in role EXTERNAL and grant that role the select privilege on the table.",
+          "explanation": ""
+        },
+        {
+          "text": "Create a share with the table and provide the consumers with the public URL for the share.",
+          "explanation": ""
+        },
+        {
+          "text": "Create a share with the table and create a reader account with access to the share for the consumers.",
+          "explanation": ""
+        },
+        {
+          "text": "Unload the table to a read-only cloud storage location and give consumers access to the table.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        2
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "As a data provider, you can share data with consumers who lack a Snowflake account or are not ready to become licensed customers by creating reader accounts. These accounts allow for quick and cost-effective data sharing without requiring consumers to become Snowflake customers. Each reader account is linked to the provider account that created it, and it can only access data from that specific provider account. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "beginner",
+      "sub_topic": "2.1",
+      "sub_topic_name": "Data Modeling"
+    },
+    {
+      "id": "architect_test2_q53",
+      "source": "architect_test2",
+      "question_num": 53,
+      "question": "Which of the following are valid context functions? (Choose three.)",
+      "options": [
+        {
+          "text": "CURRENT_REGION( )",
+          "explanation": ""
+        },
+        {
+          "text": "CURRENT_WORKSHEET( )",
+          "explanation": ""
+        },
+        {
+          "text": "CURRENT_CLOUD_INFRASTRUCTURE()",
+          "explanation": ""
+        },
+        {
+          "text": "CURRENT_SESSION( )",
+          "explanation": ""
+        },
+        {
+          "text": "CURRENT_CLIENT( )",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0,
+        3,
+        4
+      ],
+      "multi_select": true,
+      "multi_select_count": 3,
+      "overall_explanation": "CURRENT_WORKSHEET() and CURRENT_CLOUD_INFRASTRUCTURE() are not valid context functions.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "advanced",
+      "sub_topic": "2.1",
+      "sub_topic_name": "Data Modeling"
+    },
+    {
+      "id": "architect_test3_q7",
+      "source": "architect_test3",
+      "question_num": 7,
+      "question": "The Data Engineering team at a large manufacturing company needs to engineer data coming from many sources to support a wide variety of use cases and data consumer requirements which include:\n\n1. Finance and Vendor Management team members who require reporting and visualization\n\n2. Data Science team members who require access to raw data for ML model development\n\n3. Sales team members who require engineered and protected data for data monetization\n\nWhat Snowflake data modeling approaches will meet these requirements? (Choose two.)\n\nCreate a raw database for landing and persisting raw data entering the data pipelines.\n\nCreate a single star schema in a single database to support all consumers’ requirements.",
+      "options": [
+        {
+          "text": "Consolidate data in the company’s data lake and use EXTERNAL TABLES.",
+          "explanation": ""
+        },
+        {
+          "text": "Create a Data Vault as the sole data pipeline endpoint and have all consumers directly access the Vault.",
+          "explanation": ""
+        },
+        {
+          "text": "Create a set of profile-specific databases that aligns data with usage patterns.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1,
+        2
+      ],
+      "multi_select": true,
+      "multi_select_count": 2,
+      "overall_explanation": "A few comments:\n\nData Vault modeling is characterized by its flexibility and scalability when integrating new use cases from different sources and tenants. By using Hubs, Links, Satellites and other Derived objects it is possible to make a single Vault where all these sources can be integrated in the same model, covering the needs of the different use cases.\n\nOn the other hand, we can define an architecture where we have one database per data source, being able to align the modeling to the needs of each use case.\n\nThese modeling functionalities would not be possible through a single star schema.\n\nThe other options do not talk about modeling types so they are discarded as not correct.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "intermediate",
+      "sub_topic": "2.1",
+      "sub_topic_name": "Data Modeling"
+    },
+    {
+      "id": "architect_test3_q23",
+      "source": "architect_test3",
+      "question_num": 23,
+      "question": "What will happen to ALTER a column setting it to NOT NULL if it contains NULL values?",
+      "options": [
+        {
+          "text": "NULL values are changed to an empty string \" \"",
+          "explanation": ""
+        },
+        {
+          "text": "NULL values are changed to 0",
+          "explanation": ""
+        },
+        {
+          "text": "Snowflake returns an error",
+          "explanation": ""
+        },
+        {
+          "text": "Snowflake deletes the rows with NULL values",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        2
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "When setting a column to NOT NULL, if the column contains NULL values, an error is returned and no changes are applied to the column. This restriction prevents inconsistency between values in rows inserted before the column was added and rows inserted after the column was added.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "intermediate",
+      "sub_topic": "2.1",
+      "sub_topic_name": "Data Modeling"
+    },
+    {
+      "id": "architect_test3_q40",
+      "source": "architect_test3",
+      "question_num": 40,
+      "question": "Which Snowflake data modeling approach is designed for BI queries?",
+      "options": [
+        {
+          "text": "Star schema",
+          "explanation": ""
+        },
+        {
+          "text": "Snowflake schema",
+          "explanation": ""
+        },
+        {
+          "text": "3 NF",
+          "explanation": ""
+        },
+        {
+          "text": "Data Vault",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Star schema allows faster cube processing.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "intermediate",
+      "sub_topic": "2.1",
+      "sub_topic_name": "Data Modeling"
+    },
+    {
+      "id": "architect_test3_q65",
+      "source": "architect_test3",
+      "question_num": 65,
+      "question": "Which data modeling concepts can be used in Snowflake (Choose two.)",
+      "options": [
+        {
+          "text": "Distribution Key",
+          "explanation": ""
+        },
+        {
+          "text": "Non-Unique Index",
+          "explanation": ""
+        },
+        {
+          "text": "Foreign Key",
+          "explanation": ""
+        },
+        {
+          "text": "Unique Index",
+          "explanation": ""
+        },
+        {
+          "text": "Primary Key",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        2,
+        4
+      ],
+      "multi_select": true,
+      "multi_select_count": 2,
+      "overall_explanation": "For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "intermediate",
+      "sub_topic": "2.1",
+      "sub_topic_name": "Data Modeling"
+    },
+    {
+      "id": "architect_test4_q14",
+      "source": "architect_test4",
+      "question_num": 14,
+      "question": "An Architect needs to set up a Data Exchange to allow a selected group of invited members to participate in a secure data collaboration. Who can set up the Data Exchange?",
+      "options": [
+        {
+          "text": "A user with the ORGADMIN role",
+          "explanation": ""
+        },
+        {
+          "text": "A user with the SECURITYADMIN role",
+          "explanation": ""
+        },
+        {
+          "text": "The Snowflake Support team",
+          "explanation": ""
+        },
+        {
+          "text": "A user with the ACCOUNTADMIN role",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        3
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Only users with the ACCOUNTADMIN role can set up a Data Exchange in Snowflake. This role has the necessary privileges to create and manage Data Exchanges, including inviting members and configuring data sharing settings. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "intermediate",
+      "sub_topic": "2.1",
+      "sub_topic_name": "Data Modeling"
+    },
+    {
+      "id": "architect_test4_q23",
+      "source": "architect_test4",
+      "question_num": 23,
+      "question": "When creating a table using the command:\n\nCREATE TABLE MY_TABLE\n(NAME STRING(100));\n\nWhat would the command \"DESC TABLE MY_TABLE;\" display as the column type?\n\nString",
+      "options": [
+        {
+          "text": "Varchar",
+          "explanation": ""
+        },
+        {
+          "text": "Char",
+          "explanation": ""
+        },
+        {
+          "text": "Text",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Varchar has different synonyms, like STRING , TEXT , NVARCHAR , CHAR , CHARACTER…, but in the end, they are all VARCHAR type when describing the table. Take a look at the following example, where all the column types are VARCHAR",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "intermediate",
+      "sub_topic": "2.1",
+      "sub_topic_name": "Data Modeling"
+    },
+    {
+      "id": "architect_test4_q40",
+      "source": "architect_test4",
+      "question_num": 40,
+      "question": "An Architect is designing a data model and needs to decide how to generate and store primary keys with hashed values for a large amount of data. Which hash function in Snowflake will MINIMIZE the likelihood of collisions?",
+      "options": [
+        {
+          "text": "SHA2 with digest_size set to 512",
+          "explanation": ""
+        },
+        {
+          "text": "MD5",
+          "explanation": ""
+        },
+        {
+          "text": "MD5_NUMBER_LOWER64",
+          "explanation": ""
+        },
+        {
+          "text": "SHA2",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "A few comments: This question is not 100% related to Snowflake but they are cryptographic functions available in Snowflake. The topic of collisions will sound familiar if you are used to modeling in the Data Vault 2.0 paradigm. SHA2 with digest_size set to 512 is the best choice to minimize the likelihood of collisions. The increased digest size provides a larger range of possible hash values, which drastically reduces the chances of two different inputs resulting in the same hash output (a collision). This makes it ideal for scenarios where maintaining uniqueness is critical and a large amount of data is involved such as defining business keys in Data Vault 2.0.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "advanced",
+      "sub_topic": "2.1",
+      "sub_topic_name": "Data Modeling"
+    },
+    {
+      "id": "architect_test4_q44",
+      "source": "architect_test4",
+      "question_num": 44,
+      "question": "A stream stores data with the same columns as the source data but with additional columns. What are those additional columns? (Choose two.)",
+      "options": [
+        {
+          "text": "METADATA$DELETE",
+          "explanation": ""
+        },
+        {
+          "text": "METADATA$ISUPDATE",
+          "explanation": ""
+        },
+        {
+          "text": "METADATA$ACTION",
+          "explanation": ""
+        },
+        {
+          "text": "METADATA$INSERT",
+          "explanation": ""
+        },
+        {
+          "text": "METADATA$ROW_NUM",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1,
+        2
+      ],
+      "multi_select": true,
+      "multi_select_count": 2,
+      "overall_explanation": "Streams in Snowflake store additional metadata columns such as METADATA$ACTION, which indicates the type of DML operation (INSERT, DELETE, etc.), and METADATA$ISUPDATE, which identifies whether the record is part of an update operation. These columns help track changes in the data. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "intermediate",
+      "sub_topic": "2.1",
+      "sub_topic_name": "Data Modeling"
+    },
+    {
+      "id": "architect_test4_q47",
+      "source": "architect_test4",
+      "question_num": 47,
+      "question": "Which command will fail if you have a table created with the following DDL query?",
+      "options": [
+        {
+          "text": "CREATE TABLE MYTABLE",
+          "explanation": ""
+        },
+        {
+          "text": "(ID INTEGER, NAME VARCHAR)",
+          "explanation": ""
+        },
+        {
+          "text": "SELECT * FROM Mytable",
+          "explanation": ""
+        },
+        {
+          "text": "SELECT * FROM “MYTABLE”",
+          "explanation": ""
+        },
+        {
+          "text": "SELECT * FROM MYTABLE",
+          "explanation": ""
+        },
+        {
+          "text": "SELECT * FROM “Mytable”",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        5
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Snowflake is case-sensitive when double quotes are used. Since the table was created as MYTABLE (uppercase), the query SELECT * FROM “Mytable” (with mixed case and double quotes) will fail because it treats the table name as case-sensitive and different from MYTABLE.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "advanced",
+      "sub_topic": "2.1",
+      "sub_topic_name": "Data Modeling"
+    },
+    {
+      "id": "architect_test4_q63",
+      "source": "architect_test4",
+      "question_num": 63,
+      "question": "A Data Architect is determining how to cluster the following table, which is used to record orders from a food delivery service application CREATE TABLE orders_dashboard ( id NUMBER, driver_id NUMBER, customer_id NUMBER, restaurant_ id NUMBER, ordered_at TIMESTAMP, item_count INTEGER, total_cost NUMBER, order_location_state CHAR (2), order_comments TEXT); The purpose of this table is to provide metrics for regional sales managers to understand how deliveries in each region are performing over various timeframes Given that queries will be run against this table, what would be the MOST efficient clustering statement for this table?",
+      "options": [
+        {
+          "text": "alter table orders_dashboard cluster by (order_location_state, ordered_at);",
+          "explanation": ""
+        },
+        {
+          "text": "alter table orders_dashboard cluster by (order_location_state, DATE (ordered_at));",
+          "explanation": ""
+        },
+        {
+          "text": "alter table orders_dashboard cluster by (DATE (ordered_at), order_location_state);",
+          "explanation": ""
+        },
+        {
+          "text": "alter table orders_dashboard cluster by (ordered_at, order_location_state);",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "A few comments: Snowflake recommends ordering the columns from lowest cardinality to highest cardinality for better effectiveness. Cardinality of states is lower than DATE of the timestamp, so it has to be the first field in the CLUSTER BY clause. ordered_at has high cardinality due to the inclusion of time, clustering by DATE(ordered_at) reduces the granularity, making it more efficient. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "intermediate",
+      "sub_topic": "2.1",
+      "sub_topic_name": "Data Modeling"
+    },
+    {
+      "id": "architect_test5_q8",
+      "source": "architect_test5",
+      "question_num": 8,
+      "question": "A table EMP_TBL has three records as shown:\n\ncreate or replace TABLE EMP_TBL (\n    ID NUMBER(38,0),\n    NAME VARCHAR(16777216)\n);\n\nID        NAME\n\n1          Name1\n\n2         Name2\n\n3         Name3\n\nThe following variables are set for the session:\n\nset tbl_ref = 'EMP_TBL';\nset col_ref = 'NAME';\nset (var1, var2, var3) = (select 'Name1', 'Name2', 'Name3');\n\nWhich SELECT statements will retrieve all three records? (Select TWO).",
+      "options": [
+        {
+          "text": "SELECT * FROM identifier($tbl_ref) WHERE ID IN (var1,'var2','var3');\nSELECT * FROM $tbl_ref WHERE $col_ref IN ('Name1','Name2','Name3');",
+          "explanation": ""
+        },
+        {
+          "text": "SELECT * FROM identifier($tbl_ref) WHERE NAME IN ($var1, $var2, $var3);\nSELECT * FROM $tbl_ref WHERE $col_ref IN ($var1, $var2, $var3);",
+          "explanation": ""
+        },
+        {
+          "text": "SELECT * FROM EMP_TBL WHERE identifier($col_ref) IN ('Name1','Name2','Name3');",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1,
+        2
+      ],
+      "multi_select": true,
+      "multi_select_count": 2,
+      "overall_explanation": "A few comments:\n\nWe can use identifier($tbl_ref) to dynamically refer to the table specified by tbl_ref\n\nWe can use identifier($col_ref) to dynamically refer to the column specified by the col_ref variable.\n\nWe can't refer variables with $ directly, as it's not valid syntax\n\nThe other incorrect option uses literal values instead of referencing $var variables.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "intermediate",
+      "sub_topic": "2.1",
+      "sub_topic_name": "Data Modeling"
+    },
+    {
+      "id": "architect_new_q40",
+      "source": "architect_new",
+      "question_num": 40,
+      "question": "What is the primary purpose of Snowflake Data Clean Rooms?",
+      "options": [
+        {
+          "text": "Cleaning and deduplicating data before loading.",
+          "explanation": ""
+        },
+        {
+          "text": "Enabling secure multiparty computation where participants analyze combined data without seeing each other's raw records.",
+          "explanation": ""
+        },
+        {
+          "text": "Providing a sandbox environment for data exploration.",
+          "explanation": ""
+        },
+        {
+          "text": "Encrypting data at rest using customer-managed keys.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Data Clean Rooms enable two or more parties to run analyses on their combined datasets without either party seeing the other's raw data. Common use cases include audience overlap analysis, ad measurement, and collaborative analytics between companies.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "advanced",
+      "sub_topic": "2.1",
+      "sub_topic_name": "Data Modeling"
+    }
+  ]
+}

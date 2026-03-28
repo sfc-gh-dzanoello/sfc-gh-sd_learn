@@ -1,0 +1,1238 @@
+{
+  "sub_topic": "2.3",
+  "sub_topic_name": "Table Types & Views",
+  "domain": "Domain 2.0: Snowflake Architecture",
+  "total_questions": 33,
+  "difficulty_distribution": {
+    "advanced": 6,
+    "beginner": 8,
+    "intermediate": 19
+  },
+  "exam_traps": [
+    {
+      "trap": "Transient tables have Time Travel (up to 1 day) but NO Fail-Safe",
+      "why_confusing": "Permanent tables have both Time Travel (up to 90 days) AND 7-day Fail-Safe. Transient tables have Time Travel (0 or 1 day only) but ZERO Fail-Safe. Temporary tables are like transient but session-scoped.",
+      "correct_answer": "Permanent = TT + Fail-Safe. Transient = TT (1 day max), no Fail-Safe. Temporary = session-scoped, no Fail-Safe.",
+      "doc_reference": "https://docs.snowflake.com/en/user-guide/tables-temp-transient"
+    },
+    {
+      "trap": "Secure views hide the view definition AND prevent query optimization pushdown",
+      "why_confusing": "Making a view SECURE hides its DDL from non-owners, but also prevents the optimizer from pushing predicates into the view. This can make secure views slower than regular views.",
+      "correct_answer": "SECURE VIEW = hidden definition + potential performance impact from no predicate pushdown",
+      "doc_reference": "https://docs.snowflake.com/en/user-guide/views-secure"
+    },
+    {
+      "trap": "LATERAL FLATTEN is how you query semi-structured VARIANT data",
+      "why_confusing": "The exam tests whether you know that VARIANT columns store JSON/XML and you use FLATTEN to unnest arrays. LATERAL keyword makes the table function correlate with the row.",
+      "correct_answer": "SELECT ... FROM table, LATERAL FLATTEN(input => table.variant_col:array_field)",
+      "doc_reference": "https://docs.snowflake.com/en/sql-reference/functions/flatten"
+    }
+  ],
+  "questions": [
+    {
+      "id": "architect_test1_q30",
+      "source": "architect_test1",
+      "question_num": 30,
+      "question": "A group of Data Analysts have been granted the role ANALYST_ROLE. They need a Snowflake database where they can create and modify tables, views, and other objects to load with their own data. The Analysts should not have the ability to give other Snowflake users outside of their role access to this data. How should these requirements be met?",
+      "options": [
+        {
+          "text": "Make every schema in the database a MANAGED ACCESS schema, owned by SYSADMIN, and grant create privileges on each schema to the ANALYST_ROLE for each type of object that needs to be created.",
+          "explanation": ""
+        },
+        {
+          "text": "Grant SYSADMIN OWNERSHIP of the database, but grant the create schema privilege on the database to the ANALYST_ROLE.",
+          "explanation": ""
+        },
+        {
+          "text": "Grant ANALYST_ROLE OWNERSHIP on the database, but grant the OWNERSHIP ON FUTURE [object types] in database privilege to SYSADMIN.",
+          "explanation": ""
+        },
+        {
+          "text": "Grant ANALYST_ROLE OWNERSHIP on the database, but make sure that ANALYST_ROLE does not have the MANAGE GRANTS privilege on the account.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Managed access schemas ensure that only the role that owns the schema (SYSADMIN in this case) can manage access to the schema and its objects. The ANALYST_ROLE would have the ability to create and modify objects within these schemas, but they would not be able to change access controls or grant permissions to these objects. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "intermediate",
+      "sub_topic": "2.3",
+      "sub_topic_name": "Table Types & Views"
+    },
+    {
+      "id": "architect_test1_q36",
+      "source": "architect_test1",
+      "question_num": 36,
+      "question": "You are a Snowflake architect in an organization. The business team came to deploy a use case which requires you to load some data which they can visualize through Tableau. Everyday new data comes in and the old data is no longer required. What type of table will you use in this case to optimize cost?",
+      "options": [
+        {
+          "text": "PERMANENT",
+          "explanation": ""
+        },
+        {
+          "text": "TEMPORARY",
+          "explanation": ""
+        },
+        {
+          "text": "EXTERNAL",
+          "explanation": ""
+        },
+        {
+          "text": "TRANSIENT",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        3
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "A few comments: Transient table allows you to store the data temporarily without incurring the additional costs associated with permanent tables. Temporary tables only exist within the session that creates them and are dropped automatically when the session ends. They are not suitable for data that needs to be available beyond a single session, such as daily loads accessed by Tableau. Permanent tables incur Fail-safe storage costs, which is unnecessary for data that doesn’t require long-term retention. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "beginner",
+      "sub_topic": "2.3",
+      "sub_topic_name": "Table Types & Views"
+    },
+    {
+      "id": "architect_test1_q42",
+      "source": "architect_test1",
+      "question_num": 42,
+      "question": "Which technique will efficiently ingest and consume semi-structured data for Snowflake data lake workloads?",
+      "options": [
+        {
+          "text": "Schema-on-write",
+          "explanation": ""
+        },
+        {
+          "text": "Schema-on-read",
+          "explanation": ""
+        },
+        {
+          "text": "Information schema",
+          "explanation": ""
+        },
+        {
+          "text": "IDEF1X",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Schema-on-Read gained popularity among software developers primarily because it reduced the time required to deliver functional applications. This approach enables applications to store data in semi-structured formats like JavaScript Object Notation (JSON), allowing for rapid iterations without disrupting the underlying database used by the applications. About other options: IDEF1X is a data modeling method used for designing relational databases and is not relevant for ingesting or consuming semi-structured data. Information schema is the systema metadata catalog Schema on Write is more flexibile and efficient por structured and relational data. For more detailed information about JSON modeling, refer to the official Snowflake documentation. For more detailed information about Schema-on-read and Schema-on-write, refer to the following article.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "intermediate",
+      "sub_topic": "2.3",
+      "sub_topic_name": "Table Types & Views"
+    },
+    {
+      "id": "architect_test1_q54",
+      "source": "architect_test1",
+      "question_num": 54,
+      "question": "Data is being imported and stored as JSON in a VARIANT column. Query performance was fine, but most recently, poor query performance has been reported. What could be causing this?",
+      "options": [
+        {
+          "text": "The order of the keys in the JSON was changed.",
+          "explanation": ""
+        },
+        {
+          "text": "The recent data imports contained fewer fields than usual.",
+          "explanation": ""
+        },
+        {
+          "text": "There were JSON nulls in the recent data imports.",
+          "explanation": ""
+        },
+        {
+          "text": "There were variations in string lengths for the JSON values in the recent data imports.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        2
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "JSON with a ‘null’ value can negatively affect query performance. It’s important to note that JSON NULL differs from SQL NULL; in JSON, a null value represents an element that has the string 'null', which prevents the extraction of those elements, while SQL NULL signifies an empty value. Consequently, having JSON with a ‘null’ value can lead to performance issues during queries. For more detailed information about query performance on JSON, refer to the official Snowflake documentation. Snowflake recommends some strategies to avoid the performance impact for elements that were not extracted, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "intermediate",
+      "sub_topic": "2.3",
+      "sub_topic_name": "Table Types & Views"
+    },
+    {
+      "id": "architect_test1_q57",
+      "source": "architect_test1",
+      "question_num": 57,
+      "question": "A company needs to share its product catalog data with one of its partners. The product catalog data is stored in two database tables: PRODUCT_CATEGORY, and PRODUCT_DETAILS. Both tables can be joined by the PRODUCT_ID column. Data access should be governed, and only the partner should have access to the records. The partner is not a Snowflake customer. The partner uses Amazon S3 for cloud storage. Which design will be the MOST cost-effective and secure, while using the required Snowflake features?",
+      "options": [
+        {
+          "text": "Use Secure Data Sharing with an S3 bucket as a destination.",
+          "explanation": ""
+        },
+        {
+          "text": "Create a reader account for the partner and share the data sets as secure views.",
+          "explanation": ""
+        },
+        {
+          "text": "Publish PRODUCT_CATEGORY and PRODUCT_DETAILS data sets on the Snowflake Marketplace.",
+          "explanation": ""
+        },
+        {
+          "text": "Create a database user for the partner and give them access to the required data sets.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "A few comments: The partner uses Amazon S3 for cloud storage: Snowflake's Secure Data Sharing does not allow data to be directly shared into an S3 bucket. We want to share two tables that can be joined by the same id: we could create a view to join both tables Data access should be governed: security is a must in this business case Partner is not a Snowflake customer: in the case of choosing Data Sharing this would force us to use a reader account. Non-secure views are not compatible with Data Sharing. Statement is asking for the MOST cost-effective solution: Marketplace is more oriented towards monetization and broader data distribution, not secure one-to-one sharing.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "advanced",
+      "sub_topic": "2.3",
+      "sub_topic_name": "Table Types & Views"
+    },
+    {
+      "id": "architect_test1_q58",
+      "source": "architect_test1",
+      "question_num": 58,
+      "question": "For which Snowflake object type is it possible to copy permissions when cloning the object?",
+      "options": [
+        {
+          "text": "Stages",
+          "explanation": ""
+        },
+        {
+          "text": "Tables",
+          "explanation": ""
+        },
+        {
+          "text": "Materialized views",
+          "explanation": ""
+        },
+        {
+          "text": "Pipes",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "When cloning a table in Snowflake, it is possible to copy the permissions from the original table to the cloned table. This ensures that the same access controls are applied to the new table without needing to manually reassign them. A few comments: CLONE statements for most objects do not transfer grants from the source object to the cloned object. However, certain CREATE <object> commands, like CREATE TABLE and CREATE VIEW, support the COPY GRANTS clause, allowing you to optionally replicate grants to the object clones. In particular, the CREATE TABLE … CLONE syntax includes the COPY GRANTS keywords, facilitating the copying of grants during the cloning process. For more detailed information about object cloning, refer to the official Snowflake documentation. https://docs.snowflake.com/en/user-guide/object-clone For more detailed information about the Create table process, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "intermediate",
+      "sub_topic": "2.3",
+      "sub_topic_name": "Table Types & Views"
+    },
+    {
+      "id": "architect_test1_q62",
+      "source": "architect_test1",
+      "question_num": 62,
+      "question": "A Snowflake Architect of a company that currently uses the Standard edition of Snowflake implements external tables to reference data in a cloud storage data lake. Users report that accessing the external tables is slow. How can performance be improved?",
+      "options": [
+        {
+          "text": "Implement materialized views over the external tables.",
+          "explanation": ""
+        },
+        {
+          "text": "Add search optimization service to the external tables.",
+          "explanation": ""
+        },
+        {
+          "text": "Partition by an optimized folder structure on the external tables.",
+          "explanation": ""
+        },
+        {
+          "text": "Refresh the external tables.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        2
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Materialized views and Search optimization services are discarded because require Enterprise Edition (or higher). Partitioning the external table improves query performance by allowing Snowflake to process only the relevant partitions of data instead of scanning the entire dataset, significantly reducing query execution time when dealing with large amounts of external data. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "intermediate",
+      "sub_topic": "2.3",
+      "sub_topic_name": "Table Types & Views"
+    },
+    {
+      "id": "architect_test1_q64",
+      "source": "architect_test1",
+      "question_num": 64,
+      "question": "If the query matches the definition, will Snowflake always dynamically rewrite the query to use a materialized view?",
+      "options": [
+        {
+          "text": "Yes, because materialized views are always faster.",
+          "explanation": ""
+        },
+        {
+          "text": "No, because the materialized view may not be up-to-date.",
+          "explanation": ""
+        },
+        {
+          "text": "No, because joins are not supported by materialized views.",
+          "explanation": ""
+        },
+        {
+          "text": "No, because the optimizer might decide against it.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        3
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "A few comments: A materialized view can query only a single table. Joins, including self-joins, are not supported. It is not necessary to explicitly reference a materialized view in a SQL statement for it to be utilized. The query optimizer can automatically transform queries targeting the base table or standard views to leverage the materialized view instead. However, even when a materialized view could substitute the base table in a given query, the optimizer may opt not to use it. For instance, if the base table is clustered by a specific column, the optimizer might prefer scanning the base table directly, as it can efficiently prune partitions and achieve comparable performance. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "intermediate",
+      "sub_topic": "2.3",
+      "sub_topic_name": "Table Types & Views"
+    },
+    {
+      "id": "architect_test2_q18",
+      "source": "architect_test2",
+      "question_num": 18,
+      "question": "What are three of the limitations of the Search Optimization Service? (Choose three.)",
+      "options": [
+        {
+          "text": "Tables that are accessible by different users at the same time",
+          "explanation": ""
+        },
+        {
+          "text": "Single-column filtering only",
+          "explanation": ""
+        },
+        {
+          "text": "External tables & Materialized views",
+          "explanation": ""
+        },
+        {
+          "text": "Tables with more than 100GB",
+          "explanation": ""
+        },
+        {
+          "text": "Casts on table columns (except for fixed-point numbers cast to strings)",
+          "explanation": ""
+        },
+        {
+          "text": "Analytical expressions",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        2,
+        4,
+        5
+      ],
+      "multi_select": true,
+      "multi_select_count": 3,
+      "overall_explanation": "So, for example, the following predicate would not be supported because it uses a cast on values in the table column: WHERE TO_DATE(varchar_column) = '2023-01-05'; For more detailed information about Search Optimization Service limitations, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "advanced",
+      "sub_topic": "2.3",
+      "sub_topic_name": "Table Types & Views"
+    },
+    {
+      "id": "architect_test2_q20",
+      "source": "architect_test2",
+      "question_num": 20,
+      "question": "A department from our company will run complex aggregation queries to a small subset of data from a huge table that doesn’t change much. After running these queries, we realized that the queries take a lot of time because the table is not clustered on those columns. What is the most optimal solution that we should implement?",
+      "options": [
+        {
+          "text": "Create a materialized view and cluster the view on those columns.",
+          "explanation": ""
+        },
+        {
+          "text": "Create a temporary table to store the subset of data",
+          "explanation": ""
+        },
+        {
+          "text": "Create a secure view and cluster the view on those columns.",
+          "explanation": ""
+        },
+        {
+          "text": "Create a view and cluster the view on those columns.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Key comments: small subset of data, complex aggregation, data that doesn’t change much. So it’s a perfect scenario to use materialized views. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "beginner",
+      "sub_topic": "2.3",
+      "sub_topic_name": "Table Types & Views"
+    },
+    {
+      "id": "architect_test2_q21",
+      "source": "architect_test2",
+      "question_num": 21,
+      "question": "A company has a Snowflake account named ACCOUNTA in AWS us-east-1 region. The company stores its marketing data in a Snowflake database named MARKET_DB. One of the company’s business partners has an account named PARTNERB in Azure East US 2 region. For marketing purposes the company has agreed to share the database MARKET_DB with the partner account. Which of the following steps MUST be performed for the account PARTNERB to consume data from the MARKET_DB database?",
+      "options": [
+        {
+          "text": "Create a new account (called AZABC123) in Azure East US 2 region. From account ACCOUNTA create a share of database MARKET_DB, create a new database out of this share locally in AWS us-east-1 region, and replicate this new database to AZABC123 account. Then set up data sharing to the PARTNERB account.",
+          "explanation": ""
+        },
+        {
+          "text": "Create a share of database MARKET_DB, and create a new database out of this share locally in AWS us-east-1 region. Then replicate this database to the partner’s account PARTNERB.",
+          "explanation": ""
+        },
+        {
+          "text": "From account ACCOUNTA create a share of database MARKET_DB, and create a new database out of this share locally in AWS us-east-1 region. Then make this database the provider and share it with the PARTNERB account.",
+          "explanation": ""
+        },
+        {
+          "text": "Create a new account (called AZABC123) in Azure East US 2 region. From account ACCOUNTA replicate the database MARKET_DB to AZABC123 and from this account set up the data sharing to the PARTNERB account.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        3
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "To allow the account PARTNERB to consume data from the MARKET_DB database, the following steps should be performed: Create a new Snowflake account called AZABC123 in Azure East US 2 region. From the ACCOUNTA Snowflake account, replicate the MARKET_DB database to the AZABC123 account in Azure East US 2 region. From the AZABC123 Snowflake account, set up data sharing to the PARTNERB account, granting appropriate privileges to access the shared objects. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "intermediate",
+      "sub_topic": "2.3",
+      "sub_topic_name": "Table Types & Views"
+    },
+    {
+      "id": "architect_test2_q31",
+      "source": "architect_test2",
+      "question_num": 31,
+      "question": "Company A wants to share some data with Company B whose account is in the same region. The data that Company A would like to share is from two different databases in their account. Which of the following is the best option that will allow Company A to share data with Company B?",
+      "options": [
+        {
+          "text": "Create two shares, one for each database.",
+          "explanation": ""
+        },
+        {
+          "text": "Create a standard view that selects data from both tables and share the standard view.",
+          "explanation": ""
+        },
+        {
+          "text": "Create a secure view that selects data from both tables and share the view.",
+          "explanation": ""
+        },
+        {
+          "text": "Create a single share that includes both databases.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        2
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "A few comments: Snowflake data providers can share data located in different databases through the use of secure views. A secure view has the capability to reference objects such as schemas, tables, and other views from multiple databases, provided that these databases are part of the same account. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "intermediate",
+      "sub_topic": "2.3",
+      "sub_topic_name": "Table Types & Views"
+    },
+    {
+      "id": "architect_test2_q49",
+      "source": "architect_test2",
+      "question_num": 49,
+      "question": "An Architect has created a stage for an Amazon S3 bucket Which of the following requires an SNS TOPIC to auto_refresh the object? (Choose two.)",
+      "options": [
+        {
+          "text": "Pipe",
+          "explanation": ""
+        },
+        {
+          "text": "Search optimization",
+          "explanation": ""
+        },
+        {
+          "text": "External table",
+          "explanation": ""
+        },
+        {
+          "text": "Materialized view",
+          "explanation": ""
+        },
+        {
+          "text": "Secure view",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0,
+        2
+      ],
+      "multi_select": true,
+      "multi_select_count": 2,
+      "overall_explanation": "If we want to refresh automatically an External table, we will need to use Amazon Simple Notification Services (SNS) For more detailed information, refer to the official Snowflake documentation. Same for pipes. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "intermediate",
+      "sub_topic": "2.3",
+      "sub_topic_name": "Table Types & Views"
+    },
+    {
+      "id": "architect_test2_q55",
+      "source": "architect_test2",
+      "question_num": 55,
+      "question": "Select all the different ways that we can access to the USER_NAME field if we have a table called MYTABLE with a variant column called JSONTEXT with the following structure: (Choose two.)",
+      "options": [
+        {
+          "text": "{\n\"USER_NAME\": \"Bob\",\n\"USER_AGE \": 40,\n\"TECHNOLOGY\": \"Snowflake\"\n}",
+          "explanation": ""
+        },
+        {
+          "text": "SELECT JSONTEXT['USER_NAME']\nFROM MYTABLE",
+          "explanation": ""
+        },
+        {
+          "text": "SELECT jsontext:USER_NAME\nFROM MYTABLE\nSELECT JSONTEXT->user_name\nFROM MYTABLE\nSELECT JSONTEXT['user_name']\nFROM MYTABLE\nSELECT JSONTEXT:user_name\nFROM MYTABLE",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1,
+        2
+      ],
+      "multi_select": true,
+      "multi_select_count": 2,
+      "overall_explanation": "There are two ways to access a variant column in Snowflake: the dot notation and the bracket notation. Regardless of your notation, the column name is case-insensitive, but element names are case-sensitive. For that reason, it doesn’t matter if we access the JSONTEXT column in uppercase or lowercase, but we should access the USER_NAME column always with uppercase.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "intermediate",
+      "sub_topic": "2.3",
+      "sub_topic_name": "Table Types & Views"
+    },
+    {
+      "id": "architect_test3_q3",
+      "source": "architect_test3",
+      "question_num": 3,
+      "question": "An Architect on a new project has been asked to design an architecture that meets Snowflake security, compliance, and governance requirements as follows:\n\n1. Use Tri-Secret Secure in Snowflake\n\n2. Share some information stored in a view with another Snowflake customer\n\n3. Hide portions of sensitive information from some columns\n\n4. Use zero-copy cloning to refresh the non-production environment from the production environment\n\nTo meet these requirements, which design elements must be implemented? (Choose three.)",
+      "options": [
+        {
+          "text": "Create a secure view.",
+          "explanation": ""
+        },
+        {
+          "text": "Use the Enterprise edition of Snowflake.",
+          "explanation": ""
+        },
+        {
+          "text": "Create a materialized view.",
+          "explanation": ""
+        },
+        {
+          "text": "Use the Business Critical edition of Snowflake.",
+          "explanation": ""
+        },
+        {
+          "text": "Use Dynamic Data Masking.",
+          "explanation": ""
+        },
+        {
+          "text": "Define row access policies.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0,
+        3,
+        4
+      ],
+      "multi_select": true,
+      "multi_select_count": 3,
+      "overall_explanation": "A few comments:\n\nTri Secret Secure requires Business Critical Edition (or higher)\n\nA secure view can be used to share a subset of data with another Snowflake customer while masking sensitive information. This helps meet the security and compliance requirements.\n\nDynamic Data Masking can be used to hide portions of sensitive information from some columns in order to meet security and compliance requirements.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "advanced",
+      "sub_topic": "2.3",
+      "sub_topic_name": "Table Types & Views"
+    },
+    {
+      "id": "architect_test3_q12",
+      "source": "architect_test3",
+      "question_num": 12,
+      "question": "Two tables have been created in the same schema with the same information. One is a Secure View; the second one is a standard View. When executing a query, the profiler doesn’t show the same information. How is this possible?",
+      "options": [
+        {
+          "text": "The user role doesn’t have access to the view",
+          "explanation": ""
+        },
+        {
+          "text": "The underlying table definition has changed",
+          "explanation": ""
+        },
+        {
+          "text": "Secure views do not expose the underlying tables or internal structural details for a view",
+          "explanation": ""
+        },
+        {
+          "text": "The underlying table is corrupted",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        2
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "In Snowflake, secure views are designed to protect sensitive information by hiding the underlying table details and query execution plan. This ensures that users querying the secure view cannot access metadata or structural details of the underlying data, which explains the difference in the profiler information compared to a standard view.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "intermediate",
+      "sub_topic": "2.3",
+      "sub_topic_name": "Table Types & Views"
+    },
+    {
+      "id": "architect_test3_q13",
+      "source": "architect_test3",
+      "question_num": 13,
+      "question": "What types of objects does Snowflake return when we execute the function GET_OBJECT_REFERENCES? (Choose two)",
+      "options": [
+        {
+          "text": "Tables",
+          "explanation": ""
+        },
+        {
+          "text": "UDFs",
+          "explanation": ""
+        },
+        {
+          "text": "Streams",
+          "explanation": ""
+        },
+        {
+          "text": "Views (including secure views)",
+          "explanation": ""
+        },
+        {
+          "text": "Materialized views",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0,
+        3
+      ],
+      "multi_select": true,
+      "multi_select_count": 2,
+      "overall_explanation": "Only views (including secure views) and tables are returned when getting the object references. Materialized views are not returned at this moment.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "intermediate",
+      "sub_topic": "2.3",
+      "sub_topic_name": "Table Types & Views"
+    },
+    {
+      "id": "architect_test3_q17",
+      "source": "architect_test3",
+      "question_num": 17,
+      "question": "Which statements describe characteristics of the use of materialized views in Snowflake? (Choose two.)",
+      "options": [
+        {
+          "text": "They can include ORDER BY clauses.",
+          "explanation": ""
+        },
+        {
+          "text": "They can support MIN and MAX aggregates.",
+          "explanation": ""
+        },
+        {
+          "text": "They cannot include nested subqueries.",
+          "explanation": ""
+        },
+        {
+          "text": "They can include context functions, such as CURRENT_TIME().",
+          "explanation": ""
+        },
+        {
+          "text": "They can support inner joins, but not outer joins.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1,
+        2
+      ],
+      "multi_select": true,
+      "multi_select_count": 2,
+      "overall_explanation": "A few comments: Materialized views have certain limitations, including the inability to support joins or nested subqueries, which restricts the complexity of the queries that can be materialized. Materialized views in Snowflake can include aggregate functions like MIN and MAX, which allow for efficient querying of summary data. Using context functions like CURRENT_TIME or CURRENT_TIMESTAMP is not permitted. For more detailed information, refer to the Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "intermediate",
+      "sub_topic": "2.3",
+      "sub_topic_name": "Table Types & Views"
+    },
+    {
+      "id": "architect_test3_q21",
+      "source": "architect_test3",
+      "question_num": 21,
+      "question": "Which command can we use to list all the object references of a view?",
+      "options": [
+        {
+          "text": "LIST_OBJECT_REFERENCES",
+          "explanation": ""
+        },
+        {
+          "text": "GET_VIEW_REFERENCES",
+          "explanation": ""
+        },
+        {
+          "text": "GET_OBJECT_REFERENCES",
+          "explanation": ""
+        },
+        {
+          "text": "GET_REFERENCES",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        2
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Just as an example, if I wanted to know all the references of the view MY_VIEW, we would execute this command: select * from table(get_object_references( database_name=>'MY_DB', schema_name=>'MY_SCHEMA', object_name=>’MY_VIEW’) );",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "beginner",
+      "sub_topic": "2.3",
+      "sub_topic_name": "Table Types & Views"
+    },
+    {
+      "id": "architect_test3_q25",
+      "source": "architect_test3",
+      "question_num": 25,
+      "question": "Which command can we use to convert JSON NULL values to SQL NULL values?",
+      "options": [
+        {
+          "text": "JSON_TO_SQL",
+          "explanation": ""
+        },
+        {
+          "text": "STRIP_NULL_VALUE",
+          "explanation": ""
+        },
+        {
+          "text": "TRANSCRIPT_NULL",
+          "explanation": ""
+        },
+        {
+          "text": "CONVERT_NULL_VALUE",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "STRIP_NULL_VALUE converts a JSON null value to a SQL NULL value, while all other VARIANT values remain unchanged. This function helps align the JSON data format with SQL NULL handling during processing. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "beginner",
+      "sub_topic": "2.3",
+      "sub_topic_name": "Table Types & Views"
+    },
+    {
+      "id": "architect_test3_q56",
+      "source": "architect_test3",
+      "question_num": 56,
+      "question": "We want to generate a JSON object with the data from a table called users_table, composed of two columns (AGE and NAME), ordered by the name column. How can we do it?",
+      "options": [
+        {
+          "text": "SELECT to_object(*) as users_object",
+          "explanation": ""
+        },
+        {
+          "text": "FROM users_table",
+          "explanation": ""
+        },
+        {
+          "text": "order by users_object[‘NAME’];",
+          "explanation": ""
+        },
+        {
+          "text": "SELECT object_construct(*) as users_object",
+          "explanation": ""
+        },
+        {
+          "text": "SELECT to_json_object(*) as users_object",
+          "explanation": ""
+        },
+        {
+          "text": "SELECT object_deconstruct(*) as users_object",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        3
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "The OBJECT_CONSTRUCT command returns an OBJECT constructed from the arguments. In the following example (left), the arguments come from the table, whereas in the second (right), we send the arguments to the function.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "advanced",
+      "sub_topic": "2.3",
+      "sub_topic_name": "Table Types & Views"
+    },
+    {
+      "id": "architect_test3_q61",
+      "source": "architect_test3",
+      "question_num": 61,
+      "question": "After adding the Search Optimization service in a Snowflake table called MY_TABLE, we forgot to add it in two columns, so we ran the same command in the other two columns, as we can see in the following code:\n\nALTER TABLE MY_TABLE ADD SEARCH OPTIMIZATION ON EQUALITY(col1, col2);\nALTER TABLE MY_TABLE ADD SEARCH OPTIMIZATION ON EQUALITY(col3, col4);\n\nWhat is going to be the result?",
+      "options": [
+        {
+          "text": "It will work as each subsequent command adds the existing configuration to the table.",
+          "explanation": ""
+        },
+        {
+          "text": "It will fail as you can only add the Search Optimization Service once. You should drop it first.",
+          "explanation": ""
+        },
+        {
+          "text": "It will only apply to col3 and col4, ignoring col1 and col2.",
+          "explanation": ""
+        },
+        {
+          "text": "It will drop the Search Optimization Service from col1 and col2, but it will work for columns col3 and col4.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "You can add the Search Optimization service to a table by running the command “ALTER TABLE <table_name> ADD SEARCH OPTIMIZATION. Also, running the two previous queries is the same as running the following command:\n\n\n\nALTER TABLE MY_TABLE ADD SEARCH OPTIMIZATION ON EQUALITY(col1, col2, col3, col4);",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "beginner",
+      "sub_topic": "2.3",
+      "sub_topic_name": "Table Types & Views"
+    },
+    {
+      "id": "architect_test4_q11",
+      "source": "architect_test4",
+      "question_num": 11,
+      "question": "An Architect is designing a data lake with Snowflake. The company has structured, semi-structured, and unstructured data. The company wants to save the data inside the data lake within the Snowflake system. The company is planning on sharing data among its corporate branches using Snowflake data sharing. What should be considered when sharing the unstructured data within Snowflake?",
+      "options": [
+        {
+          "text": "A scoped URL should be used to save the unstructured data into Snowflake in order to share data over secure views, with a 24-hour time limit for the URL.",
+          "explanation": ""
+        },
+        {
+          "text": "A file URL should be used to save the unstructured data into Snowflake in order to share data over secure views, with a 7-day time limit for the URL.",
+          "explanation": ""
+        },
+        {
+          "text": "A pre-signed URL should be used to save the unstructured data into Snowflake in order to share data over secure views, with no time limit for the URL.",
+          "explanation": ""
+        },
+        {
+          "text": "A file URL should be used to save the unstructured data into Snowflake in order to share data over secure views, with the \"expiration_time\" argument defined for the URL time limit.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "A few comments: To use sharing on unstructured data, we will need to create a secure view. The secure view will allow retrieving the scoped URL or the pre-signed URL of the files stored on the stage (no file URL). Pre-Signed URL is the least secure option of all. To generate it, we have to use the GET_PRESIGNED_URL file funciton. This function supports a maximum expiration time of 7 days, so the first option is valid. To generate a scoped URL, we will use the file funciton BUILD_SCOPED_FILE_URL, which currently has a limit of 24 hours. For more detailed information about unstructured data sharing, refer to the official Snowflake documentation. For more detailed information about presigned url, refer to the official Snowflake documentation. For more detailed information about scoped file url, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "intermediate",
+      "sub_topic": "2.3",
+      "sub_topic_name": "Table Types & Views"
+    },
+    {
+      "id": "architect_test4_q33",
+      "source": "architect_test4",
+      "question_num": 33,
+      "question": "When are materialized views NOT recommended?",
+      "options": [
+        {
+          "text": "The view’s base table changes frequently",
+          "explanation": ""
+        },
+        {
+          "text": "Query results contain results that require significant processing",
+          "explanation": ""
+        },
+        {
+          "text": "The view’s base table does not change frequently.",
+          "explanation": ""
+        },
+        {
+          "text": "The query is on an external table",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Materialized views are particularly beneficial in the following scenarios: When the query results consist of a small number of rows and/or columns compared to the base table (the table on which the view is defined). When the query results require significant processing, including: Analysis of semi-structured data. Aggregates that take a considerable amount of time to compute. When the query is performed on an external table (i.e., datasets stored in files in an external stage), which may exhibit slower performance compared to querying native database tables. When the base table of the view does not change frequently. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "intermediate",
+      "sub_topic": "2.3",
+      "sub_topic_name": "Table Types & Views"
+    },
+    {
+      "id": "architect_test4_q34",
+      "source": "architect_test4",
+      "question_num": 34,
+      "question": "The IT Security team has identified that there is an ongoing credential stuffing attack on many of their organization’s system. What is the BEST way to find recent and ongoing login attempts to Snowflake?",
+      "options": [
+        {
+          "text": "Query the LOGIN_HISTORY view in the ACCOUNT_USAGE schema in the SNOWFLAKE database.",
+          "explanation": ""
+        },
+        {
+          "text": "Call the LOGIN_HISTORY Information Schema table function.",
+          "explanation": ""
+        },
+        {
+          "text": "View the Users section in the Account tab in the Snowflake UI and review the last login column.",
+          "explanation": ""
+        },
+        {
+          "text": "View the History tab in the Snowflake UI and set up a filter for SQL text that contains the text \"LOGIN\".",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "The word recent in the question is key. Remember that the ACCOUNT_USAGE has a latency of 2 or 3 hours but the Information Schema is instantaneous. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "beginner",
+      "sub_topic": "2.3",
+      "sub_topic_name": "Table Types & Views"
+    },
+    {
+      "id": "architect_test4_q54",
+      "source": "architect_test4",
+      "question_num": 54,
+      "question": "A healthcare company wants to share data with a medical institute. The institute is running a Standard edition of Snowflake; the healthcare company is running a Business Critical edition. How can this data be shared?",
+      "options": [
+        {
+          "text": "The healthcare company will need to change the institute’s Snowflake edition in the accounts panel.",
+          "explanation": ""
+        },
+        {
+          "text": "By default, sharing is supported from a Business Critical Snowflake edition to a Standard edition.",
+          "explanation": ""
+        },
+        {
+          "text": "Set the share_restriction parameter on the shared object to false.",
+          "explanation": ""
+        },
+        {
+          "text": "Contact Snowflake and they will execute the share request for the healthcare company.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        2
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Data sharing from a higher edition to a lower edition is not supported by default. To enable this kind of data sharing, we have to set the share_restriction parameter on the shared object to false. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "intermediate",
+      "sub_topic": "2.3",
+      "sub_topic_name": "Table Types & Views"
+    },
+    {
+      "id": "architect_test4_q55",
+      "source": "architect_test4",
+      "question_num": 55,
+      "question": "Which command can we use to refresh a materialized view?",
+      "options": [
+        {
+          "text": "ALTER MATERIALIZED_VIEW <view> REFRESH=TRUE",
+          "explanation": ""
+        },
+        {
+          "text": "Materialized views are automatically refreshed by Snowflake",
+          "explanation": ""
+        },
+        {
+          "text": "RESTART MATERIALIZED_VIEW <view>",
+          "explanation": ""
+        },
+        {
+          "text": "REFRESH MATERIALIZED VIEW <view>",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Snowflake automatically maintains materialized views. To see the last time that Snowflake refreshed a materialized view, check the REFRESHED_ON and BEHIND_BY columns in the output of the command SHOW MATERIALIZED VIEWS. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "beginner",
+      "sub_topic": "2.3",
+      "sub_topic_name": "Table Types & Views"
+    },
+    {
+      "id": "architect_test4_q57",
+      "source": "architect_test4",
+      "question_num": 57,
+      "question": "An Architect creates a view to fetch data which is aggregated on SALES_DATE and LOCATION, using the following command:\n\nCREATE OR REPLACE VIEW VW_FETCHAGGREGATEDDATA (SALES_DATE, LOCATION, SUM_REVENUE)\nAS\nSELECT SALES_DATE, LOCATION, SUM (REVENUE) AS SUM_REVENUE FROM SALES\nGROUP BY SALES_DATE, LOCATION;\n\nThe view results are slow to process as millions of records are retrieved.\n\nHow could the Architect use cluster keys to address this latency?",
+      "options": [
+        {
+          "text": "Recreate this view to be a materialized view then execute the command ALTER MATERIALIZED VIEW VW_FETCHAGGREGATEDDATA CLUSTER BY (SALES_DATE, LOCATION);",
+          "explanation": ""
+        },
+        {
+          "text": "Use the command ALTER VIEW VW_FETCHAGGREGATEDDATA RECLUSTER;",
+          "explanation": ""
+        },
+        {
+          "text": "Use the command ALTER VIEW VW_FETCHAGGREGATEDDATA CLUSTER BY (SALES_DATE, LOCATION);",
+          "explanation": ""
+        },
+        {
+          "text": "Cluster the columns from this view that are most actively used in selective filters.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "A few comments:\n\nThe options for CLUSTER operations on non-materialized views are invalid, so we can discard them.\n\nClustering is generally recommended for columns used in filters or joins. However, in this case, while the filter option is technically feasible, the view does not include any filters—only aggregation.\n\nBy converting the view to a materialized view and clustering it on the most frequently used columns (SALES_DATE and LOCATION), the Architect can enhance performance.\n\nFor more detailed information, refer to the official Snowflake documentation.\n\nFor more detailed information about clustering and materialized views, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "intermediate",
+      "sub_topic": "2.3",
+      "sub_topic_name": "Table Types & Views"
+    },
+    {
+      "id": "architect_test5_q12",
+      "source": "architect_test5",
+      "question_num": 12,
+      "question": "What is the MOST efficient way to design an environment where data retention is not considered critical, and customization needs are to be kept to a minimum?",
+      "options": [
+        {
+          "text": "Use a transient schema.",
+          "explanation": ""
+        },
+        {
+          "text": "Use a transient table.",
+          "explanation": ""
+        },
+        {
+          "text": "Use a temporary table.",
+          "explanation": ""
+        },
+        {
+          "text": "Use a transient database.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        3
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "A few comments: Key: customization needs are to be kept to a minimum. A transient database is the most efficient way to design an environment where data retention is not critical and cost is a factor (reduces storage costs by skipping Fail-Safe). Setting the database as transient ensures that all tables created within it are also transient by default, minimizing the need for individual table or schema settings.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "beginner",
+      "sub_topic": "2.3",
+      "sub_topic_name": "Table Types & Views"
+    },
+    {
+      "id": "architect_test5_q20",
+      "source": "architect_test5",
+      "question_num": 20,
+      "question": "How can a Snowflake Architect allow unauthorized users to perform JOINS on protected columns in a SQL query?",
+      "options": [
+        {
+          "text": "Use external tokenization",
+          "explanation": ""
+        },
+        {
+          "text": "Use secure functions",
+          "explanation": ""
+        },
+        {
+          "text": "Use secure views",
+          "explanation": ""
+        },
+        {
+          "text": "Use a separate Identity and Access Management (IAM) role",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        2
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "A few comments: Secure views allow the exposure of protected or sensitive data in a controlled way by abstracting access behind a view. Unauthorized users can query or join data via the secure view without direct access to the underlying protected columns, ensuring data masking and access control. Secure functions are not suitable for DML operations on datasets. External tokenization deals with data protection at ingestion, not with query-time joins. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "intermediate",
+      "sub_topic": "2.3",
+      "sub_topic_name": "Table Types & Views"
+    },
+    {
+      "id": "architect_test5_q33",
+      "source": "architect_test5",
+      "question_num": 33,
+      "question": "A Data Architect is working to optimize the performance of end-users' queries about automobile shipment data for a portal web application that generates dashboards for different clients. An internal team queries the information using order_date as a WHERE condition; the ingestion and natural clustering are performed in this column. However, the application recovers data using the client_id, warehouse, product_id, and destination_city. The Engineer needs to create materialized views with different cluster keys, and must choose two columns combined with client_id to optimize the first cluster key. Which statements will provide all the information needed to select the MOST effective combination of columns to cluster? (Select TWO).",
+      "options": [
+        {
+          "text": "SELECT SYSTEMSCLUSTERING_DEPTH('shipments', '(client_id, warehouse, product_id));",
+          "explanation": ""
+        },
+        {
+          "text": "SELECT SYSTEMSCLUSTERING_DEPTH('shipments', '(warehouse, product_id, destination_city)');",
+          "explanation": ""
+        },
+        {
+          "text": "SELECT SYSTEMSCLUSTERING_DEPTH('shipments', '(client_id, destination_city, product_id));",
+          "explanation": ""
+        },
+        {
+          "text": "SELECT SYSTEMSCLUSTERING_DEPTH('shipments');",
+          "explanation": ""
+        },
+        {
+          "text": "SELECT SYSTEMSCLUSTERING_INFORMATION('shipments', 3);",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0,
+        2
+      ],
+      "multi_select": true,
+      "multi_select_count": 2,
+      "overall_explanation": "Key comment: The Architect needs to create materialized views with different cluster keys, and must choose two columns combined with client_id. A few comments: SYSTEM$CLUSTERING_INFORMATION returns detailed clustering stats, but we can't set specific column sets SYSTEM$CLUSTERING_DEPTH function evaluates how well data is physically organized (clustered) with respect to specific columns. Correct options both include client_id (a key access pattern in the application) combined with different candidate columns (warehouse, product_id, destination_city)",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "intermediate",
+      "sub_topic": "2.3",
+      "sub_topic_name": "Table Types & Views"
+    },
+    {
+      "id": "architect_new_q38",
+      "source": "architect_new",
+      "question_num": 38,
+      "question": "What is the primary use case for Snowflake hybrid tables?",
+      "options": [
+        {
+          "text": "Long-running analytical queries on petabyte-scale data.",
+          "explanation": ""
+        },
+        {
+          "text": "Low-latency transactional (OLTP) workloads with single-row lookups.",
+          "explanation": ""
+        },
+        {
+          "text": "Storing semi-structured data like JSON and XML.",
+          "explanation": ""
+        },
+        {
+          "text": "Replacing external tables for data lake access.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Hybrid tables combine analytical and transactional capabilities. They use a row-store index for fast single-row lookups (OLTP-like performance) while still supporting analytical queries. They enforce primary keys and support row-level locking.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "advanced",
+      "sub_topic": "2.3",
+      "sub_topic_name": "Table Types & Views"
+    },
+    {
+      "id": "architect_new_q39",
+      "source": "architect_new",
+      "question_num": 39,
+      "question": "Which statements about hybrid tables are TRUE? (Choose two.)",
+      "options": [
+        {
+          "text": "Hybrid tables enforce primary keys.",
+          "explanation": ""
+        },
+        {
+          "text": "Hybrid tables do not support indexes.",
+          "explanation": ""
+        },
+        {
+          "text": "Hybrid tables support row-level locking for concurrent updates.",
+          "explanation": ""
+        },
+        {
+          "text": "Hybrid tables are only available on Standard edition.",
+          "explanation": ""
+        },
+        {
+          "text": "Hybrid tables replace regular tables for all use cases.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0,
+        2
+      ],
+      "multi_select": true,
+      "multi_select_count": 2,
+      "overall_explanation": "Hybrid tables enforce primary keys (required at creation) and support row-level locking, enabling concurrent transactional workloads. They also maintain a row-store index for fast point lookups. They are not a replacement for regular tables in analytical workloads.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "advanced",
+      "sub_topic": "2.3",
+      "sub_topic_name": "Table Types & Views"
+    }
+  ]
+}

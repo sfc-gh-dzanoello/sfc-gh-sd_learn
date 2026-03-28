@@ -1,0 +1,246 @@
+{
+  "sub_topic": "4.3",
+  "sub_topic_name": "Caching",
+  "domain": "Domain 4.0: Performance Optimization",
+  "total_questions": 6,
+  "difficulty_distribution": {
+    "advanced": 4,
+    "intermediate": 2
+  },
+  "exam_traps": [
+    {
+      "trap": "Three cache layers: metadata cache, result cache (24h), warehouse local disk cache",
+      "why_confusing": "Metadata cache: COUNT(*), MIN, MAX on unchanged data (free, instant). Result cache: exact same query within 24 hours (free, no warehouse needed). Local disk cache: micro-partition data cached on warehouse SSD (requires running warehouse).",
+      "correct_answer": "Metadata = instant stats. Result = 24h same-query. Local disk = warm warehouse data.",
+      "doc_reference": "https://docs.snowflake.com/en/user-guide/querying-persisted-results"
+    },
+    {
+      "trap": "Result cache is invalidated if underlying data changes",
+      "why_confusing": "Even within 24 hours, if the table data changes (INSERT, UPDATE, DELETE), the result cache is invalidated. Also, USE_CACHED_RESULT=FALSE forces re-execution.",
+      "correct_answer": "Result cache valid for 24h AND only if data hasn't changed.",
+      "doc_reference": "https://docs.snowflake.com/en/user-guide/querying-persisted-results"
+    }
+  ],
+  "questions": [
+    {
+      "id": "architect_test3_q39",
+      "source": "architect_test3",
+      "question_num": 39,
+      "question": "Which feature provides the capability to define an alternate cluster key for a table with an existing cluster key?",
+      "options": [
+        {
+          "text": "Materialized view",
+          "explanation": ""
+        },
+        {
+          "text": "Search optimization",
+          "explanation": ""
+        },
+        {
+          "text": "External table",
+          "explanation": ""
+        },
+        {
+          "text": "Result cache",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "If you cluster both the materialized view(s) and the base table on which the materialized view(s) are defined, you can cluster the materialized view(s) on different columns from the columns used to cluster the base table. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 4.0: Performance Optimization",
+      "difficulty": "intermediate",
+      "sub_topic": "4.3",
+      "sub_topic_name": "Caching"
+    },
+    {
+      "id": "architect_test3_q46",
+      "source": "architect_test3",
+      "question_num": 46,
+      "question": "What is the meaning of “Local Disk IO” in the query profiler menu when running a query?",
+      "options": [
+        {
+          "text": "The time when the processing was blocked by local disk access.",
+          "explanation": ""
+        },
+        {
+          "text": "The time when the processing was waiting for the network data transfer.",
+          "explanation": ""
+        },
+        {
+          "text": "The time when the query was being optimized by the query planner.",
+          "explanation": ""
+        },
+        {
+          "text": "The time spent on data processing by the CPU.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 4.0: Performance Optimization",
+      "difficulty": "advanced",
+      "sub_topic": "4.3",
+      "sub_topic_name": "Caching"
+    },
+    {
+      "id": "architect_test4_q17",
+      "source": "architect_test4",
+      "question_num": 17,
+      "question": "What is the meaning of “Percentage scanned from cache” in the query profiler menu when running a query?",
+      "options": [
+        {
+          "text": "The percentage of data scanned from the query cache.",
+          "explanation": ""
+        },
+        {
+          "text": "The percentage of data scanned from the metadata cache.",
+          "explanation": ""
+        },
+        {
+          "text": "The percentage of data scanned from the local disk cache.",
+          "explanation": ""
+        },
+        {
+          "text": "The percentage of data that is cached and not scanned.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        2
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "This metric helps assess the efficiency of data retrieval, as higher percentages suggest that more data was accessed quickly from cache rather than being read from the underlying storage. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 4.0: Performance Optimization",
+      "difficulty": "advanced",
+      "sub_topic": "4.3",
+      "sub_topic_name": "Caching"
+    },
+    {
+      "id": "architect_test4_q26",
+      "source": "architect_test4",
+      "question_num": 26,
+      "question": "What are some of the characteristics of result set caches? (Choose three.)",
+      "options": [
+        {
+          "text": "Each time persisted results for a query are used, a 24-hour retention period is reset.",
+          "explanation": ""
+        },
+        {
+          "text": "Snowflake persists the data results for 24 hours.",
+          "explanation": ""
+        },
+        {
+          "text": "The result set cache is not shared between warehouses.",
+          "explanation": ""
+        },
+        {
+          "text": "The data stored in the result cache will contribute to storage costs.",
+          "explanation": ""
+        },
+        {
+          "text": "Time Travel queries can be executed against the result set cache.",
+          "explanation": ""
+        },
+        {
+          "text": "The retention period can be reset for a maximum of 31 days.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0,
+        1,
+        5
+      ],
+      "multi_select": true,
+      "multi_select_count": 3,
+      "overall_explanation": "Some of the characteristics of result set caches are: The retention period can be reset for a maximum of 31 days. Each time persisted results for a query are used, a 24-hour retention period is reset. Snowflake persists the data results for 24 hours. These characteristics highlight how result set caches function in Snowflake, particularly regarding their retention and management. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 4.0: Performance Optimization",
+      "difficulty": "advanced",
+      "sub_topic": "4.3",
+      "sub_topic_name": "Caching"
+    },
+    {
+      "id": "architect_test4_q31",
+      "source": "architect_test4",
+      "question_num": 31,
+      "question": "What is the meaning of “Processing” in the query profiler menu when running a query?",
+      "options": [
+        {
+          "text": "The total execution time of the query.",
+          "explanation": ""
+        },
+        {
+          "text": "The time spent on data processing by the CPU.",
+          "explanation": ""
+        },
+        {
+          "text": "The time when the processing was waiting for the network data transfer.",
+          "explanation": ""
+        },
+        {
+          "text": "The time when the processing was blocked by local disk access.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "In the query profiler menu, \"Processing\" refers to the time spent by the CPU on actual data processing tasks during query execution, indicating how much of the query's runtime was dedicated to computational work. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 4.0: Performance Optimization",
+      "difficulty": "advanced",
+      "sub_topic": "4.3",
+      "sub_topic_name": "Caching"
+    },
+    {
+      "id": "architect_test5_q11",
+      "source": "architect_test5",
+      "question_num": 11,
+      "question": "A Developer is having a performance issue with a Snowflake query. The query receives up to 10 different values for one parameter and then performs an aggregation over the majority of a fact table. It then joins against a smaller dimension table. This parameter value is selected by the different query users when they execute it during business hours. Both the fact and dimension tables are loaded with new data in an overnight import process. On a Small or Medium-sized virtual warehouse, the query performs slowly. Performance is acceptable on a size Large or bigger warehouse. However, there is no budget to increase costs. The Developer needs a recommendation that does not increase compute costs to run this query. What should the Architect recommend?",
+      "options": [
+        {
+          "text": "Create a dedicated size Large warehouse for this particular set of queries. Create a new role that has USAGE permission on this warehouse and has the appropriate read permissions over the fact and dimension tables. Have users switch to this role and use this warehouse when they want to access this data.",
+          "explanation": ""
+        },
+        {
+          "text": "Create a task that will run the 10 different variations of the query corresponding to the 10 different parameters before the users come in to work. The task will be scheduled to align with the users' working hours in order to allow the warehouse cache to be used.",
+          "explanation": ""
+        },
+        {
+          "text": "Enable the search optimization service on the table. When the users execute the query, the search optimization service will automatically adjust the query execution plan based on the frequently-used parameters.",
+          "explanation": ""
+        },
+        {
+          "text": "Create a task that will run the 10 different variations of the query corresponding to the 10 different parameters before the users come in to work. The query results will then be cached and ready to respond quickly when the users re-issue the query.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        3
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "A few comments: The Search Optimization Service is designed for fast point lookups, not large aggregations. Since the query scans most of the fact table, search optimization will not significantly improve performance. Create a dedicated size Large warehouse for this query will increase compute costs, which violates the problem constraint. To keep the Warehouse cache active, we need to have the VWH up, which is not cost optimal as we can use the Query Cache for 24 hours.",
+      "domain_raw": "",
+      "domain": "Domain 4.0: Performance Optimization",
+      "difficulty": "intermediate",
+      "sub_topic": "4.3",
+      "sub_topic_name": "Caching"
+    }
+  ]
+}

@@ -1,14 +1,16 @@
 """AI Study Assistant — search Snowflake docs and get answers to study questions."""
 import streamlit as st
+import re as _re
+from i18n import t
 
 # ── Home button ──
 if st.button("🏠 Home", key="assistant_home"):
     st.session_state.app_mode = "landing"
     st.switch_page("app_pages/landing.py")
 
-st.markdown("""
-<h1 style="margin-bottom:4px;">🤖 Study Assistant</h1>
-<p style="color:#9CA3AF; margin-top:0;">Ask any Snowflake question — searches official docs + your notes</p>
+st.markdown(f"""
+<h1 style="margin-bottom:4px;">🤖 {t("study_assistant_title")}</h1>
+<p style="color:#9CA3AF; margin-top:0;">{t("study_assistant_subtitle")}</p>
 """, unsafe_allow_html=True)
 
 # Initialize chat history
@@ -58,13 +60,13 @@ for msg in st.session_state.chat_history:
         """, unsafe_allow_html=True)
     else:
         st.markdown(f"""
-        <div style="background:#FFFFFF;border-radius:12px;padding:14px 18px;margin:8px 0;border-left:4px solid #4ECB71;color:#333;">
+        <div style="background:rgba(78,203,113,0.1);border-radius:12px;padding:14px 18px;margin:8px 0;border-left:4px solid #4ECB71;color:inherit;">
             <strong style="color:#4ECB71;">Assistant:</strong><br>{msg["content"]}
         </div>
         """, unsafe_allow_html=True)
 
 # Input
-user_q = st.chat_input("Ask a Snowflake question... e.g., 'Where is query history stored?' or 'What is micro-partition metadata?'")
+user_q = st.chat_input(t("ask_question_placeholder"))
 
 if user_q:
     st.session_state.chat_history.append({"role": "user", "content": user_q})
@@ -77,12 +79,12 @@ if user_q:
     response_parts = []
 
     if note_results:
-        response_parts.append(f"<h4 style='color:#29B5E8;'>📖 Found in your notes ({len(note_results)} matches):</h4>")
+        response_parts.append(f"<h4 style='color:#29B5E8;'>📖 {t('found_in_notes')} ({len(note_results)} {t('matches')}):</h4>")
         for r in note_results[:5]:
             domain_short = r["domain"].split(": ")[1] if ": " in r["domain"] else r["domain"]
             # Clean up context for display
             ctx = r["context"].replace('\n', '<br>')
-            ctx = ctx.replace('**', '<strong>').replace('**', '</strong>')
+            ctx = _re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', ctx)
             response_parts.append(
                 f"<div style='background:#F5F5F5;border-left:3px solid #29B5E8;padding:8px 12px;margin:6px 0;border-radius:4px;'>"
                 f"<span style='color:#29B5E8;font-weight:600;font-size:0.8rem;'>{domain_short}</span><br>"
@@ -90,7 +92,7 @@ if user_q:
             )
 
     if q_results:
-        response_parts.append(f"<h4 style='color:#C084FC;'>🧠 Related practice questions:</h4>")
+        response_parts.append(f"<h4 style='color:#C084FC;'>🧠 {t('related_questions')}:</h4>")
         for q in q_results[:3]:
             correct = [q["options"][i]["text"] for i in q["correct_indices"] if i < len(q["options"])]
             response_parts.append(
@@ -101,15 +103,14 @@ if user_q:
 
     if not note_results and not q_results:
         response_parts.append(
-            "<p>No matches found in your notes or question bank. Try different keywords, or check the "
-            "<a href='https://docs.snowflake.com' target='_blank' style='color:#29B5E8;'>Snowflake Documentation</a>.</p>"
+            f"<p>{t('no_matches')}</p>"
         )
 
     # Add doc search suggestion
     doc_url = f"https://docs.snowflake.com/en/search#{user_q.replace(' ', '+')}"
     response_parts.append(
         f"<br><a href='{doc_url}' target='_blank' style='color:#29B5E8;text-decoration:none;'>"
-        f"🔗 Search Snowflake Docs for \"{user_q}\"</a>"
+        f"🔗 {t('search_docs_for')} \"{user_q}\"</a>"
     )
 
     full_response = "\n".join(response_parts)
@@ -118,20 +119,20 @@ if user_q:
 
 # Clear chat button
 if st.session_state.chat_history:
-    if st.button("🗑️ Clear chat", key="clear_chat"):
+    if st.button(f"🗑️ {t('clear_chat')}", key="clear_chat"):
         st.session_state.chat_history = []
         st.rerun()
 
 # Tips
 st.markdown("---")
-st.markdown("""
+st.markdown(f"""
 <div style="background:#1B2332;border-radius:10px;padding:14px;margin-top:12px;">
-    <strong style="color:#FFD93D;">💡 Tips:</strong><br>
+    <strong style="color:#FFD93D;">💡 {t("assistant_tips_title")}</strong><br>
     <span style="color:#9CA3AF;">
-    • Search for concepts: "micro-partition metadata", "Time Travel retention"<br>
-    • Search for comparisons: "ACCOUNT_USAGE vs INFORMATION_SCHEMA"<br>
-    • Search for traps: "reader account DML"<br>
-    • Click the Snowflake Docs link for official documentation
+    • {t("assistant_tip_concepts")}<br>
+    • {t("assistant_tip_compare")}<br>
+    • {t("assistant_tip_traps")}<br>
+    • {t("assistant_tip_docs")}
     </span>
 </div>
 """, unsafe_allow_html=True)

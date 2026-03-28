@@ -1,0 +1,110 @@
+{
+  "sub_topic": "5.1",
+  "sub_topic_name": "Secure Data Sharing",
+  "domain": "Domain 5.0: Sharing & Collaboration",
+  "total_questions": 2,
+  "difficulty_distribution": {
+    "intermediate": 2
+  },
+  "exam_traps": [
+    {
+      "trap": "SIMULATED_DATA_SHARING_CONSUMER validates what consumers see -- not reader accounts or row access policies",
+      "why_confusing": "To test that a secure view shows correct data per consumer, set the session parameter SIMULATED_DATA_SHARING_CONSUMER. Creating reader accounts or row access policies are NOT the recommended validation method.",
+      "correct_answer": "ALTER SESSION SET SIMULATED_DATA_SHARING_CONSUMER = 'consumer_account'",
+      "doc_reference": "https://docs.snowflake.com/en/user-guide/data-sharing-secure-views"
+    },
+    {
+      "trap": "Data sharing is free for same-region, same-cloud. Cross-region/cross-cloud requires replication.",
+      "why_confusing": "Direct shares work only within the same cloud and region. For cross-region or cross-cloud sharing, you must replicate the database first, then share from the replicated copy. This adds replication costs.",
+      "correct_answer": "Same region = direct share (free). Cross-region = replicate then share.",
+      "doc_reference": "https://docs.snowflake.com/en/user-guide/data-sharing-intro"
+    }
+  ],
+  "questions": [
+    {
+      "id": "architect_new_q2",
+      "source": "architect_new",
+      "question_num": 2,
+      "question": "Which objects can be included in a Snowflake share? (Choose three.)",
+      "options": [
+        {
+          "text": "Tables",
+          "explanation": ""
+        },
+        {
+          "text": "Secure views",
+          "explanation": ""
+        },
+        {
+          "text": "Stored procedures",
+          "explanation": ""
+        },
+        {
+          "text": "Secure UDFs",
+          "explanation": ""
+        },
+        {
+          "text": "Stages",
+          "explanation": ""
+        },
+        {
+          "text": "Streams",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0,
+        1,
+        3
+      ],
+      "multi_select": true,
+      "multi_select_count": 3,
+      "overall_explanation": "Shares can include tables, secure views, secure materialized views, and secure UDFs. Stored procedures, stages, streams, tasks, and pipes cannot be shared directly.",
+      "domain_raw": "",
+      "domain": "Domain 5.0: Sharing & Collaboration",
+      "difficulty": "intermediate",
+      "sub_topic": "5.1",
+      "sub_topic_name": "Secure Data Sharing"
+    },
+    {
+      "id": "architect_new_q13",
+      "source": "architect_new",
+      "question_num": 13,
+      "question": "Which of the following CANNOT be shared using Snowflake Secure Data Sharing? (Choose two.)",
+      "options": [
+        {
+          "text": "Transient tables",
+          "explanation": ""
+        },
+        {
+          "text": "Secure materialized views",
+          "explanation": ""
+        },
+        {
+          "text": "Stages",
+          "explanation": ""
+        },
+        {
+          "text": "Tables",
+          "explanation": ""
+        },
+        {
+          "text": "Secure UDFs",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0,
+        2
+      ],
+      "multi_select": true,
+      "multi_select_count": 2,
+      "overall_explanation": "Transient tables and stages cannot be shared. Shares support regular tables, secure views, secure materialized views, and secure UDFs. Temporary tables also cannot be shared.",
+      "domain_raw": "",
+      "domain": "Domain 5.0: Sharing & Collaboration",
+      "difficulty": "intermediate",
+      "sub_topic": "5.1",
+      "sub_topic_name": "Secure Data Sharing"
+    }
+  ]
+}

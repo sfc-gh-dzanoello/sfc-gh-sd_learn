@@ -1,0 +1,211 @@
+{
+  "sub_topic": "6.3",
+  "sub_topic_name": "Snowpark Container Services",
+  "domain": "Domain 6.0: DevOps & Ecosystem",
+  "total_questions": 5,
+  "difficulty_distribution": {
+    "advanced": 2,
+    "intermediate": 3
+  },
+  "exam_traps": [
+    {
+      "trap": "SPCS runs containers IN Snowflake, not externally",
+      "why_confusing": "SPCS provides compute pools within Snowflake to run Docker containers. Data stays in Snowflake. This is different from external functions which call external endpoints. SPCS keeps everything inside the Snowflake security boundary.",
+      "correct_answer": "SPCS = containers inside Snowflake. Data doesn't leave. Uses compute pools, image repositories.",
+      "doc_reference": "https://docs.snowflake.com/en/developer-guide/snowpark-container-services/overview"
+    },
+    {
+      "trap": "Service functions are how you call SPCS services from SQL",
+      "why_confusing": "SPCS exposes services via service functions (callable from SQL) or service endpoints (HTTP). The exam may ask how other Snowflake objects interact with containers.",
+      "correct_answer": "Service function = SQL interface to SPCS. Service endpoint = HTTP interface.",
+      "doc_reference": "https://docs.snowflake.com/en/developer-guide/snowpark-container-services/working-with-services"
+    }
+  ],
+  "questions": [
+    {
+      "id": "architect_new_q23",
+      "source": "architect_new",
+      "question_num": 23,
+      "question": "A data science team needs to run a custom PyTorch model with GPU support inside Snowflake. What should the Architect recommend?",
+      "options": [
+        {
+          "text": "Create a Python UDF with the model code.",
+          "explanation": ""
+        },
+        {
+          "text": "Use Snowpark Container Services (SPCS) with a GPU compute pool.",
+          "explanation": ""
+        },
+        {
+          "text": "Use a Snowpark-optimized warehouse.",
+          "explanation": ""
+        },
+        {
+          "text": "Deploy the model as an external function.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "SPCS supports GPU compute pools for running containerized workloads. The team can containerize their PyTorch model as a Docker image, push it to Snowflake's image repository, create a GPU compute pool, and deploy the model as a service. Data never leaves Snowflake.",
+      "domain_raw": "",
+      "domain": "Domain 6.0: DevOps & Ecosystem",
+      "difficulty": "advanced",
+      "sub_topic": "6.3",
+      "sub_topic_name": "Snowpark Container Services"
+    },
+    {
+      "id": "architect_new_q24",
+      "source": "architect_new",
+      "question_num": 24,
+      "question": "Which objects are involved in deploying a container service in SPCS? (Choose three.)",
+      "options": [
+        {
+          "text": "Compute pool",
+          "explanation": ""
+        },
+        {
+          "text": "Image repository",
+          "explanation": ""
+        },
+        {
+          "text": "Service specification (YAML)",
+          "explanation": ""
+        },
+        {
+          "text": "Virtual warehouse",
+          "explanation": ""
+        },
+        {
+          "text": "External function",
+          "explanation": ""
+        },
+        {
+          "text": "Network policy",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0,
+        1,
+        2
+      ],
+      "multi_select": true,
+      "multi_select_count": 3,
+      "overall_explanation": "SPCS requires: (1) an image repository to store Docker images, (2) a compute pool to provide nodes for running containers, and (3) a service specification in YAML format defining the container config. Virtual warehouses are not used by SPCS.",
+      "domain_raw": "",
+      "domain": "Domain 6.0: DevOps & Ecosystem",
+      "difficulty": "advanced",
+      "sub_topic": "6.3",
+      "sub_topic_name": "Snowpark Container Services"
+    },
+    {
+      "id": "architect_new_q25",
+      "source": "architect_new",
+      "question_num": 25,
+      "question": "How do Cortex LLM functions like SNOWFLAKE.CORTEX.COMPLETE() consume compute resources?",
+      "options": [
+        {
+          "text": "They run on the user's active warehouse.",
+          "explanation": ""
+        },
+        {
+          "text": "They run serverlessly -- no warehouse required, billed per token.",
+          "explanation": ""
+        },
+        {
+          "text": "They require a Snowpark-optimized warehouse.",
+          "explanation": ""
+        },
+        {
+          "text": "They require a dedicated SPCS compute pool.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Cortex LLM functions are serverless -- they do not require a running warehouse. They are billed per token (input + output tokens). This makes them simple to use but cost should be monitored for high-volume usage.",
+      "domain_raw": "",
+      "domain": "Domain 6.0: DevOps & Ecosystem",
+      "difficulty": "intermediate",
+      "sub_topic": "6.3",
+      "sub_topic_name": "Snowpark Container Services"
+    },
+    {
+      "id": "architect_new_q31",
+      "source": "architect_new",
+      "question_num": 31,
+      "question": "What is the correct order for deploying a Docker container to SPCS?",
+      "options": [
+        {
+          "text": "Create service -> Push image -> Create compute pool",
+          "explanation": ""
+        },
+        {
+          "text": "Push image to image repository -> Create compute pool -> Create service",
+          "explanation": ""
+        },
+        {
+          "text": "Create compute pool -> Create service -> Push image",
+          "explanation": ""
+        },
+        {
+          "text": "Create service function -> Push image -> Start compute pool",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "The correct order is: (1) Push the Docker image to Snowflake's image repository, (2) Create a compute pool to provide infrastructure, (3) Create a service referencing the image and compute pool. The service specification (YAML) defines the configuration.",
+      "domain_raw": "",
+      "domain": "Domain 6.0: DevOps & Ecosystem",
+      "difficulty": "intermediate",
+      "sub_topic": "6.3",
+      "sub_topic_name": "Snowpark Container Services"
+    },
+    {
+      "id": "architect_new_q37",
+      "source": "architect_new",
+      "question_num": 37,
+      "question": "Are SPCS compute pools always running and incurring costs?",
+      "options": [
+        {
+          "text": "Yes, compute pools run continuously once created.",
+          "explanation": ""
+        },
+        {
+          "text": "No, compute pools can be suspended and resumed; costs only accrue when active.",
+          "explanation": ""
+        },
+        {
+          "text": "Compute pools auto-suspend after 5 minutes of inactivity.",
+          "explanation": ""
+        },
+        {
+          "text": "Compute pools are billed per container, not per pool.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "SPCS compute pools can be explicitly suspended and resumed. You only pay when the compute pool is active. Unlike warehouses, they do not auto-suspend -- you must suspend them manually or via automation.",
+      "domain_raw": "",
+      "domain": "Domain 6.0: DevOps & Ecosystem",
+      "difficulty": "intermediate",
+      "sub_topic": "6.3",
+      "sub_topic_name": "Snowpark Container Services"
+    }
+  ]
+}

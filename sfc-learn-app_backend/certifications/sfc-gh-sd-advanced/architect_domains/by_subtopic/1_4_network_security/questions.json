@@ -1,0 +1,322 @@
+{
+  "sub_topic": "1.4",
+  "sub_topic_name": "Network Security",
+  "domain": "Domain 1.0: Accounts and Security",
+  "total_questions": 8,
+  "difficulty_distribution": {
+    "advanced": 6,
+    "intermediate": 2
+  },
+  "exam_traps": [
+    {
+      "trap": "PrivateLink is required for direct VPC-to-Snowflake connectivity (not SSO, not OAuth, not SCIM)",
+      "why_confusing": "The exam lists SSO, OAuth, SCIM, and PrivateLink as options. PrivateLink is the ONLY one that provides network-level private connectivity. The others are authentication/authorization protocols.",
+      "correct_answer": "AWS PrivateLink / Azure Private Link / Google Cloud Private Service Connect",
+      "doc_reference": "https://docs.snowflake.com/en/user-guide/admin-security-privatelink"
+    },
+    {
+      "trap": "Network policies: user-level policy overrides account-level policy",
+      "why_confusing": "If both exist, the user-level network policy takes precedence. The account-level policy is the default, but any user with a specific policy assigned uses only that policy.",
+      "correct_answer": "User-level network policy wins over account-level",
+      "doc_reference": "https://docs.snowflake.com/en/user-guide/network-policies"
+    },
+    {
+      "trap": "Tri-Secret Secure = Snowflake key + Customer-managed key (composite master key)",
+      "why_confusing": "It's NOT just customer-managed keys. Tri-Secret means the encryption uses a COMPOSITE key from both Snowflake's key and the customer's key. If either is revoked, data is inaccessible. Requires Business Critical edition.",
+      "correct_answer": "Composite of Snowflake key + customer key. Both needed to decrypt. Business Critical required.",
+      "doc_reference": "https://docs.snowflake.com/en/user-guide/security-encryption-manage"
+    }
+  ],
+  "questions": [
+    {
+      "id": "architect_test1_q17",
+      "source": "architect_test1",
+      "question_num": 17,
+      "question": "When activating Tri-Secret Secure in a hierarchical encryption model in a Snowflake account, at what level is the customer-managed key used?",
+      "options": [
+        {
+          "text": "At the table level (TMK)",
+          "explanation": ""
+        },
+        {
+          "text": "At the micro-partition level",
+          "explanation": ""
+        },
+        {
+          "text": "At the account level (AMK)",
+          "explanation": ""
+        },
+        {
+          "text": "At the root level (HSM)",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        2
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "A few comments: When activating Tri-Secret Secure in a hierarchical encryption model in a Snowflake account, the customer-managed key is used at at the account level (AMK) Tri-Secret Secure combines a Snowflake-maintained key with a customer-managed key from the cloud provider platform hosting your Snowflake account to form a composite master key for protecting your Snowflake data. This composite master key functions as an account master key (AMK) and wraps all the keys within the hierarchy. For more detailed information about key management in Snowflake, refer to the official Snowflake documentation. For more detailed information about Tri-Secret Secure, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 1.0: Accounts and Security",
+      "difficulty": "advanced",
+      "sub_topic": "1.4",
+      "sub_topic_name": "Network Security"
+    },
+    {
+      "id": "architect_test2_q39",
+      "source": "architect_test2",
+      "question_num": 39,
+      "question": "What are purposes for creating a storage integration? (Choose three.)",
+      "options": [
+        {
+          "text": "Support multiple external stages using one single Snowflake object.",
+          "explanation": ""
+        },
+        {
+          "text": "Manage credentials from multiple cloud providers in one single Snowflake object.",
+          "explanation": ""
+        },
+        {
+          "text": "Avoid supplying credentials when creating a stage or when loading or unloading data.",
+          "explanation": ""
+        },
+        {
+          "text": "Control access to Snowflake data using a master encryption key that is maintained in the cloud provider’s key management service.",
+          "explanation": ""
+        },
+        {
+          "text": "Create private VPC endpoints that allow direct, secure connectivity between VPCs without traversing the public internet.",
+          "explanation": ""
+        },
+        {
+          "text": "Store a generated identity and access management (IAM) entity for an external cloud provider regardless of the cloud provider that hosts the Snowflake account.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0,
+        2,
+        5
+      ],
+      "multi_select": true,
+      "multi_select_count": 3,
+      "overall_explanation": "A storage integration in Snowflake allows for the creation of an IAM entity for external cloud providers, supports multiple external stages using a single object, and removes the need to supply credentials repeatedly when creating stages or handling data loading/unloading operations, enhancing both security and efficiency. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 1.0: Accounts and Security",
+      "difficulty": "advanced",
+      "sub_topic": "1.4",
+      "sub_topic_name": "Network Security"
+    },
+    {
+      "id": "architect_test4_q28",
+      "source": "architect_test4",
+      "question_num": 28,
+      "question": "An Architect is using SnowCD to investigate a connectivity issue. Which system function will provide a list of endpoints that the network must be able to access to use a specific Snowflake account, leveraging private connectivity?",
+      "options": [
+        {
+          "text": "SYSTEM$ALLOWLIST()",
+          "explanation": ""
+        },
+        {
+          "text": "SYSTEM$AUTHORIZE_PRIVATELINK",
+          "explanation": ""
+        },
+        {
+          "text": "SYSTEM$GET_PRIVATELINK",
+          "explanation": ""
+        },
+        {
+          "text": "SYSTEM$ALLOWLIST_PRIVATELINK()",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        3
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "SYSTEM$ALLOWLIST_PRIVATELINK() function provides a list of endpoints that need to be accessible to establish private connectivity for a specific Snowflake account. This is useful for troubleshooting and verifying network connectivity in setups using PrivateLink. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 1.0: Accounts and Security",
+      "difficulty": "advanced",
+      "sub_topic": "1.4",
+      "sub_topic_name": "Network Security"
+    },
+    {
+      "id": "architect_new_q53",
+      "source": "architect_new",
+      "question_num": 53,
+      "question": "What is the purpose of AWS PrivateLink / Azure Private Link with Snowflake?",
+      "options": [
+        {
+          "text": "Encrypting data in transit between the client and Snowflake.",
+          "explanation": ""
+        },
+        {
+          "text": "Routing traffic between the client and Snowflake over a private network path, avoiding the public internet.",
+          "explanation": ""
+        },
+        {
+          "text": "Enabling Snowflake to access data in private S3 buckets.",
+          "explanation": ""
+        },
+        {
+          "text": "Creating VPN tunnels between on-premises networks and Snowflake.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "PrivateLink creates a private network endpoint so traffic between the client and Snowflake never traverses the public internet. This is a network security feature required by many compliance frameworks. It requires Business Critical edition or higher.",
+      "domain_raw": "",
+      "domain": "Domain 1.0: Accounts and Security",
+      "difficulty": "intermediate",
+      "sub_topic": "1.4",
+      "sub_topic_name": "Network Security"
+    },
+    {
+      "id": "architect_new_q60",
+      "source": "architect_new",
+      "question_num": 60,
+      "question": "What is Tri-Secret Secure encryption in Snowflake?",
+      "options": [
+        {
+          "text": "A three-layer encryption using AES-128, AES-192, and AES-256.",
+          "explanation": ""
+        },
+        {
+          "text": "A combination of a customer-managed key, a Snowflake-managed key, and a composite master key.",
+          "explanation": ""
+        },
+        {
+          "text": "Three separate encryption keys for data at rest, in transit, and in use.",
+          "explanation": ""
+        },
+        {
+          "text": "Encryption that requires three different administrators to approve.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Tri-Secret Secure combines a customer-managed key (from the customer's cloud KMS) with a Snowflake-managed key to create a composite master key. If either key is revoked, the data becomes inaccessible. Requires Business Critical edition or higher.",
+      "domain_raw": "",
+      "domain": "Domain 1.0: Accounts and Security",
+      "difficulty": "advanced",
+      "sub_topic": "1.4",
+      "sub_topic_name": "Network Security"
+    },
+    {
+      "id": "architect_new_q61",
+      "source": "architect_new",
+      "question_num": 61,
+      "question": "A company's security team wants to ensure that if they revoke their encryption key, Snowflake can no longer access their data. Which feature provides this capability?",
+      "options": [
+        {
+          "text": "Column-level encryption.",
+          "explanation": ""
+        },
+        {
+          "text": "Tri-Secret Secure with a customer-managed key.",
+          "explanation": ""
+        },
+        {
+          "text": "Network policies with IP allowlisting.",
+          "explanation": ""
+        },
+        {
+          "text": "Masking policies on sensitive columns.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Tri-Secret Secure ensures that revoking the customer-managed key renders data inaccessible to both Snowflake and the customer. This is the highest level of encryption control, providing customer-controlled data sovereignty.",
+      "domain_raw": "",
+      "domain": "Domain 1.0: Accounts and Security",
+      "difficulty": "advanced",
+      "sub_topic": "1.4",
+      "sub_topic_name": "Network Security"
+    },
+    {
+      "id": "architect_new_q63",
+      "source": "architect_new",
+      "question_num": 63,
+      "question": "A user-level network policy and an account-level network policy are both configured. A user has both policies applicable. Which policy takes effect?",
+      "options": [
+        {
+          "text": "The account-level policy takes precedence.",
+          "explanation": ""
+        },
+        {
+          "text": "The user-level policy replaces the account-level policy for that user.",
+          "explanation": ""
+        },
+        {
+          "text": "Both policies are combined (union of allowed IPs).",
+          "explanation": ""
+        },
+        {
+          "text": "Both policies are combined (intersection of allowed IPs).",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "A user-level network policy completely replaces the account-level network policy for that user. It is NOT additive. The user-level policy is the only one evaluated for users who have one assigned.",
+      "domain_raw": "",
+      "domain": "Domain 1.0: Accounts and Security",
+      "difficulty": "advanced",
+      "sub_topic": "1.4",
+      "sub_topic_name": "Network Security"
+    },
+    {
+      "id": "architect_new_q66",
+      "source": "architect_new",
+      "question_num": 66,
+      "question": "An organization operates in the EU with strict GDPR requirements. Customer data must never leave EU soil. How should the Architect configure the Snowflake deployment?",
+      "options": [
+        {
+          "text": "Use a single US account with row access policies filtering EU data.",
+          "explanation": ""
+        },
+        {
+          "text": "Deploy a Snowflake account in an EU cloud region within a Snowflake Organization.",
+          "explanation": ""
+        },
+        {
+          "text": "Use data masking to hide location information from non-EU users.",
+          "explanation": ""
+        },
+        {
+          "text": "Encrypt EU data with a customer-managed key stored in Europe.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "GDPR data residency requires that EU customer data physically resides in EU infrastructure. Deploying a Snowflake account in an EU cloud region (e.g., AWS eu-central-1) within a Snowflake Organization ensures data stays in Europe while allowing org-level management.",
+      "domain_raw": "",
+      "domain": "Domain 1.0: Accounts and Security",
+      "difficulty": "intermediate",
+      "sub_topic": "1.4",
+      "sub_topic_name": "Network Security"
+    }
+  ]
+}

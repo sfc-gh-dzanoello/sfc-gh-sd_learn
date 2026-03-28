@@ -1,0 +1,161 @@
+{
+  "sub_topic": "6.5",
+  "sub_topic_name": "Streamlit & Native Apps",
+  "domain": "Domain 6.0: DevOps & Ecosystem",
+  "total_questions": 4,
+  "difficulty_distribution": {
+    "advanced": 1,
+    "beginner": 2,
+    "intermediate": 1
+  },
+  "exam_traps": [
+    {
+      "trap": "Streamlit in Snowflake runs in the user's context (their role and warehouse)",
+      "why_confusing": "SiS apps execute queries using the viewer's role and the assigned warehouse. This means different users see different data based on their privileges, without the app developer needing to implement access control.",
+      "correct_answer": "SiS uses viewer's role + assigned warehouse. Access control is automatic via RBAC.",
+      "doc_reference": "https://docs.snowflake.com/en/developer-guide/streamlit/about-streamlit"
+    }
+  ],
+  "questions": [
+    {
+      "id": "architect_new_q27",
+      "source": "architect_new",
+      "question_num": 27,
+      "question": "Where do Streamlit in Snowflake (SiS) applications execute?",
+      "options": [
+        {
+          "text": "On an external server managed by Streamlit Cloud.",
+          "explanation": ""
+        },
+        {
+          "text": "On the user's local machine.",
+          "explanation": ""
+        },
+        {
+          "text": "Inside Snowflake on Snowflake-managed compute.",
+          "explanation": ""
+        },
+        {
+          "text": "On a customer-managed Kubernetes cluster.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        2
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Streamlit in Snowflake apps run entirely inside Snowflake's infrastructure. No external servers are needed. The app inherits Snowflake's RBAC model -- it runs with the current user's role and permissions.",
+      "domain_raw": "",
+      "domain": "Domain 6.0: DevOps & Ecosystem",
+      "difficulty": "beginner",
+      "sub_topic": "6.5",
+      "sub_topic_name": "Streamlit & Native Apps"
+    },
+    {
+      "id": "architect_new_q28",
+      "source": "architect_new",
+      "question_num": 28,
+      "question": "What is the bronze layer in the medallion architecture?",
+      "options": [
+        {
+          "text": "Cleaned and deduplicated data ready for analysis.",
+          "explanation": ""
+        },
+        {
+          "text": "Raw data as ingested, with no transformations applied.",
+          "explanation": ""
+        },
+        {
+          "text": "Aggregated business-ready metrics and KPIs.",
+          "explanation": ""
+        },
+        {
+          "text": "A security layer that encrypts data at rest.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "The bronze (raw/landing) layer stores data exactly as ingested -- no cleaning, no transformations. This preserves the original data for lineage and audit. Transformations happen in the silver layer.",
+      "domain_raw": "",
+      "domain": "Domain 6.0: DevOps & Ecosystem",
+      "difficulty": "beginner",
+      "sub_topic": "6.5",
+      "sub_topic_name": "Streamlit & Native Apps"
+    },
+    {
+      "id": "architect_new_q30",
+      "source": "architect_new",
+      "question_num": 30,
+      "question": "Which Snowflake feature allows an Application Package to be distributed to other accounts via the Marketplace?",
+      "options": [
+        {
+          "text": "Secure Data Sharing",
+          "explanation": ""
+        },
+        {
+          "text": "Database Replication",
+          "explanation": ""
+        },
+        {
+          "text": "Native App Framework",
+          "explanation": ""
+        },
+        {
+          "text": "Snowpipe Streaming",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        2
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "The Native App Framework allows providers to bundle code (procedures, UDFs, Streamlit), data, and configuration into an Application Package. This package can be published on the Marketplace for other accounts to install.",
+      "domain_raw": "",
+      "domain": "Domain 6.0: DevOps & Ecosystem",
+      "difficulty": "intermediate",
+      "sub_topic": "6.5",
+      "sub_topic_name": "Streamlit & Native Apps"
+    },
+    {
+      "id": "architect_new_q34",
+      "source": "architect_new",
+      "question_num": 34,
+      "question": "A Snowflake Architect wants to enable external access from a Streamlit in Snowflake app to call a third-party REST API. What is required?",
+      "options": [
+        {
+          "text": "No special configuration -- SiS apps can access any URL.",
+          "explanation": ""
+        },
+        {
+          "text": "An external access integration that whitelists the API endpoint.",
+          "explanation": ""
+        },
+        {
+          "text": "A network policy allowing outbound traffic.",
+          "explanation": ""
+        },
+        {
+          "text": "An external function that proxies the API call.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Streamlit in Snowflake runs inside Snowflake's secure environment with no external access by default. To call external APIs, an external access integration must be created that explicitly whitelists the allowed endpoints.",
+      "domain_raw": "",
+      "domain": "Domain 6.0: DevOps & Ecosystem",
+      "difficulty": "advanced",
+      "sub_topic": "6.5",
+      "sub_topic_name": "Streamlit & Native Apps"
+    }
+  ]
+}

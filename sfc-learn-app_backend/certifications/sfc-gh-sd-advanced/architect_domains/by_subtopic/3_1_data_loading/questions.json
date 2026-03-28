@@ -1,0 +1,1240 @@
+{
+  "sub_topic": "3.1",
+  "sub_topic_name": "Data Loading",
+  "domain": "Domain 3.0: Data Engineering",
+  "total_questions": 32,
+  "difficulty_distribution": {
+    "advanced": 12,
+    "beginner": 3,
+    "intermediate": 17
+  },
+  "exam_traps": [
+    {
+      "trap": "COPY INTO skips files already loaded (64-day metadata). Use FORCE=TRUE to reload.",
+      "why_confusing": "Snowflake tracks loaded file metadata for 64 days. Re-uploading the same file with same name won't re-load it unless you use FORCE=TRUE or LOAD_HISTORY column check. This is different from FILES=('name') which still respects the 64-day check.",
+      "correct_answer": "Same filename = skipped. Use FORCE=TRUE to override. Or FILES=() to target specific files.",
+      "doc_reference": "https://docs.snowflake.com/en/sql-reference/sql/copy-into-table"
+    },
+    {
+      "trap": "Snowpipe auto-ingest for AWS uses SNS topic, NOT storage integration",
+      "why_confusing": "For AWS S3, auto-ingest Snowpipe requires aws_sns_topic. Storage integration (INTEGRATION='...') is for Azure/GCP, NOT AWS. The exam gives options mixing AWS SNS with Azure region names -- that's wrong.",
+      "correct_answer": "AWS = aws_sns_topic. Azure = INTEGRATION. GCP = INTEGRATION.",
+      "doc_reference": "https://docs.snowflake.com/en/user-guide/data-load-snowpipe-auto"
+    },
+    {
+      "trap": "COPY INTO pipe: only some copy options are supported (SKIP_HEADER, STRIP_OUTER_ARRAY are OK; FILES, PURGE, ON_ERROR=ABORT are NOT)",
+      "why_confusing": "CREATE PIPE ... AS COPY FROM only supports a subset of COPY options. PURGE, FILES, and ON_ERROR=ABORT_STATEMENT are NOT supported in pipe definitions.",
+      "correct_answer": "Pipe-supported: SKIP_HEADER, STRIP_OUTER_ARRAY. Not supported: FILES, PURGE, ON_ERROR=ABORT",
+      "doc_reference": "https://docs.snowflake.com/en/sql-reference/sql/create-pipe"
+    },
+    {
+      "trap": "CURRENT_TIMESTAMP in default column value is evaluated at load COMPILE time, not insert time",
+      "why_confusing": "If you add DEFAULT CURRENT_TIMESTAMP() to a column, the timestamp is set when the COPY INTO statement is compiled in cloud services, NOT when each row is physically inserted. This means all rows get the same timestamp, which is earlier than COPY_HISTORY.load_time.",
+      "correct_answer": "CURRENT_TIMESTAMP default = compile time, not per-row insert time",
+      "doc_reference": "https://docs.snowflake.com/en/sql-reference/sql/copy-into-table"
+    }
+  ],
+  "questions": [
+    {
+      "id": "architect_test1_q26",
+      "source": "architect_test1",
+      "question_num": 26,
+      "question": "An Architect is integrating an application that needs to read and write data to Snowflake without installing any additional software on the application server. How can this requirement be met?",
+      "options": [
+        {
+          "text": "Use the Snowpipe REST API.",
+          "explanation": ""
+        },
+        {
+          "text": "Use the Snowflake SQL REST API.Use the Snowflake SQL REST API.",
+          "explanation": ""
+        },
+        {
+          "text": "Use the Snowflake ODBC driver.",
+          "explanation": ""
+        },
+        {
+          "text": "Use SnowSQL.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "About the options: SnowSQL is a command-line interface (CLI) for interacting with Snowflake. It requires installation on the server where it will be used, which does not meet the requirement of not installing additional software. The Snowpipe REST API is specifically designed for continuous data ingestion into Snowflake and is not intended for general-purpose reading and writing of data. The ODBC driver also requires installation on the application server, which does not meet the requirement. Snowflake SQL REST API allows to interact with Snowflake (peform queries, management, etc.) over HTTP without requiring any additional software installation. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "intermediate",
+      "sub_topic": "3.1",
+      "sub_topic_name": "Data Loading"
+    },
+    {
+      "id": "architect_test1_q27",
+      "source": "architect_test1",
+      "question_num": 27,
+      "question": "A company has two Snowflake accounts: Account A (in AWS us-east-1) contains database DB1, and Account B (in AWS us-west-2) contains database DB2 with table TBL2. The accounts are in the same organization. How can the data from DB1 be copied into TBL2? (Choose two.)",
+      "options": [
+        {
+          "text": "INSERT INTO TBL2 SELECT * FROM TBL1",
+          "explanation": "Fails because TBL2 resolves to DB1.S1.TBL2 which does not exist."
+        },
+        {
+          "text": "INSERT INTO S2.TBL2 SELECT * FROM TBL1",
+          "explanation": "Fails because S2.TBL2 resolves to DB1.S2.TBL2 which does not exist."
+        },
+        {
+          "text": "INSERT INTO DB2.S2.TBL2 SELECT * FROM TBL1",
+          "explanation": "Correct. Fully qualified target, source resolves from current context."
+        },
+        {
+          "text": "INSERT INTO DB2.S2.TBL2 SELECT * FROM S1.TBL1",
+          "explanation": "Works but S1.TBL1 resolves to DB1.S1.TBL1 via current context, which is correct."
+        },
+        {
+          "text": "INSERT INTO DB2.S2.TBL2 SELECT * FROM DB1.S1.TBL1",
+          "explanation": "Correct. Both source and target are fully qualified."
+        }
+      ],
+      "correct_indices": [
+        2,
+        4
+      ],
+      "multi_select": true,
+      "multi_select_count": 2,
+      "overall_explanation": "Database replication can be used to replicate DB1 from Account A to Account B, making the data available locally. Once replicated, standard COPY/INSERT operations can move data into TBL2. Alternatively, creating a data share from Account A and consuming it in Account B provides read access to the data, which can then be inserted into TBL2. Direct cross-account SQL queries are not supported without replication or sharing. For more detailed information, refer to the official Snowflake documentation on database replication and data sharing.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "intermediate",
+      "sub_topic": "3.1",
+      "sub_topic_name": "Data Loading"
+    },
+    {
+      "id": "architect_test1_q46",
+      "source": "architect_test1",
+      "question_num": 46,
+      "question": "Which of the following ingestion methods can be used to auto-ingest near real-time data by using the messaging services provided by a cloud provider?",
+      "options": [
+        {
+          "text": "Snowflake streams",
+          "explanation": ""
+        },
+        {
+          "text": "Spark",
+          "explanation": ""
+        },
+        {
+          "text": "Snowpipe",
+          "explanation": ""
+        },
+        {
+          "text": "Snowflake Connector for Kafka",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        2
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Snowpipe enables continuous data ingestion into Snowflake by automatically loading data as it becomes available in cloud storage. Snowpipe can be integrated with messaging services provided by cloud providers (SQS, Pub/Sub, etc) to trigger data loading events. About other options: Snowflake streams are used for change data capture within Snowflake but are not designed for direct integration with external messaging services. Kafka can be used for near real-time data ingestion, but different purposes and use cases. It ideal for scenarios where the data pipeline involves Kafka as the primary message broker or for Snowpipe Streaming. Spark can be used for stream processing, but it is not directly tied to cloud messaging services and would require additional components for integration. About Snowpipe, refer to the official Snowflake documentation. About auto loading data using cloud messaging, refer to the official Snowflake documentation. About Snowpipe and Amazon SQS, refer to the official Snowflake documentation. About Snowpipe and GCP Pub/Sub, refer to the official Snowflake documentation. About Snowpipe and Azure Eveng Grid, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "advanced",
+      "sub_topic": "3.1",
+      "sub_topic_name": "Data Loading"
+    },
+    {
+      "id": "architect_test1_q48",
+      "source": "architect_test1",
+      "question_num": 48,
+      "question": "An Architect needs to meet a company requirement to ingest files from the company’s AWS storage accounts into the company's Snowflake Google Cloud Platform (GCP) account. How can the ingestion of these files into the company's Snowflake account be initiated? (Choose two.)",
+      "options": [
+        {
+          "text": "Configure the client application to call the Snowpipe REST endpoint when new files have arrived in Amazon S3 Glacier storage.",
+          "explanation": ""
+        },
+        {
+          "text": "Configure the client application to call the Snowpipe REST endpoint when new files have arrived in Amazon S3 storage.",
+          "explanation": ""
+        },
+        {
+          "text": "Create an AWS Lambda function to call the Snowpipe REST endpoint when new files have arrived in Amazon S3 storage.",
+          "explanation": ""
+        },
+        {
+          "text": "Configure AWS Simple Notification Service (SNS) to notify Snowpipe when new files have arrived in Amazon S3 storage.",
+          "explanation": ""
+        },
+        {
+          "text": "Configure the client application to issue a COPY INTO command to Snowflake when new files have arrived in Amazon S3 Glacier storage.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1,
+        2
+      ],
+      "multi_select": true,
+      "multi_select_count": 2,
+      "overall_explanation": "A few comments: Snowpipe is Snowflake's continuous data ingestion service that can be triggered by calling its REST endpoint. This allows Snowflake to automatically load data as soon as it arrives in S3. Lambda can be triggered by an S3 event, then call the Snowpipe REST API to begin ingesting the new data. Lambda is often paired with SNS or directly with S3 event triggers. About other options: While S3 can trigger SNS, SNS alone cannot directly trigger Snowpipe. You would need an intermediary like SQS queues or AWS Lambda to invoke Snowpipe based on those SNS notifications. You cannot access data held in archival cloud storage classes that requires restoration before it can be retrieved. These archival storage classes include, for example, the Amazon S3 Glacier Flexible Retrieval or Glacier Deep Archive storage class, or Microsoft Azure Archive Storage. For more detailed information about Snowpipe and S3, refer to the official Snowflake documentation. For more detailed information about archival and external stages, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "intermediate",
+      "sub_topic": "3.1",
+      "sub_topic_name": "Data Loading"
+    },
+    {
+      "id": "architect_test1_q56",
+      "source": "architect_test1",
+      "question_num": 56,
+      "question": "How can the Snowpipe REST API be used to keep a log of data load history?",
+      "options": [
+        {
+          "text": "Call insertReport every 8 minutes for a 10-minute time range.",
+          "explanation": ""
+        },
+        {
+          "text": "Call loadHistoryScan every 10 minutes for a 15-minute time range.",
+          "explanation": ""
+        },
+        {
+          "text": "Call loadHistoryScan every minute for the maximum time range.",
+          "explanation": ""
+        },
+        {
+          "text": "Call insertReport every 20 minutes, fetching the last 10,000 entries.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "A few comments: The Snowpipe API offers REST endpoints specifically for retrieving load reports, providing flexibility in data management. The insertReport endpoint is useful for obtaining reports on files submitted via insertFiles, highlighting that it reflects the most recent ingestion into a table. However, it’s important to note that only part of large files may be reported. The loadHistoryScan endpoint fetches reports on ingested files and allows users to view historical data between two specific points in time, which is beneficial for tracking changes. The loadHistoryScan endpoint has a maximum return of 10,000 items, but it's helpful to know that multiple requests can be made to cover broader time ranges. The rate limiting on this endpoint is crucial to prevent excessive API calls, and it's wise to monitor usage to avoid hitting error code 429. To optimize performance, it’s recommended to focus on insertReport over loadHistoryScan and to specify narrow time ranges when using loadHistoryScan, such as querying the last 10 minutes rather than attempting broader intervals. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "advanced",
+      "sub_topic": "3.1",
+      "sub_topic_name": "Data Loading"
+    },
+    {
+      "id": "architect_test2_q8",
+      "source": "architect_test2",
+      "question_num": 8,
+      "question": "Which of the following external function rules are valid? (Choose three.)",
+      "options": [
+        {
+          "text": "External functions are not represented as database objects in Snowflake",
+          "explanation": ""
+        },
+        {
+          "text": "External functions can appear only in certain clauses of SQL statements",
+          "explanation": ""
+        },
+        {
+          "text": "External functions do not impact overall performance.",
+          "explanation": ""
+        },
+        {
+          "text": "The returned value of an external function can be a VARIANT.",
+          "explanation": ""
+        },
+        {
+          "text": "External functions can accept parameters",
+          "explanation": ""
+        },
+        {
+          "text": "External functions return a value",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        3,
+        4,
+        5
+      ],
+      "multi_select": true,
+      "multi_select_count": 3,
+      "overall_explanation": "A few comments: External functions are designed to accept parameters to perform operations based on input data. External functions in Snowflake can return complex data types like VARIANT, making them flexible for diverse use cases. By definition, external functions must return a value, as they are expected to provide output based on input and external processing. For more detailed information about external functions rules, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "advanced",
+      "sub_topic": "3.1",
+      "sub_topic_name": "Data Loading"
+    },
+    {
+      "id": "architect_test2_q14",
+      "source": "architect_test2",
+      "question_num": 14,
+      "question": "Which are the two limitations of the insertReport API of Snowpipe? (Choose two.)",
+      "options": [
+        {
+          "text": "Events are retained for a maximum of 24 hours.",
+          "explanation": ""
+        },
+        {
+          "text": "The 10,000 most recent events are retained.",
+          "explanation": ""
+        },
+        {
+          "text": "Events are retained for a maximum of 14 days.",
+          "explanation": ""
+        },
+        {
+          "text": "The 100,000 most recent events are retained.",
+          "explanation": ""
+        },
+        {
+          "text": "Events are retained for a maximum of 10 minutes.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1,
+        4
+      ],
+      "multi_select": true,
+      "multi_select_count": 2,
+      "overall_explanation": "For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "intermediate",
+      "sub_topic": "3.1",
+      "sub_topic_name": "Data Loading"
+    },
+    {
+      "id": "architect_test2_q23",
+      "source": "architect_test2",
+      "question_num": 23,
+      "question": "Which data transformations are supported for data loading using the COPY INTO command? (Choose three.). Window functions",
+      "options": [
+        {
+          "text": "Data type conversions",
+          "explanation": ""
+        },
+        {
+          "text": "Subqueries",
+          "explanation": ""
+        },
+        {
+          "text": "Joining to other staged data",
+          "explanation": ""
+        },
+        {
+          "text": "Loading a subset of the data",
+          "explanation": ""
+        },
+        {
+          "text": "Column re-ordering",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0,
+        3,
+        4
+      ],
+      "multi_select": true,
+      "multi_select_count": 3,
+      "overall_explanation": "Subqueries, window functions, and joining to other staged data are not supported directly in the COPY INTO command. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "advanced",
+      "sub_topic": "3.1",
+      "sub_topic_name": "Data Loading"
+    },
+    {
+      "id": "architect_test2_q27",
+      "source": "architect_test2",
+      "question_num": 27,
+      "question": "What does a successful response from the insertFiles Snowpipe endpoint mean?",
+      "options": [
+        {
+          "text": "The files have been validated for format and integrity.",
+          "explanation": ""
+        },
+        {
+          "text": "The files have been ingested.",
+          "explanation": ""
+        },
+        {
+          "text": "It Retrieves a report of files submitted via the insertFile endpoint.",
+          "explanation": ""
+        },
+        {
+          "text": "Snowflake has recorded the list of files to add to the table.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        3
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "A 200 HTTP response from this endpoint means that Snowpipe added the files to the queue of files to ingest, but it doesn’t necessarily mean the files have been ingested.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "beginner",
+      "sub_topic": "3.1",
+      "sub_topic_name": "Data Loading"
+    },
+    {
+      "id": "architect_test2_q28",
+      "source": "architect_test2",
+      "question_num": 28,
+      "question": "What considerations should be taken into account when deciding which method to use to load data into Snowflake? (Choose three.)",
+      "options": [
+        {
+          "text": "The ELT method is more scalable than other methods as it uses Snowflake's virtual warehouses",
+          "explanation": ""
+        },
+        {
+          "text": "The ELT method will not allow any type of data transformation on ingestion",
+          "explanation": ""
+        },
+        {
+          "text": "With the ELT method, transformation may take longer to execute than other methods as they depend on the size of the data",
+          "explanation": ""
+        },
+        {
+          "text": "The ETL method is typically faster than other methods, as it transforms data on ingestion",
+          "explanation": ""
+        },
+        {
+          "text": "With the ETL method, users may need to reload the incoming data if there is an error in the process",
+          "explanation": ""
+        },
+        {
+          "text": "The ELT method can separate the ingestion and transformation resources, making it the most flexible method",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0,
+        4,
+        5
+      ],
+      "multi_select": true,
+      "multi_select_count": 3,
+      "overall_explanation": "A few comments: The ETL method is typically faster than other methods, as it transforms data on ingestion -> If data transformation is performed during an ingestion it is slower. With the ETL method, users may need to reload the incoming data if there is an error in the process -> If any process fails during the transformation, as the information is not loaded in the DB, it will need to be reloaded The ELT method is more scalable than other methods as it uses Snowflake's virtual warehouses -> As all transformation occurs within Snowflake, we will take advantage of the benefits of virtual warehouses such as scalability among others. The ELT method can separate the ingestion and transformation resources, making it the most flexible method -> L & T are separated making each process more flexible, for example you can assign a different size warehouse for each type of process. The ELT method will not allow any type of data transformation on ingestion -> Some kind of transformations are allowed during ingestion With the ELT method, transformation may take longer to execute than other methods as they depend on the size of the data -> In both paradigms the transformation depends, among other things, on the data size. With the ELT method, this can be adjusted by assigning a warehouse of the appropriate size for the transformation. Transformations will take longer in the ETL method.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "advanced",
+      "sub_topic": "3.1",
+      "sub_topic_name": "Data Loading"
+    },
+    {
+      "id": "architect_test2_q30",
+      "source": "architect_test2",
+      "question_num": 30,
+      "question": "A company is storing large numbers of small JSON files (ranging from 1-4 bytes) that are received from IoT devices and sent to a cloud provider. 1,000 files are added to the cloud provider every hour. What is the MOST cost-effective way to bring this data into a Snowflake table?",
+      "options": [
+        {
+          "text": "A stream",
+          "explanation": ""
+        },
+        {
+          "text": "A pipe",
+          "explanation": ""
+        },
+        {
+          "text": "An external table",
+          "explanation": ""
+        },
+        {
+          "text": "A copy command at regular intervals",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "A pipe is a Snowflake feature that enables real-time ingestion of data from various sources, such as files, streams, or external tables. It is designed to handle high volume and high velocity data, making it ideal for use cases like the one described in the question. In this scenario, a pipe can be set up to automatically ingest the JSON files as they are added to the cloud provider. Pipes are highly scalable and cost-effective since they only incur charges when data is ingested, unlike other options like copying data at regular intervals or using external tables. Note that none of the scenarios would be efficient, since we are working with small files. The COPY INTO would be running the VWH constantly, as it is billed for at least one minute even if the files are already loaded and Snowpipe would bill us quite a lot of management overhead due to the large number of files. It will always be more efficient to work with a message queue manager and buffer size or to add a process prior to ingest that compacts the small files into files of a more optimal size plus Snowflake (around 100MB-250MB).",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "advanced",
+      "sub_topic": "3.1",
+      "sub_topic_name": "Data Loading"
+    },
+    {
+      "id": "architect_test2_q32",
+      "source": "architect_test2",
+      "question_num": 32,
+      "question": "Which are the two limitations of the insertFiles API of Snowpipe? (Choose two.)",
+      "options": [
+        {
+          "text": "The post can contain at most 10000 files.",
+          "explanation": ""
+        },
+        {
+          "text": "The post can contain at most 1000 files.",
+          "explanation": ""
+        },
+        {
+          "text": "The post can contain at most 5000 files.",
+          "explanation": ""
+        },
+        {
+          "text": "Each file path given must be <= 1024 bytes long when serialized as UTF-8.",
+          "explanation": ""
+        },
+        {
+          "text": "Each file path given must be <= 512 bytes long when serialized as UTF-8.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        2,
+        3
+      ],
+      "multi_select": true,
+      "multi_select_count": 2,
+      "overall_explanation": "For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "intermediate",
+      "sub_topic": "3.1",
+      "sub_topic_name": "Data Loading"
+    },
+    {
+      "id": "architect_test2_q44",
+      "source": "architect_test2",
+      "question_num": 44,
+      "question": "The following diagram shows the process flow for Snowpipe auto-ingest with Amazon SNS with the following three steps:\n\nStep 1: Data files are loaded in a stage\n\nStep 2: An Amazon S3 event notification published by SNS informs Snowpipe - by way of an SQS queue - that files are ready to load. Snowpipe copies the files into a queue.\n\nStep 3: A Snowflake-provided virtual warehouse loads data from the queued files into the target table based on parameters defined in the specified pipe\n\nIf an AWS Administrator accidentally deletes the SQS subscription to the SNS topic in Step 2, what will happen to the pipe which references the topic to receive event messages from Amazon S3?",
+      "options": [
+        {
+          "text": "The pipe will continue to receive the messages as Snowflake will automatically restore the subscription to the same SNS topic and will recreate the pipe by specifying the same SNS topic name in the pipe definition.",
+          "explanation": ""
+        },
+        {
+          "text": "The pipe will no longer be able to receive the messages and the user must wait for 24 hours from the time when the SNS topic subscription was deleted. Pipe recreation is not required as the pipe will reuse the same subscription to the existing SNS topic after 24 hours.",
+          "explanation": ""
+        },
+        {
+          "text": "The pipe will no longer be able to receive the messages. To restore the system immediately, the user needs to manually create a new SNS topic with a different name and then recreate the pipe by specifying the new SNS topic name in the pipe definition.",
+          "explanation": ""
+        },
+        {
+          "text": "The pipe will continue to receive the messages as Snowflake will automatically restore the subscription by creating a new SNS topic and will recreate the pipe by specifying the new SNS topic name in the pipe definition.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        2
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "The process flow for Snowpipe auto-ingest with Amazon SNS follows three steps: (1) Data files are loaded into the S3 bucket. (2) S3 sends an event notification to an SNS topic. (3) SNS forwards the notification to a Snowflake SQS queue, which triggers Snowpipe to load the data. The key point is that S3 event notifications go to SNS first (not directly to SQS), and SNS then relays to Snowflake's SQS queue. This architecture allows multiple subscribers to receive the same S3 event notifications. The aws_sns_topic parameter in the CREATE PIPE statement configures this integration.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "intermediate",
+      "sub_topic": "3.1",
+      "sub_topic_name": "Data Loading"
+    },
+    {
+      "id": "architect_test2_q51",
+      "source": "architect_test2",
+      "question_num": 51,
+      "question": "When is the parameter INTEGRATION from Snowpipe required?",
+      "options": [
+        {
+          "text": "Only when configuring AUTO_INGEST for Google Cloud Storage or Microsoft Azure stages.",
+          "explanation": ""
+        },
+        {
+          "text": "Only when configuring AUTO_INGEST for Amazon S3 stages using SNS.",
+          "explanation": ""
+        },
+        {
+          "text": "Only when configuring ERROR_INTEGRATION for Amazon S3 stages using SNS.",
+          "explanation": ""
+        },
+        {
+          "text": "Only when configuring ERROR_INTEGRATION for Google Cloud Storage or Microsoft Azure stages.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "This parameter specifies the existing notification integration used to access the storage queue and is necessary for Google Cloud Storage and Azure Stages. For AWS, we will use the parameter AWS_SNS_TOPIC.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "intermediate",
+      "sub_topic": "3.1",
+      "sub_topic_name": "Data Loading"
+    },
+    {
+      "id": "architect_test2_q62",
+      "source": "architect_test2",
+      "question_num": 62,
+      "question": "What is the best practice to follow when calling the Snowpipe loadHistoryScan endpoint?",
+      "options": [
+        {
+          "text": "Reading the last 10 minutes of history every 8 minutes",
+          "explanation": ""
+        },
+        {
+          "text": "Read the last seven days of history every hour",
+          "explanation": ""
+        },
+        {
+          "text": "Reading the last 30 minutes of history every 5 minutes",
+          "explanation": ""
+        },
+        {
+          "text": "Read the last 24 hours of history every minute",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "This endpoint is rate limited to avoid excessive calls. To help prevent exceeding the rate limit (error code 429), Snowflake recommends relying more heavily on insertReport than loadHistoryScan. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "advanced",
+      "sub_topic": "3.1",
+      "sub_topic_name": "Data Loading"
+    },
+    {
+      "id": "architect_test3_q8",
+      "source": "architect_test3",
+      "question_num": 8,
+      "question": "What Snowflake object executes code outside Snowflake, known as remote service?",
+      "options": [
+        {
+          "text": "External Function Integration",
+          "explanation": ""
+        },
+        {
+          "text": "External Script",
+          "explanation": ""
+        },
+        {
+          "text": "External Job",
+          "explanation": ""
+        },
+        {
+          "text": "External Function",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        3
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "For more detailed information, refer to the Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "intermediate",
+      "sub_topic": "3.1",
+      "sub_topic_name": "Data Loading"
+    },
+    {
+      "id": "architect_test3_q24",
+      "source": "architect_test3",
+      "question_num": 24,
+      "question": "After how many days does the load activity of the COPY INTO command and Snowpipe of Information Schema expire?",
+      "options": [
+        {
+          "text": "64 days for both.",
+          "explanation": ""
+        },
+        {
+          "text": "64 days for the COPY INTO command, 14 days for Snowpipe.",
+          "explanation": ""
+        },
+        {
+          "text": "14 days for both.",
+          "explanation": ""
+        },
+        {
+          "text": "14 days for the COPY INTO command, 64 days for Snowpipe.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        2
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "The COPY_HISTORY command retains the loading history for both the COPY into command and Snowpipe for the last 14 days. You can execute it by running: select * from table(information_schema.copy_history( and check the result in your Snowflake account. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "intermediate",
+      "sub_topic": "3.1",
+      "sub_topic_name": "Data Loading"
+    },
+    {
+      "id": "architect_test3_q41",
+      "source": "architect_test3",
+      "question_num": 41,
+      "question": "Files arrive in an external stage every 10 seconds from a proprietary system. The files range in size from 500 K to 3 MB. The data must be accessible by dashboards as soon as it arrives. How can a Snowflake Architect meet this requirement with the LEAST amount of coding? (Choose two.)",
+      "options": [
+        {
+          "text": "Use the COPY INTO command.",
+          "explanation": ""
+        },
+        {
+          "text": "Use a combination of a task and a stream.",
+          "explanation": ""
+        },
+        {
+          "text": "Use a materialized view on an external table.",
+          "explanation": ""
+        },
+        {
+          "text": "Use Snowpipe with auto-ingest.",
+          "explanation": ""
+        },
+        {
+          "text": "Use a COPY command with a task.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        3,
+        4
+      ],
+      "multi_select": true,
+      "multi_select_count": 2,
+      "overall_explanation": "A few comments: To meet the requirement of accessing data as soon as it arrives in the external stage with the least amount of coding, Snowpipe with auto-ingest and COPY command with a task can be used. Snowpipe with auto-ingest automatically ingests data as soon as it arrives in the external stage, while COPY command with a task can be used to automate the process of copying data from external stage to internal tables. Option External table + Materialized view would require even more coding and would not be as near real-time. The other options do not meet the requirements of ingestion and automation.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "advanced",
+      "sub_topic": "3.1",
+      "sub_topic_name": "Data Loading"
+    },
+    {
+      "id": "architect_test3_q48",
+      "source": "architect_test3",
+      "question_num": 48,
+      "question": "What is the function of Resource Monitors regarding data pipelines?",
+      "options": [
+        {
+          "text": "Make data not being replicated twice in the same pipeline",
+          "explanation": ""
+        },
+        {
+          "text": "It helps you monitor and control the costs of your pipelines",
+          "explanation": ""
+        },
+        {
+          "text": "Limit the number of concurrent queries in data pipelines",
+          "explanation": ""
+        },
+        {
+          "text": "It performs backups for your pipelines every 5 minutes",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "A Resource Monitor can, among other things, notify the user, notify and suspend the warehouse, etc. It will allow us to establish limits on our account. For more detailed information, refer to the Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "beginner",
+      "sub_topic": "3.1",
+      "sub_topic_name": "Data Loading"
+    },
+    {
+      "id": "architect_test3_q49",
+      "source": "architect_test3",
+      "question_num": 49,
+      "question": "What two requirements are necessary for the remote service to be called by the Snowflake external function? (Choose two.)",
+      "options": [
+        {
+          "text": "Use only HTTP endpoints without encryption.",
+          "explanation": ""
+        },
+        {
+          "text": "Expose an HTTPS endpoint.",
+          "explanation": ""
+        },
+        {
+          "text": "Be part of the AWS suite exclusively, as Azure and GCP are not supported yet.",
+          "explanation": ""
+        },
+        {
+          "text": "Accept JSON inputs and return JSON outputs.",
+          "explanation": ""
+        },
+        {
+          "text": "The remote service must return XML outputs.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1,
+        3
+      ],
+      "multi_select": true,
+      "multi_select_count": 2,
+      "overall_explanation": "For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "intermediate",
+      "sub_topic": "3.1",
+      "sub_topic_name": "Data Loading"
+    },
+    {
+      "id": "architect_test3_q52",
+      "source": "architect_test3",
+      "question_num": 52,
+      "question": "How many files can the COPY INTO operation load as the maximum when providing a discrete list of files?",
+      "options": [
+        {
+          "text": "100",
+          "explanation": ""
+        },
+        {
+          "text": "1000",
+          "explanation": ""
+        },
+        {
+          "text": "There is no limit.",
+          "explanation": ""
+        },
+        {
+          "text": "10000",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "intermediate",
+      "sub_topic": "3.1",
+      "sub_topic_name": "Data Loading"
+    },
+    {
+      "id": "architect_test3_q57",
+      "source": "architect_test3",
+      "question_num": 57,
+      "question": "When loading data into a table that captures the load time in a column with a default value of either CURRENT_TIME() or CURRENT_TIMESTAMP() what will occur?",
+      "options": [
+        {
+          "text": "Any rows loaded using a specific COPY statement will have varying timestamps based on when the rows were read from the source.",
+          "explanation": ""
+        },
+        {
+          "text": "Any rows loaded using a specific COPY statement will have varying timestamps based on when the rows were created in the source.",
+          "explanation": ""
+        },
+        {
+          "text": "All rows loaded using a specific COPY statement will have varying timestamps based on when the rows were inserted.",
+          "explanation": ""
+        },
+        {
+          "text": "All rows loaded using a specific COPY statement will have the same timestamp value.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        3
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "When loading data into a table that captures the load time in a column with a default value of either CURRENT_TIME() or CURRENT_TIMESTAMP(), all rows loaded using a specific COPY statement have the same timestamp value. It stores the time that the COPY statement began, not when the record is inserted, and it applies both to the CURRENT_TIME() and the CURRENT_TIMESTAMP() functions.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "intermediate",
+      "sub_topic": "3.1",
+      "sub_topic_name": "Data Loading"
+    },
+    {
+      "id": "architect_test3_q60",
+      "source": "architect_test3",
+      "question_num": 60,
+      "question": "Why does Snowflake recommend using the insertReport endpoint instead of the loadHistoryScan when using Snowpipe?",
+      "options": [
+        {
+          "text": "Because an excessive usage of the loadHistoryScan tends to lead to API throttling (and it returns the error code 429).",
+          "explanation": ""
+        },
+        {
+          "text": "Because the loadHistoryScan endpoint is deprecated, it will no longer be updated by Snowflake.",
+          "explanation": ""
+        },
+        {
+          "text": "Because the reports give more information",
+          "explanation": ""
+        },
+        {
+          "text": "Because the loadHistoryScan is faster and more efficient.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Reading the last 24 hours of history every minute will result in 429 errors indicating a rate limit has been reached. To help avoid it, Snowflake recommends relying more heavily on insertReport than loadHistoryScan. For more detailed information, refer to the Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "advanced",
+      "sub_topic": "3.1",
+      "sub_topic_name": "Data Loading"
+    },
+    {
+      "id": "architect_test3_q64",
+      "source": "architect_test3",
+      "question_num": 64,
+      "question": "A media company needs a data pipeline that will ingest customer review data into a Snowflake table, and apply some transformations. The company also needs to use Amazon Comprehend to do sentiment analysis and make the de-identified final data set available publicly for advertising companies who use different cloud providers in different regions. The data pipeline needs to run continuously and efficiently as new records arrive in the object storage leveraging event notifications. Also, the operational complexity, maintenance of the infrastructure, including platform upgrades and security, and the development effort should be minimal. Which design will meet these requirements?",
+      "options": [
+        {
+          "text": "Ingest the data using Snowpipe and use streams and tasks to orchestrate transformations. Export the data into Amazon S3 to do model inference with Amazon Comprehend and ingest the data back into a Snowflake table. Then create a listing in the Snowflake Marketplace to make the data available to other companies.",
+          "explanation": ""
+        },
+        {
+          "text": "Ingest the data using COPY INTO and use streams and tasks to orchestrate transformations. Export the data into Amazon S3 to do model inference with Amazon Comprehend and ingest the data back into a Snowflake table. Then create a listing in the Snowflake Marketplace to make the data available to other companies.",
+          "explanation": ""
+        },
+        {
+          "text": "Ingest the data into Snowflake using Amazon EMR and PySpark using the Snowflake Spark connector. Apply transformations using another Spark job. Develop a python program to do model inference by leveraging the Amazon Comprehend text analysis API. Then write the results to a Snowflake table and create a listing in the Snowflake Marketplace to make the data available to other companies.",
+          "explanation": ""
+        },
+        {
+          "text": "Ingest the data using Snowpipe and use streams and tasks to orchestrate transformations. Create an external function to do model inference with Amazon Comprehend and write the final records to a Snowflake table. Then create a listing in the Snowflake Marketplace to make the data available to other companies.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        3
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "For more detailed information, refer to the documentation.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "intermediate",
+      "sub_topic": "3.1",
+      "sub_topic_name": "Data Loading"
+    },
+    {
+      "id": "architect_test4_q3",
+      "source": "architect_test4",
+      "question_num": 3,
+      "question": "An Architect uses COPY INTO with the ON_ERROR=SKIP_FILE option to bulk load CSV files into a table called TABLEA, using its table stage. One file named file5.csv fails to load. The Architect fixes the file and re-loads it to the stage with the exact same file name it had previously. Which commands should the Architect use to load only file5.csv file from the stage? (Choose two.)",
+      "options": [
+        {
+          "text": "COPY INTO tablea FROM @%tablea FORCE = TRUE;",
+          "explanation": ""
+        },
+        {
+          "text": "COPY INTO tablea FROM @%tablea;",
+          "explanation": ""
+        },
+        {
+          "text": "COPY INTO tablea FROM @%tablea NEW_FILES_ONLY = TRUE;",
+          "explanation": ""
+        },
+        {
+          "text": "COPY INTO tablea FROM @%tablea MERGE = TRUE;",
+          "explanation": ""
+        },
+        {
+          "text": "COPY INTO tablea FROM @%tablea FILES = ('file5.csv');",
+          "explanation": ""
+        },
+        {
+          "text": "COPY INTO tablea FROM @%tablea RETURN_FAILED_ONLY = TRUE;",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1,
+        4
+      ],
+      "multi_select": true,
+      "multi_select_count": 2,
+      "overall_explanation": "We want to load the file so we have to point it explicitly - this is FILES = ('file5.csv'); option Or load all unloaded files (with file5.csv) FROM @%tablea;. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "advanced",
+      "sub_topic": "3.1",
+      "sub_topic_name": "Data Loading"
+    },
+    {
+      "id": "architect_test4_q10",
+      "source": "architect_test4",
+      "question_num": 10,
+      "question": "What does a response error code of 429 from the insertFiles, insertReport, or loadHistoryScan API of Snowpipe mean?",
+      "options": [
+        {
+          "text": "Failure. Request rate limit exceeded",
+          "explanation": ""
+        },
+        {
+          "text": "Failure. Invalid request due to an invalid format or limit exceeded",
+          "explanation": ""
+        },
+        {
+          "text": "Failure. PipeName not recognized",
+          "explanation": ""
+        },
+        {
+          "text": "Failure. Internal server error",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "A response error code of 429 from the insertFiles, insertReport, or loadHistoryScan API of Snowpipe indicates that the request rate limit has been exceeded. This means that too many requests have been sent in a short period, and the system is unable to process them at that time. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "advanced",
+      "sub_topic": "3.1",
+      "sub_topic_name": "Data Loading"
+    },
+    {
+      "id": "architect_test4_q50",
+      "source": "architect_test4",
+      "question_num": 50,
+      "question": "What are the supported values for the VALIDATION_MODE parameter while using the COPY INTO <TABLE> command? (Choose three.)",
+      "options": [
+        {
+          "text": "EXCLUDE_ERRORS",
+          "explanation": ""
+        },
+        {
+          "text": "RETURN_ERRORS",
+          "explanation": ""
+        },
+        {
+          "text": "IGNORE_ERRORS",
+          "explanation": ""
+        },
+        {
+          "text": "RETURN_LAST_ERROR",
+          "explanation": ""
+        },
+        {
+          "text": "RETURN_ALL_ERRORS",
+          "explanation": ""
+        },
+        {
+          "text": "RETURN_<N>_ROWS",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1,
+        4,
+        5
+      ],
+      "multi_select": true,
+      "multi_select_count": 3,
+      "overall_explanation": "The VALIDATION_MODE parameter instructs the COPY command to validate data files rather than loading them into the specified table. The three modes accepted for this parameter include RETURN_ALL_ERRORS, RETURN_ERRORS, and RETURN_<N>_ROWS. When using VALIDATION_MODE, transformations cannot be applied to the data, as the focus is solely on validating the integrity and correctness of the files. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "advanced",
+      "sub_topic": "3.1",
+      "sub_topic_name": "Data Loading"
+    },
+    {
+      "id": "architect_test4_q53",
+      "source": "architect_test4",
+      "question_num": 53,
+      "question": "What is the purpose of external functions in Snowflake?",
+      "options": [
+        {
+          "text": "Execute SQL queries directly against external databases.",
+          "explanation": ""
+        },
+        {
+          "text": "Connect to a repository of functions outside Snowflake.",
+          "explanation": ""
+        },
+        {
+          "text": "Download executable code maintained outside Snowflake.",
+          "explanation": ""
+        },
+        {
+          "text": "Call executable code developed, maintained, stored, and executed outside Snowflake.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        3
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "In external functions, the code is executed outside Snowflake, also known as Remote Service, which acts like a function, and the information sent is usually relayed through a proxy service. Snowflake stores security-related external function information in an API integration. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "beginner",
+      "sub_topic": "3.1",
+      "sub_topic_name": "Data Loading"
+    },
+    {
+      "id": "architect_test5_q2",
+      "source": "architect_test5",
+      "question_num": 2,
+      "question": "A Snowflake Architect is working with Data Modelers and Table Designers to draft an ELT framework specifically for data loading using Snowpipe. The Table Designers will add a timestamp column that inserts the current timestamp as the default value as records are loaded into a table. The intent is to capture the time when each record gets loaded into the table; however, when tested, the timestamps are earlier than the load_time column values returned by the copy_history function or the COPY_HISTORY view (Account Usage). Why is this occurring?",
+      "options": [
+        {
+          "text": "The timestamps are different because there are parameter setup mismatches. The parameters need to be realigned.",
+          "explanation": ""
+        },
+        {
+          "text": "The CURRENT_TIME is evaluated when the load operation is compiled in cloud services rather than when the record is inserted into the table.",
+          "explanation": ""
+        },
+        {
+          "text": "The Table Designer team has not used the localtimestamp or systimestamp functions in the Snowflake copy statement.",
+          "explanation": ""
+        },
+        {
+          "text": "The Snowflake timezone parameter is different from the cloud provider's parameters causing the mismatch.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "When a CURRENT_TIMESTAMP or CURRENT_TIME function is used as a default value in a table, it is evaluated at the start of the load operation in the cloud service, not at the exact moment each record is inserted into the table. This means that the timestamp might reflect the start of the load operation rather than the individual insertion times for each record. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "intermediate",
+      "sub_topic": "3.1",
+      "sub_topic_name": "Data Loading"
+    },
+    {
+      "id": "architect_test5_q24",
+      "source": "architect_test5",
+      "question_num": 24,
+      "question": "Which functions does the Data Build Tool (dbt) facilitate? (Select TWO)",
+      "options": [
+        {
+          "text": "Data testing",
+          "explanation": ""
+        },
+        {
+          "text": "Data transformation",
+          "explanation": ""
+        },
+        {
+          "text": "Data replication",
+          "explanation": ""
+        },
+        {
+          "text": "Data visualization",
+          "explanation": ""
+        },
+        {
+          "text": "Data loading",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0,
+        1
+      ],
+      "multi_select": true,
+      "multi_select_count": 2,
+      "overall_explanation": "This question is not directly related to Snowflake, but is about a relevant tool in the market with great synergy with Snowflake (besides being partners). As architects, it is common that we know how to solve scenarios that go beyond Snowflake and this question is a clear example of that. A few comments: dbt's functionality revolves around transforming data in your data warehouse. It allows us to write SQL-based transformation code and manage dependencies between transformations. dbt provides built-in testing capabilities. We can define tests to validate the quality and integrity of your transformed data. These tests can be run as part of your dbt pipeline. dbt itself does not handle the initial loading of data into your data warehouse. It only focuses on the T of the ELT paradigm. For more detailed information, refer to the official dbt documentation.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "intermediate",
+      "sub_topic": "3.1",
+      "sub_topic_name": "Data Loading"
+    },
+    {
+      "id": "architect_test5_q29",
+      "source": "architect_test5",
+      "question_num": 29,
+      "question": "What Snowflake expenses may be incurred when using external functions? (Select TWO). Cloud services compute",
+      "options": [
+        {
+          "text": "Data transfer",
+          "explanation": ""
+        },
+        {
+          "text": "Data storage",
+          "explanation": ""
+        },
+        {
+          "text": "External function serverless compute",
+          "explanation": ""
+        },
+        {
+          "text": "Snowflake warehouse compute",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0,
+        3
+      ],
+      "multi_select": true,
+      "multi_select_count": 2,
+      "overall_explanation": "For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "intermediate",
+      "sub_topic": "3.1",
+      "sub_topic_name": "Data Loading"
+    },
+    {
+      "id": "architect_new_q48",
+      "source": "architect_new",
+      "question_num": 48,
+      "question": "What does the TARGET_LAG parameter control in a dynamic table?",
+      "options": [
+        {
+          "text": "The maximum acceptable staleness of the data in the dynamic table.",
+          "explanation": ""
+        },
+        {
+          "text": "The maximum execution time before the refresh is cancelled.",
+          "explanation": ""
+        },
+        {
+          "text": "The network latency threshold for cross-region queries.",
+          "explanation": ""
+        },
+        {
+          "text": "The time delay before the dynamic table is created.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "TARGET_LAG defines the maximum acceptable freshness lag. For example, TARGET_LAG = '10 minutes' means Snowflake ensures the dynamic table is never more than 10 minutes behind its source data. Snowflake automatically schedules incremental refreshes to meet this target.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "intermediate",
+      "sub_topic": "3.1",
+      "sub_topic_name": "Data Loading"
+    }
+  ]
+}

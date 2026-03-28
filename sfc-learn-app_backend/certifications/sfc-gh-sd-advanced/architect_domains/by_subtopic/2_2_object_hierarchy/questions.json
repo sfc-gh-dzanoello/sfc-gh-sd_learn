@@ -1,0 +1,670 @@
+{
+  "sub_topic": "2.2",
+  "sub_topic_name": "Object Hierarchy",
+  "domain": "Domain 2.0: Snowflake Architecture",
+  "total_questions": 17,
+  "difficulty_distribution": {
+    "advanced": 3,
+    "beginner": 2,
+    "intermediate": 12
+  },
+  "exam_traps": [
+    {
+      "trap": "INFORMATION_SCHEMA vs ACCOUNT_USAGE: latency and scope differ",
+      "why_confusing": "INFORMATION_SCHEMA is real-time but scoped to current database. ACCOUNT_USAGE has 45-minute latency but covers the entire account and includes dropped objects. The exam tests which one to use for auditing vs real-time checks.",
+      "correct_answer": "INFORMATION_SCHEMA = real-time, current DB. ACCOUNT_USAGE = 45min lag, all DBs + dropped objects.",
+      "doc_reference": "https://docs.snowflake.com/en/sql-reference/info-schema"
+    },
+    {
+      "trap": "Dropping a database drops ALL child objects (schemas, tables, stages, pipes, etc.)",
+      "why_confusing": "Some questions test whether you know that dropping a database is cascading. Everything inside is dropped. UNDROP DATABASE restores it all, but only within the Time Travel retention period.",
+      "correct_answer": "DROP DATABASE = cascading drop of all children. UNDROP restores all.",
+      "doc_reference": "https://docs.snowflake.com/en/sql-reference/sql/drop-database"
+    },
+    {
+      "trap": "API Integration is an ACCOUNT-level object, not database-level",
+      "why_confusing": "Unlike tables or stages, API integrations exist at the account level. External functions reference them but the integration itself is not inside a database. Only ACCOUNTADMIN can create them by default.",
+      "correct_answer": "CREATE API INTEGRATION is an account-level DDL. Requires ACCOUNTADMIN.",
+      "doc_reference": "https://docs.snowflake.com/en/sql-reference/sql/create-api-integration"
+    }
+  ],
+  "questions": [
+    {
+      "id": "architect_test1_q12",
+      "source": "architect_test1",
+      "question_num": 12,
+      "question": "A company's Architect needs to find an efficient way to get data from an external partner, who is also a Snowflake user. The current solution is based on daily JSON extracts that are placed on an FTP server and uploaded to Snowflake manually. The files are changed several times each month, and the ingestion process needs to be adapted to accommodate these changes. What would be the MOST efficient solution?",
+      "options": [
+        {
+          "text": "Keep the current structure but request that the partner stop changing files, instead only appending new files.",
+          "explanation": ""
+        },
+        {
+          "text": "Ask the partner to set up a Snowflake reader account and use that account to get the data for ingestion.",
+          "explanation": ""
+        },
+        {
+          "text": "Ask the partner to use the data lake export feature and place the data into cloud storage where Snowflake can natively ingest it (schema-on-read).",
+          "explanation": ""
+        },
+        {
+          "text": "Ask the partner to create a share and add the company's account.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        3
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Key comments: External partner is also a Snowflake user. JSONs are already uploaded to Snowflake manually. This is a typical use case for Snowflake Secure Data Sharing. Data Sharing allows one Snowflake account to securely share data with another Snowflake account without needing to copy or move the data. It provides real-time access to the shared data and eliminates the need for manual file transfers and ingestion processes About other options: While placing data into cloud storage for schema-on-read ingestion is possible, it still involves data movement and does not provide the same level of efficiency and real-time access as secure data sharing. Asking the partner to stop changing files is impractical and does not address the need for an efficient and automated solution. Since both users have Snowflake accounts, creating a reader account makes no sense.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "intermediate",
+      "sub_topic": "2.2",
+      "sub_topic_name": "Object Hierarchy"
+    },
+    {
+      "id": "architect_test1_q19",
+      "source": "architect_test1",
+      "question_num": 19,
+      "question": "A company has a Snowflake environment running in AWS us-west-2 (Oregon). The company needs to share data privately with a customer who is running their Snowflake environment in Azure East US 2 (Virginia).\n\nWhat is the recommended sequence of operations that must be followed to meet this requirement?\n\n1. Create a reader account in Azure East US 2 (Virginia)\n\n2. Create a share and add the database privileges to the share\n\n3. Add the reader account to the share\n\n4. Share the reader account's URL and credentials with the customer\n\n1. Ask the customer to create a new Snowflake account in Azure EAST US 2 (Virginia)\n\n2. Create a share and add the database privileges to the share\n\n3. Alter the share and add the customer's Snowflake account to the share\n\n1. Create a share and add the database privileges to the share\n\n2. Create a new listing on the Snowflake Marketplace\n\n3. Alter the listing and add the share\n\n4. Instruct the customer to subscribe to the listing on the Snowflake Marketplace",
+      "options": [
+        {
+          "text": "1. Create a new Snowflake account in Azure East US 2 (Virginia)",
+          "explanation": ""
+        },
+        {
+          "text": "2. Set up replication between AWS us-west-2 (Oregon) and Azure East US 2 (Virginia) for the database objects to be shared",
+          "explanation": ""
+        },
+        {
+          "text": "3. Create a share and add the database privileges to the share",
+          "explanation": ""
+        },
+        {
+          "text": "4. Alter the share and add the customer's Snowflake account to the share",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Use replication to allow data providers to securely share data with data consumers across different regions and cloud platforms. This sequence ensures that data can be privately shared across cloud platforms by first replicating the required database objects to the new Snowflake account in the Azure region and then configuring the appropriate shares for the customer.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "beginner",
+      "sub_topic": "2.2",
+      "sub_topic_name": "Object Hierarchy"
+    },
+    {
+      "id": "architect_test1_q50",
+      "source": "architect_test1",
+      "question_num": 50,
+      "question": "The data share exists between a data provider account and a data consumer account. Five tables from the provider account are being shared with the consumer account. The consumer role has been granted the imported privileges privilege.\n\nWhat will happen to the consumer account if a new table (table_6) is added to the provider schema?\n\nThe consumer role will automatically see the new table and no additional grants are needed.",
+      "options": [
+        {
+          "text": "The consumer role will see the table only after this grant is given on the provider side:",
+          "explanation": ""
+        },
+        {
+          "text": "use role accountadmin;\ngrant select on table EDW.ACCOUNTING.table_6 to share PSHARE_EDW_4TEST;\nThe consumer role will see the table only after this grant is given on the consumer side:",
+          "explanation": ""
+        },
+        {
+          "text": "grant imported privileges on database PSHARE_EDW_4TEST_DB to DEV_ROLE;",
+          "explanation": ""
+        },
+        {
+          "text": "The consumer role will see the table only after this grant is given on the provider side:",
+          "explanation": ""
+        },
+        {
+          "text": "use role accountadmin;\ngrant usage on database EDW to share PSHARE_EDW_4TEST ;\ngrant usage on schema EDW.ACCOUNTING to share PSHARE_EDW_4TEST ;\ngrant select on table EDW.ACCOUNTING.Table_6 to database PSHARE_EDW_4TEST_DB ;",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "About other options:\n\nSnowflake does not automatically grant privileges for new tables added to a shared schema. The provider must manually grant access to the new table.\n\nOne of the options refers to the consumer granting imported privileges, but the initial step requires the provider to grant access to the new table.\n\nUSAGE on database and schema are unnecessary grants since five tables from the provider account are being shared and these privileges are already granted. Only the SELECT privilege on the new table is needed. In addition, to add grants to a shared database you have to specify in the 'TO SHARE' statement",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "intermediate",
+      "sub_topic": "2.2",
+      "sub_topic_name": "Object Hierarchy"
+    },
+    {
+      "id": "architect_test1_q51",
+      "source": "architect_test1",
+      "question_num": 51,
+      "question": "An Architect clones a database and all of its objects, including tasks. After the cloning, the tasks stop running. Why is this occurring?",
+      "options": [
+        {
+          "text": "Cloned tasks are suspended by default and must be manually resumed.",
+          "explanation": ""
+        },
+        {
+          "text": "The Architect has insufficient privileges to alter tasks on the cloned database.",
+          "explanation": ""
+        },
+        {
+          "text": "The objects that the tasks reference are not fully qualified.",
+          "explanation": ""
+        },
+        {
+          "text": "Tasks cannot be cloned.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "When a database or schema containing tasks is cloned, the tasks in the clone are suspended by default. These tasks can be resumed individually by using the ALTER TASK … RESUME command. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "intermediate",
+      "sub_topic": "2.2",
+      "sub_topic_name": "Object Hierarchy"
+    },
+    {
+      "id": "architect_test1_q52",
+      "source": "architect_test1",
+      "question_num": 52,
+      "question": "Based on the Snowflake object hierarchy, what securable objects belong directly to a Snowflake account? ( three.)",
+      "options": [
+        {
+          "text": "Schema",
+          "explanation": ""
+        },
+        {
+          "text": "Stage",
+          "explanation": ""
+        },
+        {
+          "text": "Warehouse",
+          "explanation": ""
+        },
+        {
+          "text": "Role",
+          "explanation": ""
+        },
+        {
+          "text": "Table",
+          "explanation": ""
+        },
+        {
+          "text": "Database",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        2,
+        3,
+        5
+      ],
+      "multi_select": true,
+      "multi_select_count": 3,
+      "overall_explanation": "This question has a difficulty more typical of Core certification than Advanced, but there are always some easy ones in the exam, although few. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "advanced",
+      "sub_topic": "2.2",
+      "sub_topic_name": "Object Hierarchy"
+    },
+    {
+      "id": "architect_test2_q15",
+      "source": "architect_test2",
+      "question_num": 15,
+      "question": "What is a valid object hierarchy when building a Snowflake environment?",
+      "options": [
+        {
+          "text": "Account --> Schema > Table --> Stage",
+          "explanation": ""
+        },
+        {
+          "text": "Organization --> Account --> Stage --> Table --> View",
+          "explanation": ""
+        },
+        {
+          "text": "Organization --> Account --> Database --> Schema --> Stage",
+          "explanation": ""
+        },
+        {
+          "text": "Account --> Database --> Schema --> Warehouse",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        2
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "beginner",
+      "sub_topic": "2.2",
+      "sub_topic_name": "Object Hierarchy"
+    },
+    {
+      "id": "architect_test2_q22",
+      "source": "architect_test2",
+      "question_num": 22,
+      "question": "A DevOps team has a requirement for recovery of staging tables used in a complex set of data pipelines. The staging tables are all located in the same staging schema. One of the requirements is to have online recovery of data on a rolling 7-day basis. After setting up the DATA_RETENTION_TIME_IN_DAYS at the database level, certain tables remain unrecoverable past 1 day. What would cause this to occur? (Choose two.)",
+      "options": [
+        {
+          "text": "The DATA_RETENTION_TIME_IN_DAYS for the staging schema has been set to 1 day.",
+          "explanation": ""
+        },
+        {
+          "text": "The DevOps role should be granted ALLOW_RECOVERY privilege on the staging schema.",
+          "explanation": ""
+        },
+        {
+          "text": "The tables exceed the 1 TB limit for data recovery.",
+          "explanation": ""
+        },
+        {
+          "text": "The staging tables are of the TRANSIENT type.",
+          "explanation": ""
+        },
+        {
+          "text": "The staging schema has not been setup for MANAGED ACCESS.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0,
+        3
+      ],
+      "multi_select": true,
+      "multi_select_count": 2,
+      "overall_explanation": "A few comments: If the retention period at the schema level is set to 1 day, it will override the database-level setting, causing data to be unrecoverable past 1 day. Transient tables do not support data retention, which means they cannot be recovered beyond the specified period, even with retention settings in place. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "intermediate",
+      "sub_topic": "2.2",
+      "sub_topic_name": "Object Hierarchy"
+    },
+    {
+      "id": "architect_test2_q50",
+      "source": "architect_test2",
+      "question_num": 50,
+      "question": "There are two databases in an account, named fin_db and hr_db which contain payroll and employee data, respectively. Accountants and Analysts in the company require different permissions on the objects in these databases to perform their jobs. Accountants need read-write access to fin_db but only require read-only access to hr_db because the database is maintained by human resources personnel. An Architect needs to create a read-only role for certain employees working in the human resources department. Which permission sets must be granted to this role?",
+      "options": [
+        {
+          "text": "USAGE on database hr_db, USAGE on all schemas in database hr_db, SELECT on all tables in database hr_db.",
+          "explanation": ""
+        },
+        {
+          "text": "USAGE on database hr_db, USAGE on all schemas in database hr_db, REFERENCES on all tables in database hr_db.",
+          "explanation": ""
+        },
+        {
+          "text": "USAGE on database hr_db, SELECT on all schemas in database hr_db, SELECT on all tables in database hr_db.",
+          "explanation": ""
+        },
+        {
+          "text": "MODIFY on database hr_db, USAGE on all schemas in database hr_db, USAGE on all tables in database hr_db.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "This means the role has the privilege to access the database, all schemas in the database, and select data from all tables within the database. It also ensures that the role cannot modify or update any data within the hr_db database.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "intermediate",
+      "sub_topic": "2.2",
+      "sub_topic_name": "Object Hierarchy"
+    },
+    {
+      "id": "architect_test3_q33",
+      "source": "architect_test3",
+      "question_num": 33,
+      "question": "An Architect needs to allow a user to create a database from an inbound share. To meet this requirement, the user’s role must have which privileges? (Choose two.)",
+      "options": [
+        {
+          "text": "CREATE SHARE;",
+          "explanation": ""
+        },
+        {
+          "text": "CREATE DATABASE;",
+          "explanation": ""
+        },
+        {
+          "text": "IMPORT SHARE;",
+          "explanation": ""
+        },
+        {
+          "text": "IMPORT DATABASE;",
+          "explanation": ""
+        },
+        {
+          "text": "IMPORT PRIVILEGES;",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1,
+        2
+      ],
+      "multi_select": true,
+      "multi_select_count": 2,
+      "overall_explanation": "IMPORT SHARE allows the user to import a shared database from an inbound share into their account. CREATE DATABASE privilege is needed to create a database from the imported share. Both privileges together enable the necessary actions to complete the task. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "intermediate",
+      "sub_topic": "2.2",
+      "sub_topic_name": "Object Hierarchy"
+    },
+    {
+      "id": "architect_test4_q4",
+      "source": "architect_test4",
+      "question_num": 4,
+      "question": "The following commands are run in sequence:",
+      "options": [
+        {
+          "text": "If an Architect creates a new table in the schema PROD_DB.PUBLIC, what would be the value of the table's DATA_RETENTION_TIME_IN_DAYS parameter?",
+          "explanation": ""
+        },
+        {
+          "text": "10",
+          "explanation": ""
+        },
+        {
+          "text": "60",
+          "explanation": ""
+        },
+        {
+          "text": "20",
+          "explanation": ""
+        },
+        {
+          "text": "30",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        3
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "SCIM (System for Cross-domain Identity Management) integration requires configuring a SCIM security integration in Snowflake. The authentication integration (SSO/SAML) handles login but does NOT handle user provisioning or role assignment. SCIM is a separate integration that must be configured to automatically provision/deprovision users and sync group-to-role mappings from the identity provider (like Azure AD or Okta) to Snowflake. Without SCIM, users and roles must be manually created in Snowflake even if SSO is configured. The process: (1) Configure SSO for authentication, (2) Configure SCIM for provisioning, (3) Map IdP groups to Snowflake roles in the SCIM configuration.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "intermediate",
+      "sub_topic": "2.2",
+      "sub_topic_name": "Object Hierarchy"
+    },
+    {
+      "id": "architect_test4_q49",
+      "source": "architect_test4",
+      "question_num": 49,
+      "question": "An Architect has a design where files arrive every 10 minutes and are loaded into a primary database table using Snowpipe. A secondary database is refreshed every hour with the latest data from the primary database. Based on this scenario, what Time Travel query options are available on the secondary database?",
+      "options": [
+        {
+          "text": "Using Time Travel, secondary database users can query every iterative version within each hour (the individual Snowpipe loads) and outside the retention window.",
+          "explanation": ""
+        },
+        {
+          "text": "Using Time Travel, secondary database users can query every iterative version within each hour (the individual Snowpipe loads) in the retention window.",
+          "explanation": ""
+        },
+        {
+          "text": "A query using Time Travel in the secondary database is available for every hourly table version within and outside the retention window.",
+          "explanation": ""
+        },
+        {
+          "text": "A query using Time Travel in the secondary database is available for every hourly table version within the retention window.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        3
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "A few comments: Each individual load from Snowpipe in the primary database is not available as separate versions in the secondary database; only the hourly refreshed versions are accessible for Time Travel. Time Travel only allows access within the defined retention window. Data versions outside this window are purged and are not available. Only hourly refreshes are stored in the secondary database, not each individual Snowpipe load from the primary database.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "intermediate",
+      "sub_topic": "2.2",
+      "sub_topic_name": "Object Hierarchy"
+    },
+    {
+      "id": "architect_test4_q52",
+      "source": "architect_test4",
+      "question_num": 52,
+      "question": "What command can we use to delete a share from the Snowflake account?",
+      "options": [
+        {
+          "text": "DELETE SHARE <myShare>",
+          "explanation": ""
+        },
+        {
+          "text": "DROP SHARE <myShare>",
+          "explanation": ""
+        },
+        {
+          "text": "ALTER SHARE <myShare> SET REMOVED = True",
+          "explanation": ""
+        },
+        {
+          "text": "REMOVE SHARE <myShare>",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "DROP SHARE <name> Deletes the designated share from the system and instantly revokes access for all consumers (i.e., accounts that have created a database from the share). For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "intermediate",
+      "sub_topic": "2.2",
+      "sub_topic_name": "Object Hierarchy"
+    },
+    {
+      "id": "architect_test4_q62",
+      "source": "architect_test4",
+      "question_num": 62,
+      "question": "An Architect is using the Snowflake table function INFER_SCHEMA to automatically detect the file metadata schema in a set of staged data files. The files contain semi-structured data, and the function automatically retrieves the column definitions.\n\nWhich statement will successfully create a table using the INFER_SCHEMA function?\n\nA.\n\nB.\n\nC.\n\nD.\n\nC",
+      "options": [
+        {
+          "text": "D",
+          "explanation": ""
+        },
+        {
+          "text": "A",
+          "explanation": ""
+        },
+        {
+          "text": "B",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "The option with USING TEMPLATE is the correct one.\n\nFor more detailed information about syntax, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "intermediate",
+      "sub_topic": "2.2",
+      "sub_topic_name": "Object Hierarchy"
+    },
+    {
+      "id": "architect_test5_q6",
+      "source": "architect_test5",
+      "question_num": 6,
+      "question": "Database DB1 has schema S1 which has one table, T1. DB1 --> S1 --> T1 The retention period of DB1 is set to 10 days. The retention period of S1 is set to 20 days. The retention period of T1 is set to 30 days. The user runs the following command:",
+      "options": [
+        {
+          "text": "Drop Database DB1;",
+          "explanation": ""
+        },
+        {
+          "text": "What will the Time Travel retention period be for T1?",
+          "explanation": ""
+        },
+        {
+          "text": "30 days",
+          "explanation": ""
+        },
+        {
+          "text": "37 days",
+          "explanation": ""
+        },
+        {
+          "text": "20 days",
+          "explanation": ""
+        },
+        {
+          "text": "A. 10 days",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        5
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "In this case: DB1 retention period = 10 days S1 retention period = 20 days (overridden by DB1 when DB1 is dropped) T1 retention period = 30 days (overridden by DB1 when DB1 is dropped) Currently, when a database is deleted in Snowflake, the data retention period set for child schemas or tables does not take effect if it differs from the retention period of the database itself. Instead, child schemas and tables are retained for the same duration as the database. This means that any specific retention settings applied to the child objects will be overridden by the database's retention policy. In this case, since the database DB1 has a retention period of 10 days, this will override the retention periods set at the schema (20 days) and table (30 days) levels. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "advanced",
+      "sub_topic": "2.2",
+      "sub_topic_name": "Object Hierarchy"
+    },
+    {
+      "id": "architect_test5_q13",
+      "source": "architect_test5",
+      "question_num": 13,
+      "question": "When using the STATEMENT_TIMEOUT_IN_SECONDS parameter to control costs, at what levels should this parameter be defined? (Select THREE)",
+      "options": [
+        {
+          "text": "Stage",
+          "explanation": ""
+        },
+        {
+          "text": "Schema",
+          "explanation": ""
+        },
+        {
+          "text": "User",
+          "explanation": ""
+        },
+        {
+          "text": "Account",
+          "explanation": ""
+        },
+        {
+          "text": "Session",
+          "explanation": ""
+        },
+        {
+          "text": "Organization",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        2,
+        3,
+        4
+      ],
+      "multi_select": true,
+      "multi_select_count": 3,
+      "overall_explanation": "A few comments: STATEMENT_TIMEOUT_IN_SECONDS specifies the maximum duration, in seconds, after which any active SQL statement (like a query, DDL, or DML command) will be automatically stopped by the system. STATEMENT_TIMEOUT_IN_SECONDS can be set for Account » User » Session It can also be set for individual warehouses. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "advanced",
+      "sub_topic": "2.2",
+      "sub_topic_name": "Object Hierarchy"
+    },
+    {
+      "id": "architect_test5_q44",
+      "source": "architect_test5",
+      "question_num": 44,
+      "question": "Which Snowflake architecture recommendation needs multiple Snowflake accounts for implementation?",
+      "options": [
+        {
+          "text": "Enable zero-copy cloning among the development, test, and production environments.",
+          "explanation": ""
+        },
+        {
+          "text": "Enable a disaster recovery strategy across multiple cloud providers.",
+          "explanation": ""
+        },
+        {
+          "text": "Create external stages pointing to cloud providers and regions other than the region hosting the Snowflake account.",
+          "explanation": ""
+        },
+        {
+          "text": "Enable separation of the development, test, and production environments.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "A few comments: External stages can be set up to point to storage in other regions or providers without needing multiple Snowflake accounts. Zero-copy cloning allows cloning within the same Snowflake account, enabling separation of environments without needing multiple accounts. Separation of environments (development, test, production) can be achieved within a single Snowflake account by creating separate databases or schemas for each environment. Implementing a disaster recovery (DR) strategy across multiple cloud providers requires setting up multiple Snowflake accounts because each Snowflake account is associated with a specific cloud provider and region. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "intermediate",
+      "sub_topic": "2.2",
+      "sub_topic_name": "Object Hierarchy"
+    },
+    {
+      "id": "architect_test5_q49",
+      "source": "architect_test5",
+      "question_num": 49,
+      "question": "An Architect clones a database and all of its objects, including tasks. After the cloning, the tasks stop running. Why is this occurring?",
+      "options": [
+        {
+          "text": "Cloned tasks are suspended by default and must be manually resumed.",
+          "explanation": ""
+        },
+        {
+          "text": "Tasks cannot be cloned.",
+          "explanation": ""
+        },
+        {
+          "text": "The Architect has insufficient privileges to alter tasks on the cloned database.",
+          "explanation": ""
+        },
+        {
+          "text": "The objects that the tasks reference are not fully qualified.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "A few comments: Cloned tasks are suspended by default when cloning a database or schema. We have to manually resume them after cloning operation. Tasks can be cloned. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "intermediate",
+      "sub_topic": "2.2",
+      "sub_topic_name": "Object Hierarchy"
+    }
+  ]
+}

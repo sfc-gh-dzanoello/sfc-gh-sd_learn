@@ -1,0 +1,326 @@
+{
+  "sub_topic": "4.1",
+  "sub_topic_name": "Query Profile",
+  "domain": "Domain 4.0: Performance Optimization",
+  "total_questions": 8,
+  "difficulty_distribution": {
+    "advanced": 4,
+    "intermediate": 4
+  },
+  "exam_traps": [
+    {
+      "trap": "Bytes scanned is in Statistics panel, not operator details",
+      "why_confusing": "The Query Profile has multiple sections. 'Bytes scanned' and 'Percentage scanned from cache' are in the overall Statistics panel. Per-operator metrics (like 'Rows produced') are in operator details when you click a node.",
+      "correct_answer": "Statistics panel: bytes scanned, cache %, partitions. Operator details: rows, time per operator.",
+      "doc_reference": "https://docs.snowflake.com/en/user-guide/ui-query-profile"
+    },
+    {
+      "trap": "Spilling to local/remote disk means the warehouse is too small for the query",
+      "why_confusing": "Spilling to local disk (SSD) is bad but tolerable. Spilling to REMOTE disk (S3/Blob) is much worse. Both indicate the warehouse needs to be scaled UP (not out -- multi-cluster doesn't help with single query performance).",
+      "correct_answer": "Spilling = scale UP warehouse size. Multi-cluster = scale OUT for concurrency.",
+      "doc_reference": "https://docs.snowflake.com/en/user-guide/ui-query-profile"
+    },
+    {
+      "trap": "Resource monitors track credit usage, not query performance",
+      "why_confusing": "Resource monitors set credit quotas and can suspend warehouses when limits are hit. They do NOT optimize queries. The exam may mix resource monitors with performance tuning options.",
+      "correct_answer": "Resource monitors = credit alerts/suspend. NOT a performance optimization tool.",
+      "doc_reference": "https://docs.snowflake.com/en/user-guide/resource-monitors"
+    }
+  ],
+  "questions": [
+    {
+      "id": "architect_test1_q25",
+      "source": "architect_test1",
+      "question_num": 25,
+      "question": "An Architect is troubleshooting a query with poor performance using the QUERY_HISTORY function. The Architect observes that the COMPILATION_TIME is greater than the EXECUTION_TIME. What is the reason for this?",
+      "options": [
+        {
+          "text": "The query is reading from remote storage.",
+          "explanation": ""
+        },
+        {
+          "text": "The query has overly complex logic.",
+          "explanation": ""
+        },
+        {
+          "text": "The query is queued for execution.",
+          "explanation": ""
+        },
+        {
+          "text": "The query is processing a very large dataset.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Compilation time is the duration it takes to parse, optimize, and generate the execution plan for a query. Execution time is the duration it takes to actually run the query and produce results. If the compilation time is greater than the execution time, it indicates that Snowflake spent a significant amount of time optimizing the query before execution. This often occurs when the query contains complex logic. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 4.0: Performance Optimization",
+      "difficulty": "advanced",
+      "sub_topic": "4.1",
+      "sub_topic_name": "Query Profile"
+    },
+    {
+      "id": "architect_test1_q63",
+      "source": "architect_test1",
+      "question_num": 63,
+      "question": "During the investigation of a slow query, how can an Architect obtain detailed statistics about each step in the query?",
+      "options": [
+        {
+          "text": "Use an EXPLAIN Command.",
+          "explanation": ""
+        },
+        {
+          "text": "Use the clustering information.",
+          "explanation": ""
+        },
+        {
+          "text": "Use the QUERY_HISTORY command.",
+          "explanation": ""
+        },
+        {
+          "text": "Use the Query Profile.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        3
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "To obtain detailed statistics about each step in a slow query, an Architect should use the Query Profile. This tool provides insights into the execution of the query, including the time taken for each step, the resources used, and any potential bottlenecks, which can help in diagnosing performance issues. The EXPLAIN command provides the logical execution plan for the specified SQL statement. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 4.0: Performance Optimization",
+      "difficulty": "advanced",
+      "sub_topic": "4.1",
+      "sub_topic_name": "Query Profile"
+    },
+    {
+      "id": "architect_test3_q30",
+      "source": "architect_test3",
+      "question_num": 30,
+      "question": "What of these metrics is not a metric that appears in the Execution Time screen of the Query Profiler?",
+      "options": [
+        {
+          "text": "Bytes scanned",
+          "explanation": ""
+        },
+        {
+          "text": "Initialization",
+          "explanation": ""
+        },
+        {
+          "text": "Synchronization",
+          "explanation": ""
+        },
+        {
+          "text": "Remote Disk IO",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "The 'Bytes scanned' metric is found in the Statistics section of the Query Profile, not in the operator details. The Query Profile in the Snowflake Web UI has several sections: the visual operator tree (showing nodes like TableScan, Filter, Join, etc.), the operator details panel (showing per-operator metrics when you click a node), and the Statistics panel (showing overall query statistics like 'Bytes scanned', 'Percentage scanned from cache', 'Partitions scanned', 'Partitions total'). Understanding where to find each metric is important for troubleshooting performance issues.",
+      "domain_raw": "",
+      "domain": "Domain 4.0: Performance Optimization",
+      "difficulty": "advanced",
+      "sub_topic": "4.1",
+      "sub_topic_name": "Query Profile"
+    },
+    {
+      "id": "architect_test4_q24",
+      "source": "architect_test4",
+      "question_num": 24,
+      "question": "One query takes a lot of time, and you see in the query profiler the following information:",
+      "options": [
+        {
+          "text": "What might be the cause of this?",
+          "explanation": ""
+        },
+        {
+          "text": "The power of the cloud provider bucket performance is not enough; that's why the performance of the query is degraded.",
+          "explanation": ""
+        },
+        {
+          "text": "The amount of memory available for the memory and the local disk of a warehouse node might not be sufficient to hold intermediate results, making Snowflake use the remote storage, thus degrading the performance.",
+          "explanation": ""
+        },
+        {
+          "text": "The size of the AWS S3 bucket is not sufficient.",
+          "explanation": ""
+        },
+        {
+          "text": "The query itself is poorly written.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        2
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "When Snowflake warehouse cannot fit an operation in memory, it starts spilling (storing) data first to the local disk of a warehouse node and then to remote storage. As this means extra IO operations, any query requiring spilling will take longer than a similar query running on similar data capable of fitting the operations in memory. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 4.0: Performance Optimization",
+      "difficulty": "advanced",
+      "sub_topic": "4.1",
+      "sub_topic_name": "Query Profile"
+    },
+    {
+      "id": "architect_test4_q61",
+      "source": "architect_test4",
+      "question_num": 61,
+      "question": "Which of these commands require a running warehouse?",
+      "options": [
+        {
+          "text": "SELECT MAX(AGE) FROM USERS_TABLE;",
+          "explanation": ""
+        },
+        {
+          "text": "SELECT COUNT(*) FROM USERS_TABLE;",
+          "explanation": ""
+        },
+        {
+          "text": "SELECT * FROM USERS_TABLE WHERE email=’test@test.com’;",
+          "explanation": ""
+        },
+        {
+          "text": "EXPLAIN USING TABULAR SELECT * FROM USERS_TABLE WHERE email=’test@test.com’;",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        2
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "The first query will use compute power, whereas the others don’t need a warehouse running. This is an excellent example to see the use of the EXPLAIN command, which returns the logical execution plan for the specified SQL statement. An explained plan shows the operations (for example, table scans and joins) that Snowflake would perform to execute the query. For example, running the previous command in my Snowflake account, I generated this result in 101ms: Although EXPLAIN does not consume any compute credits, the compilation of the query does consume Cloud Service credits, just as other metadata operations do. The output is the same as the output of the command EXPLAIN_JSON.",
+      "domain_raw": "",
+      "domain": "Domain 4.0: Performance Optimization",
+      "difficulty": "intermediate",
+      "sub_topic": "4.1",
+      "sub_topic_name": "Query Profile"
+    },
+    {
+      "id": "architect_test5_q18",
+      "source": "architect_test5",
+      "question_num": 18,
+      "question": "An Architect has been asked to help with a performance issue related to one transformation in a data pipeline. The issue arose when the transformation logic for the sales table was changed by adding additional dimensions into aggregations (approximately 15 additional dimensions). Nine new sales reports have been added, and the amount of data has doubled. The table currently processes 20 million records when it previously processed 10 million. The run time has increased from 5 minutes to more than 20. Warehouse scaling has been limited as a cost control measure. How can the performance be improved? (Select TWO)",
+      "options": [
+        {
+          "text": "Decrease the number of parallel queries running in the warehouse",
+          "explanation": ""
+        },
+        {
+          "text": "Increase the size of the virtual warehouse",
+          "explanation": ""
+        },
+        {
+          "text": "Use the search optimization service",
+          "explanation": ""
+        },
+        {
+          "text": "Split the data processing into several steps",
+          "explanation": ""
+        },
+        {
+          "text": "Increase the value of the MAX_EXECUTION_TIME_IN_SECONDS parameter",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1,
+        3
+      ],
+      "multi_select": true,
+      "multi_select_count": 2,
+      "overall_explanation": "A few comments: Since the data volume and complexity have significantly increased (more rows, more dimensions), a larger warehouse will provide more compute resources, reducing query and transformation time—especially since auto-scaling is restricted for cost control. Breaking complex transformations (especially with many joins/aggregations) into intermediate steps or temp tables can improve query planning, intermediate caching, and parallelism, making execution more efficient. Search optimization service is designed for filtering on selective columns. MAX_EXECUTION_TIME_IN_SECONDS is not a correct parameter in Snowflake. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 4.0: Performance Optimization",
+      "difficulty": "intermediate",
+      "sub_topic": "4.1",
+      "sub_topic_name": "Query Profile"
+    },
+    {
+      "id": "architect_new_q55",
+      "source": "architect_new",
+      "question_num": 55,
+      "question": "What do Snowflake resource monitors track?",
+      "options": [
+        {
+          "text": "Query execution time and rows processed.",
+          "explanation": ""
+        },
+        {
+          "text": "Credit consumption by warehouses.",
+          "explanation": ""
+        },
+        {
+          "text": "Storage usage in bytes.",
+          "explanation": ""
+        },
+        {
+          "text": "Network bandwidth consumption.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Resource monitors track credit consumption. They can be set at the account level or assigned to specific warehouses. When credit usage reaches defined thresholds, they can send notifications, suspend the warehouse, or suspend immediately (killing running queries).",
+      "domain_raw": "",
+      "domain": "Domain 4.0: Performance Optimization",
+      "difficulty": "intermediate",
+      "sub_topic": "4.1",
+      "sub_topic_name": "Query Profile"
+    },
+    {
+      "id": "architect_new_q56",
+      "source": "architect_new",
+      "question_num": 56,
+      "question": "At which levels can resource monitors be applied? (Choose two.)",
+      "options": [
+        {
+          "text": "Account level",
+          "explanation": ""
+        },
+        {
+          "text": "Database level",
+          "explanation": ""
+        },
+        {
+          "text": "Warehouse level",
+          "explanation": ""
+        },
+        {
+          "text": "Schema level",
+          "explanation": ""
+        },
+        {
+          "text": "User level",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0,
+        2
+      ],
+      "multi_select": true,
+      "multi_select_count": 2,
+      "overall_explanation": "Resource monitors can be applied at the account level (monitoring all credit usage) or at the warehouse level (monitoring specific warehouse credit usage). They cannot be applied at the database, schema, or user level.",
+      "domain_raw": "",
+      "domain": "Domain 4.0: Performance Optimization",
+      "difficulty": "intermediate",
+      "sub_topic": "4.1",
+      "sub_topic_name": "Query Profile"
+    }
+  ]
+}

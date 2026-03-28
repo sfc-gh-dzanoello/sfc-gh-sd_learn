@@ -1,0 +1,640 @@
+{
+  "sub_topic": "2.4",
+  "sub_topic_name": "Data Recovery",
+  "domain": "Domain 2.0: Snowflake Architecture",
+  "total_questions": 17,
+  "difficulty_distribution": {
+    "advanced": 3,
+    "beginner": 5,
+    "intermediate": 9
+  },
+  "exam_traps": [
+    {
+      "trap": "Zero-copy cloning for long-term snapshots -- NOT Time Travel",
+      "why_confusing": "Time Travel maxes out at 90 days. For 'saving quarterly snapshots for 6 years', the answer is zero-copy cloning. Clones are metadata-only initially (no extra storage cost until data diverges).",
+      "correct_answer": "Zero-copy cloning for archival. Time Travel only for recent history (max 90 days).",
+      "doc_reference": "https://docs.snowflake.com/en/user-guide/tables-storage-considerations"
+    },
+    {
+      "trap": "External tables CANNOT be cloned with Time Travel",
+      "why_confusing": "Cloning with AT/BEFORE works for regular tables, but external tables are excluded. If the source is an external table, the clone operation fails.",
+      "correct_answer": "External tables cannot be cloned using Time Travel. Also, data outside retention period fails.",
+      "doc_reference": "https://docs.snowflake.com/en/sql-reference/sql/create-clone"
+    },
+    {
+      "trap": "UNDROP only works within the retention period and only restores the MOST RECENTLY dropped version",
+      "why_confusing": "If you drop and recreate and drop again, UNDROP restores the most recent drop. The older version is gone. Also, if retention has expired, UNDROP fails.",
+      "correct_answer": "UNDROP = most recent drop only, within retention period only",
+      "doc_reference": "https://docs.snowflake.com/en/sql-reference/sql/undrop"
+    }
+  ],
+  "questions": [
+    {
+      "id": "architect_test1_q32",
+      "source": "architect_test1",
+      "question_num": 32,
+      "question": "An Architect needs to design a solution for building environments for development, test, and pre-production, all located in a single Snowflake account. The environments should be based on production data. Which solution would be MOST cost-effective and performant?",
+      "options": [
+        {
+          "text": "Use zero-copy cloning into permanent tables.",
+          "explanation": ""
+        },
+        {
+          "text": "Use CREATE TABLE ... AS SELECT (CTAS) statements.",
+          "explanation": ""
+        },
+        {
+          "text": "Use zero-copy cloning into transient tables.",
+          "explanation": ""
+        },
+        {
+          "text": "Use a Snowflake task to trigger a stored procedure to copy data.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        2
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Using zero-copy cloning with transient tables offers the best balance of cost and performance for creating development, test, and pre-production environments based on production data. About other options: Permanent tables retain Time Travel history, which increases storage costs. For non-production environments, transient tables provide a more cost-efficient solution. CTAS creates a full physical copy of the data, which incurs significant storage costs and is slower compared to zero-copy cloning. This method is less efficient for frequent environment refreshes. While automation can be beneficial, physically copying data is more expensive and slower than zero-copy cloning, making this solution less cost-effective and performant.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "advanced",
+      "sub_topic": "2.4",
+      "sub_topic_name": "Data Recovery"
+    },
+    {
+      "id": "architect_test1_q59",
+      "source": "architect_test1",
+      "question_num": 59,
+      "question": "Assuming all Snowflake accounts are using an Enterprise edition or higher, in which development and testing scenarios would copying of data be required, and zero-copy cloning not be suitable? (Choose two.)",
+      "options": [
+        {
+          "text": "Production and development run in different databases in the same account, and Developers need to see production-like data but with specific columns masked.",
+          "explanation": ""
+        },
+        {
+          "text": "Developers create their own copies of a standard test database previously created for them in the development account, for their initial development and unit testing.",
+          "explanation": ""
+        },
+        {
+          "text": "The release process requires pre-production testing of changes with data of production scale and complexity. For security reasons, pre-production also runs in the production account.",
+          "explanation": ""
+        },
+        {
+          "text": "Data is in a production Snowflake account that needs to be provided to Developers in a separate development/testing Snowflake account in the same cloud region.",
+          "explanation": ""
+        },
+        {
+          "text": "Developers create their own datasets to work against transformed versions of the data.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0,
+        3
+      ],
+      "multi_select": true,
+      "multi_select_count": 2,
+      "overall_explanation": "Important: question refers to scenarios where zero copy cloning is not feasible. A few comments: The phrase \"with specific columns masked\" indicates developers need custom or different masking policies than what exists in production. While zero-copy cloning can inherit existing masking policies, applying new or modified masking rules requires data copying operations where custom masking can be applied during the transformation process to meet specific development security requirements. When data needs to be moved from a production account to a separate development/testing account, zero-copy cloning is not feasible across different accounts. In this case, copying the data with Secure Data Sharing from the production account to the development account is necessary to provide developers with the required datasets. Zero-copy clone is suitable for scenarios where developers are creating transformed versions of data within the same account. Creating their own copies within the same development account can typically be handled with zero-copy cloning. Pre-production testing within the same account, especially if the requirement is to use production-scale data without modifying it, is well-suited for zero-copy cloning. Snowflake’s zero-copy cloning feature provides a convenient way to quickly take a “snapshot” of any table, schema, or database and create a derived copy of that object which initially shares the underlying storage (it is a metadata operation) For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "intermediate",
+      "sub_topic": "2.4",
+      "sub_topic_name": "Data Recovery"
+    },
+    {
+      "id": "architect_test2_q6",
+      "source": "architect_test2",
+      "question_num": 6,
+      "question": "After creating a database and a schema using the following commands:\n\nCREATE OR REPLACE DATABASE MY_DB \nDATA_RETENTION_TIME_IN_DAYS=30;\nCREATE OR REPLACE SCHEMA S1 DATA_RETENTION_TIME_IN_DAYS=50;\nHow long will we be able to access the data from the schema using the Time Travel functionality if we drop the database?",
+      "options": [
+        {
+          "text": "50 days.",
+          "explanation": ""
+        },
+        {
+          "text": "The default time of the account.",
+          "explanation": ""
+        },
+        {
+          "text": "30 days.",
+          "explanation": ""
+        },
+        {
+          "text": "90 days.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        2
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "When a database is dropped, the data retention period for child schemas or tables, if explicitly set to be different from the retention of the database, is not honored. The child schemas or tables are retained for the same period as the database. So even though the schema S1 has DATA_RETENTION_TIME_IN_DAYS=50, dropping the database means Time Travel access is limited to the database's retention period of 30 days. If only the schema were dropped (without dropping the database), Time Travel would use the schema's own retention period of 50 days. Key rule: the parent object's retention overrides children when the parent is dropped.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "intermediate",
+      "sub_topic": "2.4",
+      "sub_topic_name": "Data Recovery"
+    },
+    {
+      "id": "architect_test2_q10",
+      "source": "architect_test2",
+      "question_num": 10,
+      "question": "A database shared_database is created in a consumer account.What operations can be performed on this shared database? (Choose two.). The comments on the objects in the shared database can be edited. A clone of the shared database can be created in the consumer account, with the clone being read-only.",
+      "options": [
+        {
+          "text": "An object in the shared database can be joined to objects referencing another database in the same consumer account.",
+          "explanation": ""
+        },
+        {
+          "text": "The shared database created for the consumer account can be re-shared to other accounts.",
+          "explanation": ""
+        },
+        {
+          "text": "Any number of users present in the consumer account can access the shared database and can query the data sets.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0,
+        2
+      ],
+      "multi_select": true,
+      "multi_select_count": 2,
+      "overall_explanation": "Users in the consumer account can access and query the shared database. Additionally, they can join objects from the shared database with objects from other databases within the same consumer account. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "intermediate",
+      "sub_topic": "2.4",
+      "sub_topic_name": "Data Recovery"
+    },
+    {
+      "id": "architect_test2_q19",
+      "source": "architect_test2",
+      "question_num": 19,
+      "question": "What tables are we able to list using the command SHOW TABLES?",
+      "options": [
+        {
+          "text": "Only permanent tables.",
+          "explanation": ""
+        },
+        {
+          "text": "Tables that we have access privileges.",
+          "explanation": ""
+        },
+        {
+          "text": "All tables from a Snowflake account and the ones from the provider",
+          "explanation": ""
+        },
+        {
+          "text": "All the tables from a Snowflake account",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "This command returns the table metadata and properties from the tables that you have access privileges, including dropped tables that are still within the Time Travel retention period.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "intermediate",
+      "sub_topic": "2.4",
+      "sub_topic_name": "Data Recovery"
+    },
+    {
+      "id": "architect_test2_q46",
+      "source": "architect_test2",
+      "question_num": 46,
+      "question": "An Architect has been asked to clone schema STAGING as it looked one week ago, Tuesday June 1st at 8:00 AM, to recover some objects.\n\nThe STAGING schema has 50 days of retention.\n\nThe Architect runs the following statement:\n\nCREATE SCHEMA STAGING_CLONE CLONE STAGING at (timestamp => '2021-06-01 08:00:00');\n\nThe Architect receives the following error: Time travel data is not available for schema STAGING. The requested time is either beyond the allowed time travel period or before the object creation time.\n\nThe Architect then checks the schema history and sees the following:\n\nCREATED_ON|NAME|DROPPED_ON -\n\n2021-06-02 23:00:00 | STAGING | NULL\n\n2021-05-01 10:00:00 | STAGING | 2021-06-02 23:00:00\n\nHow can cloning the STAGING schema be achieved?",
+      "options": [
+        {
+          "text": "Rename the STAGING schema and perform an UNDROP to retrieve the previous STAGING schema version, then run the CLONE statement.",
+          "explanation": ""
+        },
+        {
+          "text": "Undrop the STAGING schema and then rerun the CLONE statement.",
+          "explanation": ""
+        },
+        {
+          "text": "Modify the statement: CREATE SCHEMA STAGING_CLONE CLONE STAGING at (timestamp => '2021-05-01 10:00:00');",
+          "explanation": ""
+        },
+        {
+          "text": "Cloning cannot be accomplished because the STAGING schema version was not active during the proposed Time Travel time period.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "The schema history indicates that the STAGING schema was dropped on June 2nd and was originally created on May 1st. By renaming the STAGING schema and using the UNDROP feature, the Architect can restore the previous version of the STAGING schema, which will then allow for a successful clone operation at the desired timestamp of June 1st. This way, the data is still within the 50-day retention period, making it accessible for cloning.\n\nFor more detailed information about time travel, refer to the official Snowflake documentation.\n\nFor more detailed information about retention period, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "intermediate",
+      "sub_topic": "2.4",
+      "sub_topic_name": "Data Recovery"
+    },
+    {
+      "id": "architect_test2_q59",
+      "source": "architect_test2",
+      "question_num": 59,
+      "question": "A company has a table that has corrupted data, named Data. The company wants to recover the data as it was 5 minutes ago using cloning and Time Travel. What command will accomplish this?",
+      "options": [
+        {
+          "text": "CREATE TABLE Recover_Data CLONE Data AT(OFFSET => -60*5);",
+          "explanation": ""
+        },
+        {
+          "text": "CREATE TABLE Recover Data CLONE Data AT(TIME => -60*5);",
+          "explanation": ""
+        },
+        {
+          "text": "CREATE CLONE Recover_Data FROM Data AT(OFFSET => -60*5);",
+          "explanation": ""
+        },
+        {
+          "text": "CREATE CLONE TABLE Recover_Data FROM Data AT(OFFSET => -60*5);",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "For more detailed information about the syntax, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "intermediate",
+      "sub_topic": "2.4",
+      "sub_topic_name": "Data Recovery"
+    },
+    {
+      "id": "architect_test3_q2",
+      "source": "architect_test3",
+      "question_num": 2,
+      "question": "An Architect would like to save quarter-end financial results for the previous six years. Which Snowflake feature can the Architect use to accomplish this?",
+      "options": [
+        {
+          "text": "Materialized view",
+          "explanation": ""
+        },
+        {
+          "text": "Time Travel",
+          "explanation": ""
+        },
+        {
+          "text": "Zero-copy cloning",
+          "explanation": ""
+        },
+        {
+          "text": "Secure views",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        2
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Zero Copy Clone in Snowflake not only avoids duplicating the physical data but also works at the metadata layer. When a clone is created, Snowflake duplicates the metadata of the original object (database, schema, or table). This metadata contains pointers to the underlying storage, allowing the clone to reference the same data blocks as the original object.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "intermediate",
+      "sub_topic": "2.4",
+      "sub_topic_name": "Data Recovery"
+    },
+    {
+      "id": "architect_test3_q32",
+      "source": "architect_test3",
+      "question_num": 32,
+      "question": "What does the average_overlaps in the output of SYSTEM$CLUSTERING_INFORMATION refer to?",
+      "options": [
+        {
+          "text": "The average number of partitions physically stored in the same location.",
+          "explanation": ""
+        },
+        {
+          "text": "The average number of micro-partitions stored in Time Travel.",
+          "explanation": ""
+        },
+        {
+          "text": "The average number of micro-partitions which contain overlapping value ranges.",
+          "explanation": ""
+        },
+        {
+          "text": "The average number of micro-partitions in the table associated with cloned objects.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        2
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "average_overlaps refers to the average number of micro-partitions that have overlapping value ranges. A higher number of overlaps indicates that the table may not be well-clustered, which can affect query performance. For more detailed information, refer to the Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "beginner",
+      "sub_topic": "2.4",
+      "sub_topic_name": "Data Recovery"
+    },
+    {
+      "id": "architect_test3_q38",
+      "source": "architect_test3",
+      "question_num": 38,
+      "question": "Which command can we use to restore a dropped share?",
+      "options": [
+        {
+          "text": "UNDROP SHARE <myShare>",
+          "explanation": ""
+        },
+        {
+          "text": "We cannot restore a dropped SHARE; we must create it again.",
+          "explanation": ""
+        },
+        {
+          "text": "RESTORE SHARE <myShare>",
+          "explanation": ""
+        },
+        {
+          "text": "RECOVER SHARE <myShare>",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "A dropped share can not be restored. The share must be created again. For more detailed information, refer to the Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "beginner",
+      "sub_topic": "2.4",
+      "sub_topic_name": "Data Recovery"
+    },
+    {
+      "id": "architect_test3_q43",
+      "source": "architect_test3",
+      "question_num": 43,
+      "question": "Which ALTER commands will impact a column's availability in Time Travel?",
+      "options": [
+        {
+          "text": "ALTER TABLE … SET DATA TYPE …",
+          "explanation": ""
+        },
+        {
+          "text": "ALTER TABLE … RENAME COLUMN …",
+          "explanation": ""
+        },
+        {
+          "text": "ALTER TABLE … SET NOT NULL …",
+          "explanation": ""
+        },
+        {
+          "text": "ALTER TABLE … DROP COLUMN …",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Decreasing the precision of a number column can impact Time Travel, for example, converting from NUMBER(20,2) to NUMBER(10,2). SET DATA TYPE is the command that can make that.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "intermediate",
+      "sub_topic": "2.4",
+      "sub_topic_name": "Data Recovery"
+    },
+    {
+      "id": "architect_test4_q18",
+      "source": "architect_test4",
+      "question_num": 18,
+      "question": "An Architect needs to design a Snowflake account and database strategy to store and analyze large amounts of structured and semi-structured data. There are many business units and departments within the company. The requirements are scalability, security, and cost efficiency. What design should be used?",
+      "options": [
+        {
+          "text": "Use a centralized Snowflake database for core business data, and use separate databases for departmental or project-specific data.",
+          "explanation": ""
+        },
+        {
+          "text": "Set up separate Snowflake accounts and databases for each department or business unit, to ensure data isolation and security.",
+          "explanation": ""
+        },
+        {
+          "text": "Use Snowflake's data lake functionality to store and analyze all data in a central location, without the need for structured schemas or indexes.",
+          "explanation": ""
+        },
+        {
+          "text": "Create a single Snowflake account and database for all data storage and analysis needs, regardless of data volume or complexity.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Requirements are: scalability, security and cost efficiency. How hard it is to be an Architect at Snowflake, they are always demanding difficult things from us! :) A few comments: The scenario is that there are many different business units and departments, so creating a single account and database to store all the data does not seem to be the best strategy for a robust security solution. An Account per tenant (APT) strategy would allow us to isolate the data and improve security, but it would not be the most cost-effective solution. Using a single account would allow us to use interesting features such as Zero Copy Clone. In this scenario there are large amounts of structured information, so using only external table/directory table capabilities is not an efficient or scalable strategy. Using a single account but splitting the data into different databases in Snowflake by project and/or department is a strategy that can help control security while looking for cost efficiency.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "advanced",
+      "sub_topic": "2.4",
+      "sub_topic_name": "Data Recovery"
+    },
+    {
+      "id": "architect_test4_q27",
+      "source": "architect_test4",
+      "question_num": 27,
+      "question": "What is the best option to clone a table called MYTABLE?",
+      "options": [
+        {
+          "text": "CREATE TABLE MYTABLE_2 AS INSERT INTO MYTABLE VALUES (SELECT * FROM MYTABLE);",
+          "explanation": ""
+        },
+        {
+          "text": "CREATE TABLE MYTABLE_2 AS SELECT * FROM MYTABLE;",
+          "explanation": ""
+        },
+        {
+          "text": "CREATE TABLE MYTABLE_2 CLONE MYTABLE;",
+          "explanation": ""
+        },
+        {
+          "text": "CREATE TABLE MYTABLE_2 AS CLONE MYTABLE;",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        2
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Using the zero-copy cloning functionality from Snowflake will always be the best way of cloning objects as it doesn’t duplicate the data, it duplicates the metadata of the micro-partitions, saving us storage costs. The clone shares the same underlying micro-partitions as the original table. Only when data in the clone or original changes do new micro-partitions get created (copy-on-write).",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "beginner",
+      "sub_topic": "2.4",
+      "sub_topic_name": "Data Recovery"
+    },
+    {
+      "id": "architect_test4_q51",
+      "source": "architect_test4",
+      "question_num": 51,
+      "question": "Which command will create a schema without Fail-safe and will restrict object owners from passing on access to other users?",
+      "options": [
+        {
+          "text": "create TRANSIENT schema EDW.ACCOUNTING WITH MANAGED ACCESS DATA_RETENTION_TIME_IN_DAYS = 1;",
+          "explanation": ""
+        },
+        {
+          "text": "create schema EDW.ACCOUNTING WITH MANAGED ACCESS;",
+          "explanation": ""
+        },
+        {
+          "text": "create schema EDW.ACCOUNTING WITH MANAGED ACCESS DATA_RETENTION_TIME_IN_DAYS = 7;",
+          "explanation": ""
+        },
+        {
+          "text": "create TRANSIENT schema EDW.ACCOUNTING WITH MANAGED ACCESS DATA_RETENTION_TIME_IN_DAYS = 7;",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "A few comments: Transient schemas do not support Fail-safe, which is intended for data that doesn’t require long-term retention. With WITH MANAGED ACCESS clause, only administrators can grant or revoke privileges on the objects within the schema, restricting object owners from passing on access to other users. Setting DATA_RETENTION_TIME_IN_DAYS = 1 specifies minimal Time Travel retention, further reducing storage requirements. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "beginner",
+      "sub_topic": "2.4",
+      "sub_topic_name": "Data Recovery"
+    },
+    {
+      "id": "architect_test4_q58",
+      "source": "architect_test4",
+      "question_num": 58,
+      "question": "How do Snowflake databases that are created from shares differ from standard databases that are not created from shares? (Choose three.)",
+      "options": [
+        {
+          "text": "Shared databases will not have the PUBLIC or INFORMATION_SCHEMA schemas without explicitly granting these schemas to the share.",
+          "explanation": ""
+        },
+        {
+          "text": "Shared databases are not supported by Time Travel.",
+          "explanation": ""
+        },
+        {
+          "text": "Shared databases are read-only.",
+          "explanation": ""
+        },
+        {
+          "text": "Shared databases must be refreshed in order for new data to be visible.",
+          "explanation": ""
+        },
+        {
+          "text": "Shared databases can also be created as transient databases.",
+          "explanation": ""
+        },
+        {
+          "text": "Shared databases can be cloned.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0,
+        1,
+        2
+      ],
+      "multi_select": true,
+      "multi_select_count": 3,
+      "overall_explanation": "Shared databases are read-only. Users in a consumer account can view/query data, but cannot insert or update data, or create any objects in the database. The following actions are not supported: Creating a clone of a shared database or any schemas/tables in the database. Time Travel for a shared database or any schemas/tables in the database. Editing the comments for a shared database. Databases created from shares differ from standard databases in the following ways: They do not have the PUBLIC or INFORMATION_SCHEMA schemas unless these schemas were explicitly granted to the share. They cannot be cloned. Properties, such as TRANSIENT and DATA_RETENTION_TIME_IN_DAYS, do not apply. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "advanced",
+      "sub_topic": "2.4",
+      "sub_topic_name": "Data Recovery"
+    },
+    {
+      "id": "architect_test5_q39",
+      "source": "architect_test5",
+      "question_num": 39,
+      "question": "A user is executing the following command sequentially within a timeframe of 10 minutes from start to finish:\n\nuse role sysadmin;\nuse warehouse compute_wh;\nuse schema sales.public;\ncreate table t_sales (numeric integer) data_retention_time_in_days=1;\ncreate or replace table t_sales_clone clone t_sales at (offset => -60*30);\n\nWhat would be the output of this query?",
+      "options": [
+        {
+          "text": "Table T_SALES_CLONE successfully created.",
+          "explanation": ""
+        },
+        {
+          "text": "Syntax error line 1 at position 58 unexpected 'at'.",
+          "explanation": ""
+        },
+        {
+          "text": "Time Travel data is not available for table T_SALES.",
+          "explanation": ""
+        },
+        {
+          "text": "The offset => is not a valid clause in the clone operation.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        2
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "A few comments:\n\nThe AT clause is valid in combination with offset when using Time Travel.\n\nThe use of => with offset is valid.\n\nThe statement will fail. Although we have defined a data_retention_time_in_days of 1, we are trying to retrieve the table with an offset of 60*30 (30 minutes). Assuming that the timeframe indicated by the query is 10 minutes, not enough time will have passed since its creation to retrieve that version. The requested time is either beyond the allowed time travel period or before the object creation time. The requested time is either beyond the allowed time travel period or before the object creation time.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "intermediate",
+      "sub_topic": "2.4",
+      "sub_topic_name": "Data Recovery"
+    },
+    {
+      "id": "architect_test5_q46",
+      "source": "architect_test5",
+      "question_num": 46,
+      "question": "Which command will create a schema without Fail-safe and will restrict object owners from passing on access to other users?",
+      "options": [
+        {
+          "text": "create schema EDW.ACCOUNTING WITH MANAGED ACCESS;",
+          "explanation": ""
+        },
+        {
+          "text": "create TRANSIENT schema EDW.ACCOUNTING WITH MANAGED ACCESS DATA_RETENTION_TIME_IN_DAYS = 7;",
+          "explanation": ""
+        },
+        {
+          "text": "create schema EDW.ACCOUNTING WITH MANAGED ACCESS DATA_RETENTION_TIME_IN_DAYS = 7;",
+          "explanation": ""
+        },
+        {
+          "text": "create TRANSIENT schema EDW.ACCOUNTING WITH MANAGED ACCESS DATA_RETENTION_TIME_IN_DAYS = 1;",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        3
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "A few comments: The question asks us to create a schema that does not have Fail-Safe, so we discard queries that create permanent schemas. To restrict the object owners to manage access, we have to create a schema WITH MANAGED ACCESS. Transient schemas can only have a DATA_RETENTION_TIME_IN_DAYS of 0 or 1. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 2.0: Snowflake Architecture",
+      "difficulty": "beginner",
+      "sub_topic": "2.4",
+      "sub_topic_name": "Data Recovery"
+    }
+  ]
+}

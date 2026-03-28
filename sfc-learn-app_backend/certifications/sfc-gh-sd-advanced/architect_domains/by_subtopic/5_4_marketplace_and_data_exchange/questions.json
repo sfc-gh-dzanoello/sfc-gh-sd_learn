@@ -1,0 +1,482 @@
+{
+  "sub_topic": "5.4",
+  "sub_topic_name": "Marketplace & Data Exchange",
+  "domain": "Domain 5.0: Sharing & Collaboration",
+  "total_questions": 13,
+  "difficulty_distribution": {
+    "advanced": 5,
+    "beginner": 2,
+    "intermediate": 6
+  },
+  "exam_traps": [
+    {
+      "trap": "Snowflake Marketplace listings can be free or paid, standard or personalized",
+      "why_confusing": "Standard listings share the same data with all consumers. Personalized listings can customize data per consumer. The exam tests whether you know the difference and when each is appropriate.",
+      "correct_answer": "Standard = same data for all. Personalized = customized per consumer. Both can be free or paid.",
+      "doc_reference": "https://docs.snowflake.com/en/user-guide/data-marketplace"
+    },
+    {
+      "trap": "Data Mesh: each domain owns its data and exposes it as a data product",
+      "why_confusing": "The exam tests Data Mesh concepts: domain separation, data-as-a-product, self-serve infrastructure. In Snowflake, this maps to separate databases/schemas per domain with controlled sharing. A third domain consuming from two others uses the READ roles granted to it.",
+      "correct_answer": "Data Mesh in Snowflake = domain databases + shares/grants + read roles for cross-domain access",
+      "doc_reference": "https://docs.snowflake.com/en/user-guide/data-sharing-intro"
+    }
+  ],
+  "questions": [
+    {
+      "id": "architect_new_q1",
+      "source": "architect_new",
+      "question_num": 1,
+      "question": "A provider wants to share a filtered subset of customer data with a consumer account. Only rows where region = 'EMEA' should be visible. What is the recommended approach?",
+      "options": [
+        {
+          "text": "Create a regular view with a WHERE clause and add it to the share.",
+          "explanation": ""
+        },
+        {
+          "text": "Create a secure view with a WHERE clause and add it to the share.",
+          "explanation": ""
+        },
+        {
+          "text": "Use a row access policy on the base table and share the table directly.",
+          "explanation": ""
+        },
+        {
+          "text": "Export the filtered data to a stage and share the stage.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Secure views are required for sharing -- regular views expose their SQL definition to consumers. A secure view with a WHERE filter is the standard approach for row-level filtering in shares. Row access policies are for controlling access within an account, not across shares.",
+      "domain_raw": "",
+      "domain": "Domain 5.0: Sharing & Collaboration",
+      "difficulty": "intermediate",
+      "sub_topic": "5.4",
+      "sub_topic_name": "Marketplace & Data Exchange"
+    },
+    {
+      "id": "architect_new_q3",
+      "source": "architect_new",
+      "question_num": 3,
+      "question": "A healthcare company needs to share anonymized patient data with a research university that does not have a Snowflake account. What should the Architect recommend?",
+      "options": [
+        {
+          "text": "Create a standard share and ask the university to sign up for Snowflake.",
+          "explanation": ""
+        },
+        {
+          "text": "Create a reader account for the university and share the data via a share.",
+          "explanation": ""
+        },
+        {
+          "text": "Export the data to Parquet files and send them via secure file transfer.",
+          "explanation": ""
+        },
+        {
+          "text": "Create a listing on the Snowflake Marketplace.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Reader accounts are designed for consumers who don't have their own Snowflake account. The provider creates the reader account and pays for both storage and compute. The consumer gets read-only access to the shared data.",
+      "domain_raw": "",
+      "domain": "Domain 5.0: Sharing & Collaboration",
+      "difficulty": "intermediate",
+      "sub_topic": "5.4",
+      "sub_topic_name": "Marketplace & Data Exchange"
+    },
+    {
+      "id": "architect_new_q4",
+      "source": "architect_new",
+      "question_num": 4,
+      "question": "Who pays for compute when a consumer queries data from a standard Snowflake share?",
+      "options": [
+        {
+          "text": "The provider pays for both storage and compute.",
+          "explanation": ""
+        },
+        {
+          "text": "The consumer pays for both storage and compute.",
+          "explanation": ""
+        },
+        {
+          "text": "The provider pays for storage; the consumer pays for compute.",
+          "explanation": ""
+        },
+        {
+          "text": "Costs are split equally between provider and consumer.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        2
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "In standard Snowflake sharing, the provider pays for storage (since the data lives in their account) and the consumer pays for compute (they use their own warehouses to query the shared data). This is different from reader accounts where the provider pays for everything.",
+      "domain_raw": "",
+      "domain": "Domain 5.0: Sharing & Collaboration",
+      "difficulty": "beginner",
+      "sub_topic": "5.4",
+      "sub_topic_name": "Marketplace & Data Exchange"
+    },
+    {
+      "id": "architect_new_q5",
+      "source": "architect_new",
+      "question_num": 5,
+      "question": "A company in AWS us-east-1 wants to share data with a partner in Azure West Europe. What is required for this to work?",
+      "options": [
+        {
+          "text": "Direct cross-cloud sharing is supported natively -- no additional steps needed.",
+          "explanation": ""
+        },
+        {
+          "text": "The provider must replicate the database to an Azure account first, then create a share from there.",
+          "explanation": ""
+        },
+        {
+          "text": "The provider must export data to S3 and the consumer imports from S3 to Azure.",
+          "explanation": ""
+        },
+        {
+          "text": "Cross-cloud sharing is not possible in Snowflake.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Cross-region and cross-cloud sharing requires database replication first. The provider must replicate the shared database to an account in the consumer's region/cloud, then create the share from there. Auto-Fulfillment handles this automatically for Marketplace listings.",
+      "domain_raw": "",
+      "domain": "Domain 5.0: Sharing & Collaboration",
+      "difficulty": "advanced",
+      "sub_topic": "5.4",
+      "sub_topic_name": "Marketplace & Data Exchange"
+    },
+    {
+      "id": "architect_new_q6",
+      "source": "architect_new",
+      "question_num": 6,
+      "question": "What is the primary purpose of Auto-Fulfillment in the Snowflake Marketplace?",
+      "options": [
+        {
+          "text": "Automatically generating documentation for shared datasets.",
+          "explanation": ""
+        },
+        {
+          "text": "Automatically replicating listing data to consumer regions across clouds.",
+          "explanation": ""
+        },
+        {
+          "text": "Automatically creating reader accounts for new consumers.",
+          "explanation": ""
+        },
+        {
+          "text": "Automatically refreshing stale shared data.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Auto-Fulfillment automatically replicates Marketplace listing data to the consumer's cloud and region, enabling cross-cloud and cross-region delivery without the provider manually setting up replication.",
+      "domain_raw": "",
+      "domain": "Domain 5.0: Sharing & Collaboration",
+      "difficulty": "advanced",
+      "sub_topic": "5.4",
+      "sub_topic_name": "Marketplace & Data Exchange"
+    },
+    {
+      "id": "architect_new_q9",
+      "source": "architect_new",
+      "question_num": 9,
+      "question": "What happens to shared data if the provider drops the source table that is included in an active share?",
+      "options": [
+        {
+          "text": "The consumer's queries continue to work because the data was copied.",
+          "explanation": ""
+        },
+        {
+          "text": "The consumer's queries fail because shares are zero-copy -- no data was copied.",
+          "explanation": ""
+        },
+        {
+          "text": "The share is automatically deleted.",
+          "explanation": ""
+        },
+        {
+          "text": "The consumer's shared database is automatically dropped.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Shares are zero-copy -- the consumer reads directly from the provider's storage. If the provider drops the source object, the consumer's queries will fail because the underlying data no longer exists. The share itself remains but becomes unusable.",
+      "domain_raw": "",
+      "domain": "Domain 5.0: Sharing & Collaboration",
+      "difficulty": "intermediate",
+      "sub_topic": "5.4",
+      "sub_topic_name": "Marketplace & Data Exchange"
+    },
+    {
+      "id": "architect_new_q10",
+      "source": "architect_new",
+      "question_num": 10,
+      "question": "An Architect needs to share data with 50 different consumer accounts. Each consumer should only see rows relevant to their organization. What is the MOST scalable approach?",
+      "options": [
+        {
+          "text": "Create 50 separate shares, each with a different secure view filtering rows for that consumer.",
+          "explanation": ""
+        },
+        {
+          "text": "Create one share with a single secure view that uses CURRENT_ACCOUNT() to filter rows dynamically.",
+          "explanation": ""
+        },
+        {
+          "text": "Create 50 separate databases, each containing only that consumer's data.",
+          "explanation": ""
+        },
+        {
+          "text": "Export filtered CSV files for each consumer.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Using CURRENT_ACCOUNT() inside a secure view allows a single share to serve multiple consumers with row-level filtering based on the consumer's account identifier. This is far more scalable than creating separate shares or databases for each consumer.",
+      "domain_raw": "",
+      "domain": "Domain 5.0: Sharing & Collaboration",
+      "difficulty": "advanced",
+      "sub_topic": "5.4",
+      "sub_topic_name": "Marketplace & Data Exchange"
+    },
+    {
+      "id": "architect_new_q11",
+      "source": "architect_new",
+      "question_num": 11,
+      "question": "What is the difference between a Snowflake Marketplace listing and a direct share?",
+      "options": [
+        {
+          "text": "Marketplace listings require Enterprise Edition; direct shares work on Standard.",
+          "explanation": ""
+        },
+        {
+          "text": "Marketplace listings are discoverable by any Snowflake account; direct shares require the provider to know the consumer's account.",
+          "explanation": ""
+        },
+        {
+          "text": "Marketplace listings copy data to the consumer; direct shares are zero-copy.",
+          "explanation": ""
+        },
+        {
+          "text": "There is no difference -- they use the same underlying mechanism.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Marketplace listings are publicly discoverable in the Snowflake Marketplace catalog, allowing any Snowflake account to find and request access. Direct shares require the provider to explicitly add consumer accounts. Both use zero-copy sharing under the hood.",
+      "domain_raw": "",
+      "domain": "Domain 5.0: Sharing & Collaboration",
+      "difficulty": "intermediate",
+      "sub_topic": "5.4",
+      "sub_topic_name": "Marketplace & Data Exchange"
+    },
+    {
+      "id": "architect_new_q12",
+      "source": "architect_new",
+      "question_num": 12,
+      "question": "A provider creates a share containing a secure view that references two tables. The consumer reports an error when querying the shared view. What is the MOST likely cause?",
+      "options": [
+        {
+          "text": "The consumer's warehouse is too small to execute the view.",
+          "explanation": ""
+        },
+        {
+          "text": "The provider only granted SELECT on one of the two underlying tables to the share.",
+          "explanation": ""
+        },
+        {
+          "text": "Secure views cannot reference multiple tables.",
+          "explanation": ""
+        },
+        {
+          "text": "The consumer must create their own view on top of the shared view.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "When sharing a secure view that references multiple tables, the provider must grant SELECT on ALL underlying tables to the share. Missing grants on any referenced table will cause the consumer's queries to fail.",
+      "domain_raw": "",
+      "domain": "Domain 5.0: Sharing & Collaboration",
+      "difficulty": "advanced",
+      "sub_topic": "5.4",
+      "sub_topic_name": "Marketplace & Data Exchange"
+    },
+    {
+      "id": "architect_new_q14",
+      "source": "architect_new",
+      "question_num": 14,
+      "question": "A company publishes a free dataset on the Snowflake Marketplace. A consumer in a different cloud region subscribes. How is the data delivered?",
+      "options": [
+        {
+          "text": "The consumer must manually replicate the data to their region.",
+          "explanation": ""
+        },
+        {
+          "text": "Auto-Fulfillment replicates the data to the consumer's region automatically.",
+          "explanation": ""
+        },
+        {
+          "text": "The consumer queries the data cross-region with added latency.",
+          "explanation": ""
+        },
+        {
+          "text": "Free listings are only available within the same region.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "For Marketplace listings, Snowflake's Auto-Fulfillment automatically handles cross-region and cross-cloud data delivery by replicating the listing data to the consumer's region.",
+      "domain_raw": "",
+      "domain": "Domain 5.0: Sharing & Collaboration",
+      "difficulty": "intermediate",
+      "sub_topic": "5.4",
+      "sub_topic_name": "Marketplace & Data Exchange"
+    },
+    {
+      "id": "architect_new_q15",
+      "source": "architect_new",
+      "question_num": 15,
+      "question": "A reader account is consuming shared data. Who is billed for the reader account's warehouse compute?",
+      "options": [
+        {
+          "text": "The reader account is billed independently.",
+          "explanation": ""
+        },
+        {
+          "text": "The provider account is billed for all reader account costs.",
+          "explanation": ""
+        },
+        {
+          "text": "Snowflake absorbs reader account costs.",
+          "explanation": ""
+        },
+        {
+          "text": "The provider pays for storage; the reader pays for compute.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Reader accounts are fully managed and paid for by the provider. The provider pays for everything -- storage, compute, and cloud services. This is the key difference from standard sharing where the consumer pays for their own compute.",
+      "domain_raw": "",
+      "domain": "Domain 5.0: Sharing & Collaboration",
+      "difficulty": "intermediate",
+      "sub_topic": "5.4",
+      "sub_topic_name": "Marketplace & Data Exchange"
+    },
+    {
+      "id": "architect_new_q16",
+      "source": "architect_new",
+      "question_num": 16,
+      "question": "What is the primary advantage of using a Data Exchange over individual direct shares?",
+      "options": [
+        {
+          "text": "Data Exchanges provide encryption that direct shares lack.",
+          "explanation": ""
+        },
+        {
+          "text": "Data Exchanges allow a group of accounts to share data bidirectionally under a unified governance model.",
+          "explanation": ""
+        },
+        {
+          "text": "Data Exchanges are faster than direct shares.",
+          "explanation": ""
+        },
+        {
+          "text": "Data Exchanges automatically translate data between languages.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "A Data Exchange creates a curated, governed hub where a group of related accounts can share data bidirectionally. Unlike individual shares, it provides centralized governance, discoverability, and request workflows for the group.",
+      "domain_raw": "",
+      "domain": "Domain 5.0: Sharing & Collaboration",
+      "difficulty": "advanced",
+      "sub_topic": "5.4",
+      "sub_topic_name": "Marketplace & Data Exchange"
+    },
+    {
+      "id": "architect_new_q17",
+      "source": "architect_new",
+      "question_num": 17,
+      "question": "Which SQL command does a consumer use to access data from a share?",
+      "options": [
+        {
+          "text": "IMPORT DATABASE FROM SHARE provider.my_share;",
+          "explanation": ""
+        },
+        {
+          "text": "CREATE DATABASE shared_db FROM SHARE provider.my_share;",
+          "explanation": ""
+        },
+        {
+          "text": "CLONE DATABASE FROM SHARE provider.my_share;",
+          "explanation": ""
+        },
+        {
+          "text": "MOUNT SHARE provider.my_share AS shared_db;",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "The consumer creates a database from the share using CREATE DATABASE ... FROM SHARE. This creates a read-only database in the consumer's account that references the provider's data.",
+      "domain_raw": "",
+      "domain": "Domain 5.0: Sharing & Collaboration",
+      "difficulty": "beginner",
+      "sub_topic": "5.4",
+      "sub_topic_name": "Marketplace & Data Exchange"
+    }
+  ]
+}

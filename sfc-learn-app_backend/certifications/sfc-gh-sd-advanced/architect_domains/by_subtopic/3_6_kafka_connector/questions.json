@@ -1,0 +1,390 @@
+{
+  "sub_topic": "3.6",
+  "sub_topic_name": "Kafka Connector",
+  "domain": "Domain 3.0: Data Engineering",
+  "total_questions": 10,
+  "difficulty_distribution": {
+    "advanced": 2,
+    "beginner": 3,
+    "intermediate": 5
+  },
+  "exam_traps": [
+    {
+      "trap": "Kafka connector creates two VARIANT columns: RECORD_CONTENT and RECORD_METADATA",
+      "why_confusing": "The exam lists RECORD_PRIVILEGES, RECORD_ISCORRECT, RECORD_SUMMARY as distractors. Only RECORD_CONTENT (message payload) and RECORD_METADATA (Kafka offset, partition, etc.) are real.",
+      "correct_answer": "Two columns: RECORD_CONTENT (message data) + RECORD_METADATA (Kafka metadata)",
+      "doc_reference": "https://docs.snowflake.com/en/user-guide/kafka-connector-overview"
+    },
+    {
+      "trap": "Snowpipe streaming (Snowpipe with Kafka) is more cost-effective than regular Snowpipe for high-throughput",
+      "why_confusing": "The exam asks about 'most cost-effective' Kafka ingestion. Snowpipe Streaming writes directly to tables without staging files, reducing latency and cost for high-volume streams.",
+      "correct_answer": "Snowpipe Streaming = no file staging, lower latency, more cost-effective for Kafka",
+      "doc_reference": "https://docs.snowflake.com/en/user-guide/data-load-snowpipe-streaming-overview"
+    }
+  ],
+  "questions": [
+    {
+      "id": "architect_test1_q65",
+      "source": "architect_test1",
+      "question_num": 65,
+      "question": "What does a Snowflake Architect need to consider when implementing a Snowflake Connector for Kafka?",
+      "options": [
+        {
+          "text": "The Kafka connector will create one table and one pipe to ingest data for each topic. If the connector cannot create the table or the pipe it will result in an exception.",
+          "explanation": ""
+        },
+        {
+          "text": "The default retention time for Kafka topics is 14 days.",
+          "explanation": ""
+        },
+        {
+          "text": "The Kafka connector supports key pair authentication, OAUTH, and basic authentication (for example, username and password).",
+          "explanation": ""
+        },
+        {
+          "text": "Every Kafka message is in JSON or Avro format.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        3
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "A few comments: Each Kafka message is transmitted to Snowflake in either JSON or Avro format, which is stored as a single VARIANT column. This means the data remains unparsed and is not distributed across multiple columns in the Snowflake table. The Kafka connector utilizes key pair authentication instead of basic authentication methods, such as using a username and password, enhancing security. For each topic, the connector establishes an internal stage to temporarily hold data files, a pipe for ingesting files for each topic partition, and a table dedicated to that topic. If the designated table for a topic doesn't exist, the connector will create it. If it does exist, it will add the RECORD_CONTENT and RECORD_METADATA columns, ensuring that the other columns are nullable; an error will be generated if they are not. Kafka Topics can be set up with limits on storage space or retention time, with the default retention period being 7 days. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "beginner",
+      "sub_topic": "3.6",
+      "sub_topic_name": "Kafka Connector"
+    },
+    {
+      "id": "architect_test2_q33",
+      "source": "architect_test2",
+      "question_num": 33,
+      "question": "Which of the following grants are required for the role kafka_load_role_1 running the Snowflake Kafka Connector, with the intent of loading data to Snowflake? (Choose three.)\n\n(Assume this role already exists and has usage access to the schema kafka_schema in database kafka_db, the target for data loading.)\n\ngrant create external table on schema kafka_schema to role kafka_load_role_1;\n\ngrant create task on schema kafka_schema to role kafka_load_role_1;\n\ngrant create stream on schema kafka_schema to role kafka_load_role_1;",
+      "options": [
+        {
+          "text": "grant create table on schema kafka_schema to role kafka_load_role_1;",
+          "explanation": ""
+        },
+        {
+          "text": "grant create stage on schema kafka_schema to role kafka_load_role_1;",
+          "explanation": ""
+        },
+        {
+          "text": "grant create pipe on schema kafka_schema to role kafka_load_role_1;",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0,
+        1,
+        2
+      ],
+      "multi_select": true,
+      "multi_select_count": 3,
+      "overall_explanation": "To use the Kafka connector with Snowpipe, the role needs: CREATE TABLE (to create the target table), CREATE STAGE (for the internal stage), and CREATE PIPE (for the Snowpipe object). External tables, tasks, and streams are not required for this setup.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "advanced",
+      "sub_topic": "3.6",
+      "sub_topic_name": "Kafka Connector"
+    },
+    {
+      "id": "architect_test2_q37",
+      "source": "architect_test2",
+      "question_num": 37,
+      "question": "A table is loaded using Snowflake Connector for Kafka. What will happen if the file cannot be loaded?",
+      "options": [
+        {
+          "text": "The Kafka Connector deletes the files that cannot be loaded",
+          "explanation": ""
+        },
+        {
+          "text": "The Kafka Connector moves files it cannot load to the stage associated with the user loading the target table",
+          "explanation": ""
+        },
+        {
+          "text": "The Kafka Connector moves files it cannot load to the stage associated with the target table",
+          "explanation": ""
+        },
+        {
+          "text": "The Kafka Connector loads the files to an error table with the columns RECORD_CONTENT and RECORD_METADATA",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        2
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "When a table is loaded using the Snowflake Connector for Kafka and the file cannot be loaded, the Kafka Connector will move those files to the stage that is associated with the target table, allowing for further investigation or reprocessing of the files. For more detailed information about the Kafka connector, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "intermediate",
+      "sub_topic": "3.6",
+      "sub_topic_name": "Kafka Connector"
+    },
+    {
+      "id": "architect_test3_q27",
+      "source": "architect_test3",
+      "question_num": 27,
+      "question": "What type of authentication does the Kafka connector use?",
+      "options": [
+        {
+          "text": "Username/password requiring a password with numbers and letters",
+          "explanation": ""
+        },
+        {
+          "text": "Key pair Authentication, which requires a 1024-bit (minimum) RSA key pair",
+          "explanation": ""
+        },
+        {
+          "text": "Key pair Authentication, which requires a 2048-bit (minimum) RSA key pair",
+          "explanation": ""
+        },
+        {
+          "text": "Username/password requiring a password with numbers, letters, and symbols",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        2
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "beginner",
+      "sub_topic": "3.6",
+      "sub_topic_name": "Kafka Connector"
+    },
+    {
+      "id": "architect_test3_q50",
+      "source": "architect_test3",
+      "question_num": 50,
+      "question": "An Architect is designing a pipeline to stream event data into Snowflake using the Snowflake Kafka connector. The Architect’s highest priority is to configure the connector to stream data in the MOST cost-effective manner. Which of the following is recommended for optimizing the cost associated with the Snowflake Kafka connector?",
+      "options": [
+        {
+          "text": "Utilize a lower Buffer.flush.time in the connector configuration.",
+          "explanation": ""
+        },
+        {
+          "text": "Utilize a lower Buffer.size.bytes in the connector configuration.",
+          "explanation": ""
+        },
+        {
+          "text": "Utilize a lower Buffer.count.records in the connector configuration.",
+          "explanation": ""
+        },
+        {
+          "text": "Utilize a higher Buffer.flush.time in the connector configuration.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        3
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "A few comments: buffer.flush.time defines the interval (in seconds) between buffer flushes, triggering insert operations for buffered records. After each flush, the Kafka connector calls the Snowpipe Streaming API once. For higher data flow rates, reducing this value improves latency. If cost is a priority over latency, increasing the buffer flush time may be preferable. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "advanced",
+      "sub_topic": "3.6",
+      "sub_topic_name": "Kafka Connector"
+    },
+    {
+      "id": "architect_test3_q53",
+      "source": "architect_test3",
+      "question_num": 53,
+      "question": "An organization is interested in using the Kafka Connector for loading data into Snowflake. The team has the Kafka connector subscribed to a few Kafka topics, but the topics have not been mapped to Snowflake tables. What is the expected Kafka connector behavior? (Choose two.)",
+      "options": [
+        {
+          "text": "The connector cannot load data until a Snowpipe is created for each partition.",
+          "explanation": ""
+        },
+        {
+          "text": "The connector cannot load data until Kafka topics are mapped to the Snowflake tables.",
+          "explanation": ""
+        },
+        {
+          "text": "The connector creates the columns RECORD_CONTENT and RECORD_METADATA in the target table.",
+          "explanation": ""
+        },
+        {
+          "text": "The connector creates a new table for each topic using the topic name.",
+          "explanation": ""
+        },
+        {
+          "text": "The connector creates an external stage to temporarily store data files for each topic.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        2,
+        3
+      ],
+      "multi_select": true,
+      "multi_select_count": 2,
+      "overall_explanation": "The connector establishes several objects for each topic, including an internal stage to temporarily hold data files and a pipe to ingest the data files associated with each topic partition. Additionally, it creates a table for each topic. If the specified table does not already exist, the connector will create it. If the table exists, the connector will add the RECORD_CONTENT and RECORD_METADATA columns. For more detailed information, refer to the Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "intermediate",
+      "sub_topic": "3.6",
+      "sub_topic_name": "Kafka Connector"
+    },
+    {
+      "id": "architect_test3_q54",
+      "source": "architect_test3",
+      "question_num": 54,
+      "question": "Which of these Snowflake components/objects is NOT typically used in building continuous ELT pipelines?",
+      "options": [
+        {
+          "text": "Streams",
+          "explanation": ""
+        },
+        {
+          "text": "Snowflake Connector for Kafka",
+          "explanation": ""
+        },
+        {
+          "text": "Data Exchange",
+          "explanation": ""
+        },
+        {
+          "text": "Snowpipe",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        2
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Data Exchange is your own data hub for securely collaborating around data between a selected group of members you invite. It enables providers to publish data that consumers can then discover. For more detailed information, refer to the Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "intermediate",
+      "sub_topic": "3.6",
+      "sub_topic_name": "Kafka Connector"
+    },
+    {
+      "id": "architect_test4_q2",
+      "source": "architect_test4",
+      "question_num": 2,
+      "question": "Which are the two VARIANT columns each schema has in every Snowflake table loaded by the Kafka connector? (Choose two.)",
+      "options": [
+        {
+          "text": "RECORD_PRIVILEGES",
+          "explanation": ""
+        },
+        {
+          "text": "RECORD_METADATA",
+          "explanation": ""
+        },
+        {
+          "text": "RECORD_ISCORRECT",
+          "explanation": ""
+        },
+        {
+          "text": "RECORD_CONTENT",
+          "explanation": ""
+        },
+        {
+          "text": "RECORD_SUMMARY",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1,
+        3
+      ],
+      "multi_select": true,
+      "multi_select_count": 2,
+      "overall_explanation": "Each schema in a Snowflake table loaded by the Kafka connector includes the VARIANT columns RECORD_METADATA, which stores metadata related to the Kafka message, and RECORD_CONTENT, which holds the actual content of the Kafka message. These columns are essential for handling and interpreting the data ingested from Kafka. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "intermediate",
+      "sub_topic": "3.6",
+      "sub_topic_name": "Kafka Connector"
+    },
+    {
+      "id": "architect_test4_q6",
+      "source": "architect_test4",
+      "question_num": 6,
+      "question": "Which command can we use to drop pipes from the Kafka connector?",
+      "options": [
+        {
+          "text": "DELETE PIPE <kafkaPipe>",
+          "explanation": ""
+        },
+        {
+          "text": "DROP PIPE <kafkaPipe>",
+          "explanation": ""
+        },
+        {
+          "text": "DROP KAFKA_PIPE <kafkaPipe>",
+          "explanation": ""
+        },
+        {
+          "text": "DELETE KAFKA_PIPE <kafkaPipe>",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "To drop a pipe, including those associated with the Kafka connector, the command is DROP PIPE <pipe_name>. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "beginner",
+      "sub_topic": "3.6",
+      "sub_topic_name": "Kafka Connector"
+    },
+    {
+      "id": "architect_test4_q35",
+      "source": "architect_test4",
+      "question_num": 35,
+      "question": "When using the Snowflake Connector for Kafka, what data formats are supported for the messages? (Choose two.)",
+      "options": [
+        {
+          "text": "AVRO",
+          "explanation": ""
+        },
+        {
+          "text": "JSON",
+          "explanation": ""
+        },
+        {
+          "text": "XML",
+          "explanation": ""
+        },
+        {
+          "text": "Parquet",
+          "explanation": ""
+        },
+        {
+          "text": "CSV",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0,
+        1
+      ],
+      "multi_select": true,
+      "multi_select_count": 2,
+      "overall_explanation": "The Snowflake Connector for Kafka supports JSON and Avro data formats for messages. However, Snowflake does not support CSV, XML, or Parquet data formats for Kafka messages. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "intermediate",
+      "sub_topic": "3.6",
+      "sub_topic_name": "Kafka Connector"
+    }
+  ]
+}

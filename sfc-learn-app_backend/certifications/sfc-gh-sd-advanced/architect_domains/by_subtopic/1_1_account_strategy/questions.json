@@ -1,0 +1,319 @@
+{
+  "sub_topic": "1.1",
+  "sub_topic_name": "Account Strategy",
+  "domain": "Domain 1.0: Accounts and Security",
+  "total_questions": 8,
+  "difficulty_distribution": {
+    "advanced": 1,
+    "beginner": 2,
+    "intermediate": 5
+  },
+  "exam_traps": [
+    {
+      "trap": "Tri-Secret Secure requires Business Critical edition or higher",
+      "why_confusing": "Many people assume Enterprise edition is enough for all security features. Tri-Secret Secure, HIPAA/PCI compliance, and customer-managed keys all need Business Critical.",
+      "correct_answer": "Business Critical (or VPS) edition",
+      "doc_reference": "https://docs.snowflake.com/en/user-guide/intro-editions"
+    },
+    {
+      "trap": "Account locator format differs by cloud/region",
+      "why_confusing": "AWS accounts use format like xy12345, Azure uses xy12345.east-us-2.azure, GCP uses xy12345.us-central1.gcp. The org-level URL (orgname-accountname) is portable across all.",
+      "correct_answer": "Use organization-level account URL (orgname-accountname) for portability",
+      "doc_reference": "https://docs.snowflake.com/en/user-guide/admin-account-identifier"
+    },
+    {
+      "trap": "Account Per Tenant vs Schema Per Tenant: RBAC is simpler with Account Per Tenant",
+      "why_confusing": "Account Per Tenant means each tenant has its own Snowflake account with isolated RBAC. Schema Per Tenant shares one account but needs complex RBAC to isolate tenants. The exam asks which approach makes RBAC 'simple to configure' -- answer is Account Per Tenant.",
+      "correct_answer": "Account Per Tenant = simpler RBAC, more isolation; Schema Per Tenant = shared resources, complex RBAC",
+      "doc_reference": "https://docs.snowflake.com/en/user-guide/admin-account-identifier"
+    },
+    {
+      "trap": "Standard edition does NOT support multi-cluster warehouses",
+      "why_confusing": "Multi-cluster warehouses require Enterprise edition or higher. Standard edition only supports single-cluster. If a question mentions scaling out clusters, the answer requires Enterprise.",
+      "correct_answer": "Enterprise edition or higher for multi-cluster warehouses",
+      "doc_reference": "https://docs.snowflake.com/en/user-guide/intro-editions"
+    }
+  ],
+  "questions": [
+    {
+      "id": "architect_test2_q34",
+      "source": "architect_test2",
+      "question_num": 34,
+      "question": "At what frequency does Snowflake rotate the object keys?",
+      "options": [
+        {
+          "text": "60 Days",
+          "explanation": ""
+        },
+        {
+          "text": "30 Days",
+          "explanation": ""
+        },
+        {
+          "text": "16 Days",
+          "explanation": ""
+        },
+        {
+          "text": "1 Year",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Keys automatically get rotated every 30 days. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 1.0: Accounts and Security",
+      "difficulty": "intermediate",
+      "sub_topic": "1.1",
+      "sub_topic_name": "Account Strategy"
+    },
+    {
+      "id": "architect_test3_q14",
+      "source": "architect_test3",
+      "question_num": 14,
+      "question": "A company needs to have the following features available in its Snowflake account:\n\n1. Support for Multi-Factor Authentication (MFA)\n\n2. A minimum of 2 months of Time Travel availability\n\n3. Database replication in between different regions\n\n4. Native support for JDBC and ODBC\n\n5. Customer-managed encryption keys using Tri-Secret Secure\n\n6. Support for Payment Card Industry Data Security Standards (PCI DSS)\n\nIn order to provide all the listed services, what is the MINIMUM Snowflake edition that should be selected during account creation?",
+      "options": [
+        {
+          "text": "Enterprise",
+          "explanation": ""
+        },
+        {
+          "text": "Virtual Private Snowflake (VPS)",
+          "explanation": ""
+        },
+        {
+          "text": "Standard",
+          "explanation": ""
+        },
+        {
+          "text": "Business Critical",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        3
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "The Business Critical and VPS editions of Snowflake include all the features specified in the question, but the question is asking for the MINIMUM, so we choose Business Critical.\n\nFor more detailed information, refer to the Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 1.0: Accounts and Security",
+      "difficulty": "advanced",
+      "sub_topic": "1.1",
+      "sub_topic_name": "Account Strategy"
+    },
+    {
+      "id": "architect_test3_q19",
+      "source": "architect_test3",
+      "question_num": 19,
+      "question": "What is the MINIMUM Snowflake edition needed to integrate a tokenization provider with Snowflake External Tokenization?",
+      "options": [
+        {
+          "text": "Business Critical",
+          "explanation": ""
+        },
+        {
+          "text": "Enterprise",
+          "explanation": ""
+        },
+        {
+          "text": "Standard",
+          "explanation": ""
+        },
+        {
+          "text": "Virtual Private Snowflake (VPS)",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "You can utilize external functions with a tokenization provider with Standard Edition. However, to integrate your tokenization provider with Snowflake External Tokenization, an upgrade to the Enterprise Edition or higher is required. For more detailed information, refer to the Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 1.0: Accounts and Security",
+      "difficulty": "beginner",
+      "sub_topic": "1.1",
+      "sub_topic_name": "Account Strategy"
+    },
+    {
+      "id": "architect_test4_q36",
+      "source": "architect_test4",
+      "question_num": 36,
+      "question": "A company security requirement states that encryption keys used for encrypting files in Snowflake need to be re-encrypted using new keys every 12 months. The company is using an Enterprise edition of Snowflake. How can this requirement be met?",
+      "options": [
+        {
+          "text": "Upgrade to a Business Critical edition of Snowflake.",
+          "explanation": ""
+        },
+        {
+          "text": "Create a task to run the rekeying function on a 12-month schedule.",
+          "explanation": ""
+        },
+        {
+          "text": "Set the periodic_data_rekeying parameter to true.",
+          "explanation": ""
+        },
+        {
+          "text": "Contact Snowflake Support to enable periodic rekeying.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        2
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "A few comments: This requirement can be met using periodic rekeying. Periodic rekeying requires Enterprise Edition (or higher). If periodic rekeying is enabled, Snowflake creates a new encryption key automatically when the retired key for a table is older than one year. The new key is used to re-encrypt all data previously protected by the retired key. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 1.0: Accounts and Security",
+      "difficulty": "intermediate",
+      "sub_topic": "1.1",
+      "sub_topic_name": "Account Strategy"
+    },
+    {
+      "id": "architect_test4_q59",
+      "source": "architect_test4",
+      "question_num": 59,
+      "question": "An Architect with the ORGADMIN role wants to change a Snowflake account from an Enterprise edition to a Business Critical edition. How should this be accomplished?",
+      "options": [
+        {
+          "text": "Contact Snowflake Support and request that the account's edition be changed.",
+          "explanation": ""
+        },
+        {
+          "text": "Use the account's ACCOUNTADMIN role to change the edition.",
+          "explanation": ""
+        },
+        {
+          "text": "Run an ALTER ACCOUNT command and create a tag of EDITION and set the tag to Business Critical.",
+          "explanation": ""
+        },
+        {
+          "text": "Failover to a new account in the same region and specify the new account's edition upon creation.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Changing the account edition (e.g., from Enterprise to Business Critical) cannot be done directly through SQL commands or account role actions. Snowflake editions represent different service levels with distinct security and compliance features, and only Snowflake Support can make this change at the account level upon request. The Architect with the ORGADMIN role must reach out to Snowflake Support to initiate this process. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 1.0: Accounts and Security",
+      "difficulty": "intermediate",
+      "sub_topic": "1.1",
+      "sub_topic_name": "Account Strategy"
+    },
+    {
+      "id": "architect_new_q54",
+      "source": "architect_new",
+      "question_num": 54,
+      "question": "Which Snowflake edition is required to use PrivateLink connectivity?",
+      "options": [
+        {
+          "text": "Standard",
+          "explanation": ""
+        },
+        {
+          "text": "Enterprise",
+          "explanation": ""
+        },
+        {
+          "text": "Business Critical",
+          "explanation": ""
+        },
+        {
+          "text": "Virtual Private Snowflake (VPS)",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        2
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Business Critical edition (or higher) is required for PrivateLink. This edition also provides Tri-Secret Secure encryption and HIPAA/PCI compliance support. Standard and Enterprise do not support PrivateLink.",
+      "domain_raw": "",
+      "domain": "Domain 1.0: Accounts and Security",
+      "difficulty": "intermediate",
+      "sub_topic": "1.1",
+      "sub_topic_name": "Account Strategy"
+    },
+    {
+      "id": "architect_new_q62",
+      "source": "architect_new",
+      "question_num": 62,
+      "question": "Which Snowflake edition is required for masking policies?",
+      "options": [
+        {
+          "text": "Standard",
+          "explanation": ""
+        },
+        {
+          "text": "Enterprise",
+          "explanation": ""
+        },
+        {
+          "text": "Business Critical",
+          "explanation": ""
+        },
+        {
+          "text": "All editions support masking policies.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Dynamic data masking requires Enterprise edition or higher. Standard edition does not support masking policies. Business Critical and VPS also support masking but Enterprise is the minimum.",
+      "domain_raw": "",
+      "domain": "Domain 1.0: Accounts and Security",
+      "difficulty": "beginner",
+      "sub_topic": "1.1",
+      "sub_topic_name": "Account Strategy"
+    },
+    {
+      "id": "architect_new_q72",
+      "source": "architect_new",
+      "question_num": 72,
+      "question": "What is the difference between ACCOUNT_USAGE and INFORMATION_SCHEMA for monitoring?",
+      "options": [
+        {
+          "text": "ACCOUNT_USAGE has real-time data; INFORMATION_SCHEMA has delayed data.",
+          "explanation": ""
+        },
+        {
+          "text": "ACCOUNT_USAGE has 45min-3h latency with 365-day retention; INFORMATION_SCHEMA has real-time data with 7-day to 6-month retention.",
+          "explanation": ""
+        },
+        {
+          "text": "They contain identical data with the same latency.",
+          "explanation": ""
+        },
+        {
+          "text": "ACCOUNT_USAGE is for storage monitoring; INFORMATION_SCHEMA is for compute monitoring.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "ACCOUNT_USAGE (in the SNOWFLAKE shared database) has a 45-minute to 3-hour latency but retains data for 365 days. INFORMATION_SCHEMA provides real-time data but with shorter retention (7 days to 6 months depending on the view). Use ACCOUNT_USAGE for historical analysis.",
+      "domain_raw": "",
+      "domain": "Domain 1.0: Accounts and Security",
+      "difficulty": "intermediate",
+      "sub_topic": "1.1",
+      "sub_topic_name": "Account Strategy"
+    }
+  ]
+}

@@ -1,0 +1,715 @@
+{
+  "sub_topic": "4.2",
+  "sub_topic_name": "Warehouses",
+  "domain": "Domain 4.0: Performance Optimization",
+  "total_questions": 19,
+  "difficulty_distribution": {
+    "advanced": 4,
+    "beginner": 1,
+    "intermediate": 14
+  },
+  "exam_traps": [
+    {
+      "trap": "Multi-cluster = concurrency (scale out). Warehouse size = single query speed (scale up).",
+      "why_confusing": "Many questions mix these up. 2000 users running reports simultaneously = multi-cluster (scale out). One complex query running slowly = larger warehouse (scale up). The exam explicitly tests this distinction.",
+      "correct_answer": "Concurrency issue = multi-cluster. Single query slow = bigger warehouse size.",
+      "doc_reference": "https://docs.snowflake.com/en/user-guide/warehouses-multicluster"
+    },
+    {
+      "trap": "Economy scaling policy: favors KEEPING running clusters, delays adding new ones",
+      "why_confusing": "Standard scaling adds clusters quickly when queries queue. Economy scaling waits longer before adding clusters (saves credits but increases queue time). The exam asks which is more cost-effective.",
+      "correct_answer": "Economy = fewer clusters, longer queues, lower cost. Standard = faster scaling, higher cost.",
+      "doc_reference": "https://docs.snowflake.com/en/user-guide/warehouses-multicluster"
+    },
+    {
+      "trap": "Dedicated warehouses per workload type prevent resource contention",
+      "why_confusing": "The exam pattern: 'all reports share one warehouse' + 'timeouts during business hours'. Solution: separate warehouses for different teams/workloads. Multi-cluster helps with concurrency within a workload, but separating workloads requires separate warehouses.",
+      "correct_answer": "Different workloads = different warehouses. Same workload, many users = multi-cluster.",
+      "doc_reference": "https://docs.snowflake.com/en/user-guide/warehouses-considerations"
+    }
+  ],
+  "questions": [
+    {
+      "id": "architect_test1_q1",
+      "source": "architect_test1",
+      "question_num": 1,
+      "question": "A retail company has 2000+ stores spread across the country. Store Managers report that they are having trouble running key reports related to inventory management, sales targets, payroll, and staffing during business hours. The Managers report that performance is poor and time-outs occur frequently. Currently all reports share the same Snowflake virtual warehouse. How should this situation be addressed? (Choose two.)",
+      "options": [
+        {
+          "text": "Use a Business Intelligence tool for in-memory computation to improve performance.",
+          "explanation": ""
+        },
+        {
+          "text": "Configure the virtual warehouse to be multi-clustered.",
+          "explanation": ""
+        },
+        {
+          "text": "Configure a dedicated virtual warehouse for the Store Manager team.",
+          "explanation": ""
+        },
+        {
+          "text": "Configure the virtual warehouse to size 4-XL.",
+          "explanation": ""
+        },
+        {
+          "text": "Advise the Store Manager team to defer report execution to off-business hours.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1,
+        2
+      ],
+      "multi_select": true,
+      "multi_select_count": 2,
+      "overall_explanation": "2000+ stores involve many managers accessing reports at the same time during business hours. The performance problems have to do with concurrency issues. The VWH multicluster is well suited to handle this type of situation, scaling out the number of clusters and supporting more users using reports in parallel. About other options: Recommending Store Managers to use the reports after hours is not a very good recommendation. Scaling up the size of the virtual warehouse to 4-XL can improve performance but can be cost-inefficient and does not solve the underlying issue of concurrent workload management. This approach to handle concurrency is not recommended by Snowflake Key comment: \"CUrrently all reports share the same Snowflake VWH\". Configuring a dedicated virtual warehouse for the Store Manager team ensures that their reports do not compete for resources with other workloads. This separation can significantly improve performance by isolating their queries from those of other users. Using a Business Intelligence tool for in-memory computation might help with some performance improvements but does not address the root cause of resource contention in Snowflake. For more detailed information about VWH and performance, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 4.0: Performance Optimization",
+      "difficulty": "intermediate",
+      "sub_topic": "4.2",
+      "sub_topic_name": "Warehouses"
+    },
+    {
+      "id": "architect_test1_q23",
+      "source": "architect_test1",
+      "question_num": 23,
+      "question": "The Business Intelligence team reports that when some team members run queries for their dashboards in parallel with others, the query response time is getting significantly slower.\n\nWhat can a Snowflake Architect do to identify what is occurring and troubleshoot this issue?\n\nUse larger warehouses to speed up the queries running in parallel. Identify the queries running in parallel using this query:\n\nSELECT QUERY_ID,\nUSER_NAME,\nWAREHOUSE_NAME,\nWAREHOUSE_SIZE,\nBYTES_SCANNED,\nBYTES_SPILLED_TO_REMOTE_STORAGE,\nBYTES_SPILLED_TO_REMOTE_STORAGE / BYTES_SCANNED AS SPILLING_READ_RATIO\nFROM \"SNOWFLAKE\".\"ACCOUNT_USAGE\".\"QUERY_HISTORY\"\nWHERE BYTES_SPILLED_TO_REMOTE_STORAGE > BYTES_SCANNED * 5\nORDER BY SPILLING_READ_RATIO DESC;\nIdentify which queries are spilled to remote storage and change the warehouse parameters to address this issue. Identify the issue by running this query:\n\nSELECT QUERY_ID,\nSUBSTR(QUERY_TEXT, 1, 50) PARTIAL_QUERY_TEXT,\nUSER_NAME,\nWAREHOUSE_NAME,\nWAREHOUSE_SIZE,\nBYTES_SCANNED,\nBYTES_SPILLED_TO_REMOTE_STORAGE,\nSTART_TIME, END_TIME,\nTOTAL_ELAPSED_TIME/1000 TOTAL_ELAPSED_TIME\nFROM SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY\nWHERE BYTES_SPILLED_TO_REMOTE_STORAGE > 0\nAND START_TIME > DATEADD('days', -45, CURRENT_DATE)\nORDER BY BYTES_SPILLED_TO_REMOTE_STORAGE DESC LIMIT 10;",
+      "options": [
+        {
+          "text": "Introduce multi-cluster warehouses to help with concurrent queries. Identify the concurrent queries by running this query:",
+          "explanation": ""
+        },
+        {
+          "text": "SELECT TO_DATE(START_TIME) AS DATE,\nWAREHOUSE_NAME,\nSUM(AVG_RUNNING) AS SUM_RUNNING,\nSUM(AVG_QUEUED_LOAD) AS SUM_QUEUED\nFROM \"SNOWFLAKE\".\"ACCOUNT_USAGE\".\"WAREHOUSE_LOAD_HISTORY\"\nWHERE TO_DATE(START_TIME) >= DATEADD(month, -1, CURRENT_TIMESTAMP())\nGROUP BY 1,2 HAVING SUM(AVG_QUEUED_LOAD) > 0;\nIncrease the size of the warehouse cache to speed up concurrent queries. Identify the concurrent queries using this query:",
+          "explanation": ""
+        },
+        {
+          "text": "SELECT WAREHOUSE_NAME, COUNT(*) AS QUERY_COUNT, SUM(BYTES_SCANNED) AS BYTES_SCANNED,\nSUM(BYTES_SCANNED*PERCENTAGE_SCANNED_FROM_CACHE) AS BYTES_SCANNED_FROM_CACHE,\nSUM(BYTES_SCANNED*PERCENTAGE_SCANNED_FROM_CACHE) / SUM(BYTES_SCANNED) AS PERCENT_SCANNED_FROM_CACHE\nFROM \"SNOWFLAKE\".\"ACCOUNT_USAGE\".\"QUERY_HISTORY\"\nWHERE START_TIME >= DATEADD(month, -1, current_timestamp()) AND BYTES_SCANNED > 0\nGROUP BY 1 ORDER BY 5;",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "The query response time is noticeably slower when multiple users execute queries simultaneously. This indicates a queuing and concurrency issue, which can be addressed through Multi-cluster Warehouses and scaling out. Multi-cluster warehouses are specifically engineered to manage queuing and performance challenges associated with a high volume of concurrent users and queries. Additionally, they can automate resource allocation if the number of users or queries varies significantly.\n\nFor more detailed information about reducing queues, refer to the official Snowflake documentation.\n\nFor more detailed information about managing concurrency, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 4.0: Performance Optimization",
+      "difficulty": "advanced",
+      "sub_topic": "4.2",
+      "sub_topic_name": "Warehouses"
+    },
+    {
+      "id": "architect_test2_q24",
+      "source": "architect_test2",
+      "question_num": 24,
+      "question": "A large join query takes around 3 hours to complete in an L warehouse. After increasing the warehouse size to XL one, the query's performance didn't improve. What can be the cause of it?",
+      "options": [
+        {
+          "text": "The query was still running before the new size of the warehouse was applied",
+          "explanation": ""
+        },
+        {
+          "text": "One of the column's values is significantly more than the rest of the values in the column; that's why it produces a skew in your data.",
+          "explanation": ""
+        },
+        {
+          "text": "The warehouse had auto-suspended before the query finished, and it had to re-start again",
+          "explanation": ""
+        },
+        {
+          "text": "The warehouse doesn't have enough power still",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Data skew refers to a non-uniform distribution of values in a dataset -- for example, if 90% of rows have the same value in a join column. In Snowflake, this means one processing node handles the majority of the data while other nodes sit idle, creating a bottleneck. Scaling up the warehouse does NOT help because the problem is concentrated on a single node. The solution involves restructuring the query or data to distribute work more evenly. Common strategies include: filtering out the skewed values first, breaking the query into parts, or using different join strategies. You can identify data skew in the Query Profile by looking at uneven partition scans across nodes.",
+      "domain_raw": "",
+      "domain": "Domain 4.0: Performance Optimization",
+      "difficulty": "intermediate",
+      "sub_topic": "4.2",
+      "sub_topic_name": "Warehouses"
+    },
+    {
+      "id": "architect_test2_q36",
+      "source": "architect_test2",
+      "question_num": 36,
+      "question": "Will this query cost compute credits considering that the previous query ran 5 minutes ago?",
+      "options": [
+        {
+          "text": "CREATE OR REPLACE TABLE MTBL AS\nSELECT *\nFROM TABLE\n(RESULT_SCAN(LAST_QUERY_ID())\n);\nIt will cost credits if auto-suspend time of the Warehouse is less than 5 minutes.",
+          "explanation": ""
+        },
+        {
+          "text": "No, it will not compute credits because we are re-using from the cache.",
+          "explanation": ""
+        },
+        {
+          "text": "We cannot know because we do not know the auto-suspend time of the Warehouse.",
+          "explanation": ""
+        },
+        {
+          "text": "It will cost credits.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        3
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "This is a tricky question. The SELECT command doesn't cost compute credits because we are re-using from the cache.\n\nCreating the table structure doesn't cost compute credits either, BUT inserting the rows in the table requires compute power, so we will have to pay compute credits.",
+      "domain_raw": "",
+      "domain": "Domain 4.0: Performance Optimization",
+      "difficulty": "intermediate",
+      "sub_topic": "4.2",
+      "sub_topic_name": "Warehouses"
+    },
+    {
+      "id": "architect_test2_q43",
+      "source": "architect_test2",
+      "question_num": 43,
+      "question": "When will a multi-cluster warehouse start a new cluster if it’s running with the economy scaling policy?",
+      "options": [
+        {
+          "text": "Only if the system estimates there’s enough query load to keep the cluster busy for at least 6 minutes.",
+          "explanation": ""
+        },
+        {
+          "text": "Only if the system estimates there’s enough query load to keep the cluster busy for at least 2 minutes.",
+          "explanation": ""
+        },
+        {
+          "text": "Only if the system estimates there’s enough query load to keep the cluster busy indefinitely.",
+          "explanation": ""
+        },
+        {
+          "text": "Only if the system estimates there’s enough query load to keep the cluster busy for at least 15 minutes.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "You can see the differences between these scaling policies at the following table:",
+      "domain_raw": "",
+      "domain": "Domain 4.0: Performance Optimization",
+      "difficulty": "intermediate",
+      "sub_topic": "4.2",
+      "sub_topic_name": "Warehouses"
+    },
+    {
+      "id": "architect_test2_q56",
+      "source": "architect_test2",
+      "question_num": 56,
+      "question": "An Architect is making performance improvements to Snowflake processes and adjusting the sizing of virtual warehouses. What technique does Snowflake recommend for determining which virtual warehouse size to select?",
+      "options": [
+        {
+          "text": "Experiment by running the same queries against warehouses of different sizes",
+          "explanation": ""
+        },
+        {
+          "text": "Always start with an X-Small and increase the size if the query does not complete in 2 minutes",
+          "explanation": ""
+        },
+        {
+          "text": "Use the default size Snowflake chooses",
+          "explanation": ""
+        },
+        {
+          "text": "Use X-Large or above for tables larger than 1 GB",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Snowflake recommends experimenting by running the same queries across virtual warehouses of various sizes. This approach helps identify the most appropriate size based on actual performance metrics and workload requirements, leading to better optimization of resources. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 4.0: Performance Optimization",
+      "difficulty": "intermediate",
+      "sub_topic": "4.2",
+      "sub_topic_name": "Warehouses"
+    },
+    {
+      "id": "architect_test2_q61",
+      "source": "architect_test2",
+      "question_num": 61,
+      "question": "Which privilege is required for a role to be able to resume a suspended warehouse if auto-resume is not enabled?",
+      "options": [
+        {
+          "text": "USAGE",
+          "explanation": ""
+        },
+        {
+          "text": "OPERATE",
+          "explanation": ""
+        },
+        {
+          "text": "MODIFY",
+          "explanation": ""
+        },
+        {
+          "text": "MONITOR",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "To resume a suspended warehouse when auto-resume is not enabled, a role requires the OPERATE privilege. This privilege allows the role to perform operations such as starting and stopping the warehouse. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 4.0: Performance Optimization",
+      "difficulty": "intermediate",
+      "sub_topic": "4.2",
+      "sub_topic_name": "Warehouses"
+    },
+    {
+      "id": "architect_test3_q34",
+      "source": "architect_test3",
+      "question_num": 34,
+      "question": "A company’s daily Snowflake workload consists of a huge number of concurrent queries triggered between 9pm and 11pm. At the individual level, these queries are smaller statements that get completed within a short time period. What configuration can the company’s Architect implement to enhance the performance of this workload? (Choose two.)",
+      "options": [
+        {
+          "text": "Set the connection timeout to a higher value than its default.",
+          "explanation": ""
+        },
+        {
+          "text": "Enable a multi-clustered virtual warehouse in maximized mode during the workload duration.",
+          "explanation": ""
+        },
+        {
+          "text": "Increase the size of the virtual warehouse to size X-Large.",
+          "explanation": ""
+        },
+        {
+          "text": "Set the MAX_CONCURRENCY_LEVEL to a higher value than its default value of 8 at the virtual warehouse level.",
+          "explanation": ""
+        },
+        {
+          "text": "Reduce the amount of data that is being processed through this workload.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1,
+        3
+      ],
+      "multi_select": true,
+      "multi_select_count": 2,
+      "overall_explanation": "A few comments: Enabling a multi-clustered virtual warehouse in maximized mode during the workload duration will provide better query performance as it automatically and dynamically scales the number of clusters and the processing power based on the workload requirements. Setting the MAX_CONCURRENCY_LEVEL to a higher value than its default value of 8 will allow more queries to run concurrently, which can improve overall query performance.",
+      "domain_raw": "",
+      "domain": "Domain 4.0: Performance Optimization",
+      "difficulty": "intermediate",
+      "sub_topic": "4.2",
+      "sub_topic_name": "Warehouses"
+    },
+    {
+      "id": "architect_test3_q36",
+      "source": "architect_test3",
+      "question_num": 36,
+      "question": "An Architect ran a query that completed in 30 minutes. The Architect wants to tune the query - noting a compilation time of 24 minutes. What steps can be taken to address this situation without increasing the size of the virtual warehouse? (Choose three.). Enable the search optimization service on the tables.",
+      "options": [
+        {
+          "text": "Materialize some of the resource-intensive operations in the query.",
+          "explanation": ""
+        },
+        {
+          "text": "Enable clustering on all the tables in the query.",
+          "explanation": ""
+        },
+        {
+          "text": "Check the query definition to identify if there are high-complexity nested views.",
+          "explanation": ""
+        },
+        {
+          "text": "Increase the number of multi-clusters.",
+          "explanation": ""
+        },
+        {
+          "text": "Rewrite the query to reduce or eliminate high compute, resource-intensive functions.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0,
+        2,
+        4
+      ],
+      "multi_select": true,
+      "multi_select_count": 3,
+      "overall_explanation": "A few comments: Increasing number of multicluster will help only concurrency issues, not this case. The timing problem is caused with the compilation, not with performance, so we discarded options oriented to improve performance: search optimization service, clustering, etc. Long compilation times are caused by query complexity and the number of tables and columns involved in the query. It is important to understand that increasing the virtual warehouse size does not always improve query performance. Therefore, it is essential to optimize the query complexity and the schema of the tables involved in the query to reduce the compilation time and improve query performance. The top time-consuming activity during the compilation process is query complexity. The complexity is measured based on the number of lines, functions, joins, filters, group by, order by, and union statements. The more complex the query, the longer it takes for the optimizer to create the query plan. As a result, the compilation time can be longer than the execution time. The number of tables and columns in the query also affects the compilation time. The optimizer needs to analyze the schema and the statistics of the tables to create an optimized query plan. Therefore, the more tables and columns involved in the query, the longer it takes for the optimizer to create the plan.",
+      "domain_raw": "",
+      "domain": "Domain 4.0: Performance Optimization",
+      "difficulty": "advanced",
+      "sub_topic": "4.2",
+      "sub_topic_name": "Warehouses"
+    },
+    {
+      "id": "architect_test3_q44",
+      "source": "architect_test3",
+      "question_num": 44,
+      "question": "Will this query cost compute credits considering that the previous query ran 5 minutes ago?\n\nSELECT *\nFROM TABLE(\nRESULT_SCAN(LAST_QUERY_ID())\n);",
+      "options": [
+        {
+          "text": "No, it will not compute credits because we are re-using from the cache.",
+          "explanation": ""
+        },
+        {
+          "text": "It will cost credits.",
+          "explanation": ""
+        },
+        {
+          "text": "It will cost credits if auto-suspend time of the Warehouse is less than 5 minutes.",
+          "explanation": ""
+        },
+        {
+          "text": "We cannot know because we do not know the auto-suspend time of the Warehouse.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "A few comments:\n\nThe RESULT_SCAN function returns the result set of a previous command (within 24 hours of when you executed the query) as if the result was a table.\n\nAs we are using the cache, it doesn't cost compute credits.\n\nFor more detailed information, refer to the Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 4.0: Performance Optimization",
+      "difficulty": "intermediate",
+      "sub_topic": "4.2",
+      "sub_topic_name": "Warehouses"
+    },
+    {
+      "id": "architect_test3_q51",
+      "source": "architect_test3",
+      "question_num": 51,
+      "question": "What other parameter does Snowflake recommend adding when organizing files into logical paths?",
+      "options": [
+        {
+          "text": "The city where the stage is located",
+          "explanation": ""
+        },
+        {
+          "text": "The size of the data files",
+          "explanation": ""
+        },
+        {
+          "text": "The day of the week when the data was written",
+          "explanation": ""
+        },
+        {
+          "text": "The date when the data was written",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        3
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "For example, imagine we are storing data for a European company with locations in different countries. The logical paths could be: Spain/Madrid/2023/01/10/05/ Spain/Barcelona/2023/01/03/05/ Germany/Berlin/2023/01/07/04/",
+      "domain_raw": "",
+      "domain": "Domain 4.0: Performance Optimization",
+      "difficulty": "intermediate",
+      "sub_topic": "4.2",
+      "sub_topic_name": "Warehouses"
+    },
+    {
+      "id": "architect_test3_q58",
+      "source": "architect_test3",
+      "question_num": 58,
+      "question": "How does a standard virtual warehouse policy work in Snowflake?",
+      "options": [
+        {
+          "text": "It conserves credits by keeping running clusters fully loaded rather than starting additional clusters.",
+          "explanation": ""
+        },
+        {
+          "text": "It prevents or minimizes queuing by starting additional clusters instead of conserving credits.",
+          "explanation": ""
+        },
+        {
+          "text": "It starts only if the system estimates that there is a query load that will keep the cluster busy for at least 2 minutes.",
+          "explanation": ""
+        },
+        {
+          "text": "It starts only if the system estimates that there is a query load that will keep the cluster busy for at least 6 minutes.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "A few comments: Standard (default): Prevents/minimizes queuing by favoring starting additional clusters over conserving credits. The first cluster starts immediately when either a query is queued or the system detects that there’s one more query than the currently-running clusters can execute. Each successive cluster waits to start 20 seconds For more detailed information, refer to the Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 4.0: Performance Optimization",
+      "difficulty": "intermediate",
+      "sub_topic": "4.2",
+      "sub_topic_name": "Warehouses"
+    },
+    {
+      "id": "architect_test4_q25",
+      "source": "architect_test4",
+      "question_num": 25,
+      "question": "How does Snowflake charge for the compute resources of the cloud services layer?",
+      "options": [
+        {
+          "text": "The typical utilization of the cloud services layer (up to 10% of daily compute credits) is included for free. You pay the excess after this 10%.",
+          "explanation": ""
+        },
+        {
+          "text": "It’s included in the storage cost",
+          "explanation": ""
+        },
+        {
+          "text": "The typical utilization of the cloud services layer (up to 10% of daily compute credits) is included for free. You pay the excess after this 20%.",
+          "explanation": ""
+        },
+        {
+          "text": "It’s included in the computing cost",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "The cloud services layer within Snowflake's architecture utilizes credits for essential background operations, including authentication, metadata management, and access control. Users are charged for this layer only when the daily usage of cloud services resources surpasses 10% of the daily warehouse consumption. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 4.0: Performance Optimization",
+      "difficulty": "intermediate",
+      "sub_topic": "4.2",
+      "sub_topic_name": "Warehouses"
+    },
+    {
+      "id": "architect_test4_q30",
+      "source": "architect_test4",
+      "question_num": 30,
+      "question": "By default, what is the MAXIMUM timeout value that is enforced before a SQL statement that is running is canceled by the system?",
+      "options": [
+        {
+          "text": "43200 seconds (0.5 days)",
+          "explanation": ""
+        },
+        {
+          "text": "172800 seconds (2 days)",
+          "explanation": ""
+        },
+        {
+          "text": "216000 seconds (2.5 days)",
+          "explanation": ""
+        },
+        {
+          "text": "86400 seconds (1 day)",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 4.0: Performance Optimization",
+      "difficulty": "beginner",
+      "sub_topic": "4.2",
+      "sub_topic_name": "Warehouses"
+    },
+    {
+      "id": "architect_test4_q43",
+      "source": "architect_test4",
+      "question_num": 43,
+      "question": "Which scaling policies does Snowflake support for multi-cluster warehouses? (Choose two.)",
+      "options": [
+        {
+          "text": "Auto-scale",
+          "explanation": ""
+        },
+        {
+          "text": "Minimized",
+          "explanation": ""
+        },
+        {
+          "text": "Economy",
+          "explanation": ""
+        },
+        {
+          "text": "Maximized",
+          "explanation": ""
+        },
+        {
+          "text": "Standard (default)",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        2,
+        4
+      ],
+      "multi_select": true,
+      "multi_select_count": 2,
+      "overall_explanation": "Snowflake supports the Standard (default) scaling policy, which balances performance and cost by scaling clusters according to the workload, and the Economy policy, which prioritizes minimizing costs by scaling down more aggressively during low demand periods.The scaling policy for a multi-cluster warehouse applies whether it's running in Auto-scale mode or not. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 4.0: Performance Optimization",
+      "difficulty": "intermediate",
+      "sub_topic": "4.2",
+      "sub_topic_name": "Warehouses"
+    },
+    {
+      "id": "architect_test4_q65",
+      "source": "architect_test4",
+      "question_num": 65,
+      "question": "A data platform team creates two multi-cluster virtual warehouses with the AUTO_SUSPEND value set to NULL on one, and '0' on the other. What would be the execution behavior of these virtual warehouses?",
+      "options": [
+        {
+          "text": "Setting a '0' or NULL value means the warehouses will suspend immediately.",
+          "explanation": ""
+        },
+        {
+          "text": "Setting a '0' or NULL value means the warehouses will never suspend.",
+          "explanation": ""
+        },
+        {
+          "text": "Setting a '0' value means the warehouses will suspend immediately, and NULL means the warehouses will never suspend.",
+          "explanation": ""
+        },
+        {
+          "text": "Setting a '0' or NULL value means the warehouses will suspend after the default of 600 seconds.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 4.0: Performance Optimization",
+      "difficulty": "intermediate",
+      "sub_topic": "4.2",
+      "sub_topic_name": "Warehouses"
+    },
+    {
+      "id": "architect_test5_q25",
+      "source": "architect_test5",
+      "question_num": 25,
+      "question": "A company is implementing a machine learning use case on a very large data set which will require high volumes of memory and compute resources. How should this Snowflake architecture be designed to meet these requirements?",
+      "options": [
+        {
+          "text": "Use a Snowpark-optimized virtual warehouse",
+          "explanation": ""
+        },
+        {
+          "text": "Use a standard multi-cluster virtual warehouse in maximized mode",
+          "explanation": ""
+        },
+        {
+          "text": "Use a standard virtual warehouse with the query acceleration service implemented",
+          "explanation": ""
+        },
+        {
+          "text": "Use a standard virtual warehouse with the search optimization service implemented",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Snowpark-optimized warehouses are ideal for executing Snowpark workloads that demand significant memory or rely on a specific CPU architecture. Typical examples include machine learning (ML) model training within a stored procedure running on a single virtual warehouse node. For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 4.0: Performance Optimization",
+      "difficulty": "intermediate",
+      "sub_topic": "4.2",
+      "sub_topic_name": "Warehouses"
+    },
+    {
+      "id": "architect_test5_q34",
+      "source": "architect_test5",
+      "question_num": 34,
+      "question": "An Architect needs to improve the performance of reports that pull data from multiple Snowflake tables, join, and then aggregate the data. Users access the reports using several dashboards. There are performance issues on Monday mornings between 9:00am-11:00am when many users check the sales reports.\n\nThe size of the group has increased from 4 to 8 users. Waiting times to refresh the dashboards has increased significantly. Currently, this workload is being served by a virtual warehouse with the following parameters:\n\nAUTO_RESUME = TRUE \nAUTO_SUSPEND = 60 \nSIZE = Medium\n\nWhat is the MOST cost-effective way to increase the availability of the reports?",
+      "options": [
+        {
+          "text": "Increase the warehouse to size Large and set auto_suspend = 600.",
+          "explanation": ""
+        },
+        {
+          "text": "Use a multi-cluster warehouse in maximized mode with 2 size Medium clusters.",
+          "explanation": ""
+        },
+        {
+          "text": "Use a multi-cluster warehouse in auto-scale mode with 1 size Medium cluster, and set min_cluster_count = 1 and max_cluster_count = 4.",
+          "explanation": ""
+        },
+        {
+          "text": "Use materialized views and pre-calculate the data.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        2
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "A few comments:\n\nIncreasing the size of the warehouse would improve performance, but it’s less cost-effective because a larger warehouse would be more expensive than scaling out clusters temporarily.\n\nIncreasing auto_suspend to 600 seconds (10 minutes) could add extra cost even though it will improve the warehouse cache utilization.\n\nMaterialized views do not allow joins among other limitations.\n\nMaximized mode runs all clusters simultaneously, which increases availability but lacks the flexibility of scaling down during off-peak hours. This approach would be more expensive than auto-scaling.\n\nBy setting different min_cluster_count and max_cluster_count, the system can scale up during high demand and scale down or even suspend when usage is low, which optimizes cost without sacrificing performance.",
+      "domain_raw": "",
+      "domain": "Domain 4.0: Performance Optimization",
+      "difficulty": "advanced",
+      "sub_topic": "4.2",
+      "sub_topic_name": "Warehouses"
+    },
+    {
+      "id": "architect_new_q52",
+      "source": "architect_new",
+      "question_num": 52,
+      "question": "How does the Query Acceleration Service differ from multi-cluster warehouses?",
+      "options": [
+        {
+          "text": "QAS adds more warehouses; multi-cluster adds more compute within a warehouse.",
+          "explanation": ""
+        },
+        {
+          "text": "QAS offloads portions of individual heavy queries; multi-cluster adds clusters for concurrent query capacity.",
+          "explanation": ""
+        },
+        {
+          "text": "There is no difference -- they solve the same problem.",
+          "explanation": ""
+        },
+        {
+          "text": "QAS is for small warehouses; multi-cluster is for large warehouses.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "QAS helps individual heavy queries by offloading scan-intensive portions to shared compute. Multi-cluster warehouses add entire clusters to handle more concurrent queries. QAS addresses query-level outliers; multi-cluster addresses workload-level concurrency.",
+      "domain_raw": "",
+      "domain": "Domain 4.0: Performance Optimization",
+      "difficulty": "advanced",
+      "sub_topic": "4.2",
+      "sub_topic_name": "Warehouses"
+    }
+  ]
+}

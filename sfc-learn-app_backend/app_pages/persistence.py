@@ -12,8 +12,9 @@ BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Detect SiS
 try:
     from snowflake.snowpark.context import get_active_session
+    get_active_session()
     _IN_SIS = True
-except ImportError:
+except Exception:
     _IN_SIS = False
 
 # Local file paths (fallback)
@@ -65,7 +66,7 @@ def _load_from_snowflake(key):
         rows = session.sql(f"""
             SELECT DATA_VALUE
             FROM {_TABLE}
-            WHERE USER_NAME = CURRENT_USER() AND DATA_KEY = %s
+            WHERE USER_NAME = CURRENT_USER() AND DATA_KEY = ?
         """, params=[key]).collect()
         if rows:
             raw = rows[0]["DATA_VALUE"]
@@ -85,13 +86,13 @@ def _save_to_snowflake(key, data):
         json_str = json.dumps(data)
         session.sql(f"""
             MERGE INTO {_TABLE} AS t
-            USING (SELECT CURRENT_USER() AS USER_NAME, %s AS DATA_KEY) AS s
+            USING (SELECT CURRENT_USER() AS USER_NAME, ? AS DATA_KEY) AS s
             ON t.USER_NAME = s.USER_NAME AND t.DATA_KEY = s.DATA_KEY
             WHEN MATCHED THEN UPDATE SET
-                DATA_VALUE = PARSE_JSON(%s),
+                DATA_VALUE = PARSE_JSON(?),
                 UPDATED_AT = CURRENT_TIMESTAMP()
             WHEN NOT MATCHED THEN INSERT (USER_NAME, DATA_KEY, DATA_VALUE, UPDATED_AT)
-                VALUES (CURRENT_USER(), %s, PARSE_JSON(%s), CURRENT_TIMESTAMP())
+                VALUES (CURRENT_USER(), ?, PARSE_JSON(?), CURRENT_TIMESTAMP())
         """, params=[key, json_str, key, json_str]).collect()
     except Exception as e:
         st.warning(f"Could not save data: {e}")

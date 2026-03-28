@@ -1,0 +1,111 @@
+{
+  "sub_topic": "3.7",
+  "sub_topic_name": "Ecosystem Connectivity",
+  "domain": "Domain 3.0: Data Engineering",
+  "total_questions": 2,
+  "difficulty_distribution": {
+    "advanced": 1,
+    "intermediate": 1
+  },
+  "exam_traps": [
+    {
+      "trap": "API integration stores security info for external functions -- not 'secure storage' or 'access control'",
+      "why_confusing": "The exam asks HOW Snowflake stores security info for external functions. The answer is API INTEGRATION object. 'Secure storage', 'access control', and 'restricted access' are distractors.",
+      "correct_answer": "API Integration object stores credentials/tokens for external function calls",
+      "doc_reference": "https://docs.snowflake.com/en/sql-reference/sql/create-api-integration"
+    },
+    {
+      "trap": "Git integration sequence: Secret -> API Integration -> Git Repository Stage",
+      "why_confusing": "The order matters: (1) Create a SECRET for authentication, (2) Create an API INTEGRATION referencing the secret, (3) Create the Git repository stage. Any other order fails.",
+      "correct_answer": "Secret first, then API Integration, then Git Repository",
+      "doc_reference": "https://docs.snowflake.com/en/developer-guide/git/git-setting-up"
+    }
+  ],
+  "questions": [
+    {
+      "id": "architect_test2_q38",
+      "source": "architect_test2",
+      "question_num": 38,
+      "question": "Which statements are true about the Snowflake Spark connector's internal and external transfer modes? (Choose two.)",
+      "options": [
+        {
+          "text": "The external transfer mode uses a temporary location managed by Snowflake to facilitate the transfer of data between two systems",
+          "explanation": ""
+        },
+        {
+          "text": "The internal transfer mode uses a temporary location managed by Snowflake to facilitate the transfer of data between two systems",
+          "explanation": ""
+        },
+        {
+          "text": "The internal transfer mode uses a storage location created and managed by the user to facilitate the transfer of data between two systems",
+          "explanation": ""
+        },
+        {
+          "text": "Both transfer modes require explicit management of storage locations by the user",
+          "explanation": ""
+        },
+        {
+          "text": "The external transfer mode uses a storage location created and managed by the user to facilitate the transfer of data between two systems",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1,
+        4
+      ],
+      "multi_select": true,
+      "multi_select_count": 2,
+      "overall_explanation": "For more detailed information, refer to the official Snowflake documentation.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "intermediate",
+      "sub_topic": "3.7",
+      "sub_topic_name": "Ecosystem Connectivity"
+    },
+    {
+      "id": "architect_test2_q45",
+      "source": "architect_test2",
+      "question_num": 45,
+      "question": "You have a dashboard that connects to Snowflake via JDBC. The dashboard is refreshed hundreds of times per day. The data is very stable, only changing once or twice per day. The query run by the dashboard connector user never changes. How will Snowflake manage changing and non-changing data? (Choose three.)",
+      "options": [
+        {
+          "text": "Snowflake will re-use data from the Results Cache as long as it is still the most up-to-date data available",
+          "explanation": ""
+        },
+        {
+          "text": "Snowflake will spin up a warehouse only if the underlying data has changed",
+          "explanation": ""
+        },
+        {
+          "text": "Snowflake will always show the same data regardless of changes in the underlying tables",
+          "explanation": ""
+        },
+        {
+          "text": "Snowflake will spin up a warehouse each time the dashboard is refreshed",
+          "explanation": ""
+        },
+        {
+          "text": "Snowflake will show the most up-to-date data each time the dashboard is refreshed",
+          "explanation": ""
+        },
+        {
+          "text": "Snowflake will compile results cache data from all user results so no warehouse is needed",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0,
+        1,
+        4
+      ],
+      "multi_select": true,
+      "multi_select_count": 3,
+      "overall_explanation": "Until, data has not changed and the query is the same - Snowflake reuses the data from cache.",
+      "domain_raw": "",
+      "domain": "Domain 3.0: Data Engineering",
+      "difficulty": "advanced",
+      "sub_topic": "3.7",
+      "sub_topic_name": "Ecosystem Connectivity"
+    }
+  ]
+}

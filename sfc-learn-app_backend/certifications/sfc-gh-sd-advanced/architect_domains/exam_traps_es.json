@@ -1,0 +1,692 @@
+[
+  {
+    "sub_topic": "1.1",
+    "sub_topic_name": "Account Strategy",
+    "traps": [
+      {
+        "trap": "Tri-Secret Secure requiere edicion Business Critical o superior",
+        "why_confusing": "Many people assume Enterprise edition is enough for all security features. Tri-Secret Secure, HIPAA/PCI compliance, and customer-managed keys all need Business Critical.",
+        "correct_answer": "Business Critical (or VPS) edition",
+        "doc_reference": "https://docs.snowflake.com/en/user-guide/intro-editions"
+      },
+      {
+        "trap": "Account locator formato difiere por nube/region",
+        "why_confusing": "AWS accounts use format like xy12345, Azure uses xy12345.east-us-2.azure, GCP uses xy12345.us-central1.gcp. The org-level URL (orgname-accountname) is portable across all.",
+        "correct_answer": "Use organization-level account URL (orgname-accountname) for portability",
+        "doc_reference": "https://docs.snowflake.com/en/user-guide/admin-account-identifier"
+      },
+      {
+        "trap": "Account Per Tenant vs Schema Per Tenant: RBAC es mas simple con Cuenta por Inquilino",
+        "why_confusing": "Account Per Tenant means each tenant has its own Snowflake account with isolated RBAC. Schema Per Tenant shares one account but needs complex RBAC to isolate tenants. The exam asks which approach makes RBAC 'simple to configure' -- answer is Account Per Tenant.",
+        "correct_answer": "Account Per Tenant = simpler RBAC, more isolation; Schema Per Tenant = shared resources, complex RBAC",
+        "doc_reference": "https://docs.snowflake.com/en/user-guide/admin-account-identifier"
+      },
+      {
+        "trap": "Standard edition NO soporta warehouses multi-cluster",
+        "why_confusing": "Multi-cluster warehouses require Enterprise edition or higher. Standard edition only supports single-cluster. If a question mentions scaling out clusters, the answer requires Enterprise.",
+        "correct_answer": "Enterprise edition or higher for multi-cluster warehouses",
+        "doc_reference": "https://docs.snowflake.com/en/user-guide/intro-editions"
+      }
+    ]
+  },
+  {
+    "sub_topic": "1.2",
+    "sub_topic_name": "Parameter Hierarchy",
+    "traps": [
+      {
+        "trap": "When you DROP a database, child schema/table periodos de retencion son IGNORADOS",
+        "why_confusing": "If DB has 30-day retention and schema has 50-day, dropping the DB means the schema is only recoverable for 30 days (the DB's retention). The schema's own 50-day setting only applies when you drop the schema independently.",
+        "correct_answer": "Parent object's retention overrides children when parent is dropped",
+        "doc_reference": "https://docs.snowflake.com/en/user-guide/data-time-travel"
+      },
+      {
+        "trap": "Parameter hierarchy: Account > Database > Schema > Table > Session",
+        "why_confusing": "Object-level parameters override account-level defaults. Session parameters override object-level for that session only. CREATE SCHEMA with explicit retention overrides the database default.",
+        "correct_answer": "Most specific level wins. Schema retention=20 means tables in that schema default to 20, even if DB says 30.",
+        "doc_reference": "https://docs.snowflake.com/en/sql-reference/parameters"
+      },
+      {
+        "trap": "DATA_RETENTION_TIME_IN_DAYS max is 1 day for Standard, 90 days for Enterprise+",
+        "why_confusing": "Standard edition caps Time Travel at 1 day. Enterprise and higher allow up to 90 days. If a question says 'retain for 6 years', Time Travel is NOT the answer -- use zero-copy cloning instead.",
+        "correct_answer": "Standard=1 day max, Enterprise+=90 days max. For long-term retention, use cloning.",
+        "doc_reference": "https://docs.snowflake.com/en/user-guide/data-time-travel"
+      }
+    ]
+  },
+  {
+    "sub_topic": "1.3",
+    "sub_topic_name": "Role-Based Access Control",
+    "traps": [
+      {
+        "trap": "Secondary roles NO pueden ejecutar sentencias DDL (CREATE)",
+        "why_confusing": "Secondary roles can do SELECT, INSERT, UPDATE, DELETE, TRUNCATE. But CREATE (DDL) is restricted to the PRIMARY role only. The exam tests this distinction specifically.",
+        "correct_answer": "DDL operations (CREATE, ALTER, DROP) use only the primary role. DML uses primary + secondary.",
+        "doc_reference": "https://docs.snowflake.com/en/user-guide/security-access-control-overview"
+      },
+      {
+        "trap": "Owner's rights vs Caller's rights stored procedures",
+        "why_confusing": "Owner's rights: procedure executes with the owner's privileges (can do things the caller can't). Caller's rights: uses the caller's privileges. You CANNOT use both at the same time. The exam gives tricky options suggesting 'both rights' -- that's always wrong.",
+        "correct_answer": "A stored procedure runs as EITHER owner's rights OR caller's rights, never both",
+        "doc_reference": "https://docs.snowflake.com/en/developer-guide/stored-procedure/stored-procedures-rights"
+      },
+      {
+        "trap": "MANAGED ACCESS schemas: solo el dueno del schema or SECURITYADMIN+ can grant privileges",
+        "why_confusing": "In regular schemas, any object owner can grant privileges on their objects. In MANAGED ACCESS schemas, only the schema owner (or roles higher in hierarchy) can manage grants. This centralizes access control.",
+        "correct_answer": "WITH MANAGED ACCESS removes grant ability from individual object owners",
+        "doc_reference": "https://docs.snowflake.com/en/user-guide/security-access-control-overview"
+      },
+      {
+        "trap": "Future grants se aplican a objetos aun no creados, NO retroactivamente",
+        "why_confusing": "GRANT ... ON FUTURE TABLES only affects tables created AFTER the grant. Existing tables need separate grants. The exam may ask why a user can see new tables but not old ones.",
+        "correct_answer": "Future grants = forward-looking only. Use GRANT ON ALL for existing objects.",
+        "doc_reference": "https://docs.snowflake.com/en/sql-reference/sql/grant-privilege"
+      },
+      {
+        "trap": "Dynamic Data Masking vs Row Access Policies: masking oculta COLUMNAS, RAP oculta FILAS",
+        "why_confusing": "Both are security policies but at different granularity. Masking policy = applied to a column, returns masked value. Row access policy = applied to a table, filters which rows are visible. The exam mixes them up in answer options.",
+        "correct_answer": "Masking = column-level hiding. Row Access Policy = row-level filtering.",
+        "doc_reference": "https://docs.snowflake.com/en/user-guide/security-column-ddm-intro"
+      }
+    ]
+  },
+  {
+    "sub_topic": "1.4",
+    "sub_topic_name": "Network Security",
+    "traps": [
+      {
+        "trap": "PrivateLink es necesario para conectividad directa VPC-a-Snowflake (not SSO, not OAuth, not SCIM)",
+        "why_confusing": "The exam lists SSO, OAuth, SCIM, and PrivateLink as options. PrivateLink is the ONLY one that provides network-level private connectivity. The others are authentication/authorization protocols.",
+        "correct_answer": "AWS PrivateLink / Azure Private Link / Google Cloud Private Service Connect",
+        "doc_reference": "https://docs.snowflake.com/en/user-guide/admin-security-privatelink"
+      },
+      {
+        "trap": "Network policies: politica a nivel de usuario anula politica a nivel de cuenta",
+        "why_confusing": "If both exist, the user-level network policy takes precedence. The account-level policy is the default, but any user with a specific policy assigned uses only that policy.",
+        "correct_answer": "User-level network policy wins over account-level",
+        "doc_reference": "https://docs.snowflake.com/en/user-guide/network-policies"
+      },
+      {
+        "trap": "Tri-Secret Secure = Snowflake key + Customer-managed key (composite master key)",
+        "why_confusing": "It's NOT just customer-managed keys. Tri-Secret means the encryption uses a COMPOSITE key from both Snowflake's key and the customer's key. If either is revoked, data is inaccessible. Requires Business Critical edition.",
+        "correct_answer": "Composite of Snowflake key + customer key. Both needed to decrypt. Business Critical required.",
+        "doc_reference": "https://docs.snowflake.com/en/user-guide/security-encryption-manage"
+      }
+    ]
+  },
+  {
+    "sub_topic": "1.5",
+    "sub_topic_name": "Authentication",
+    "traps": [
+      {
+        "trap": "SCIM es separado del SSO -- SSO handles login, SCIM handles user provisioning",
+        "why_confusing": "Configuring SSO (SAML) does NOT automatically provision users or sync roles. SCIM must be configured separately. Without SCIM, you authenticate via SSO but must manually create users in Snowflake.",
+        "correct_answer": "SSO = authentication only. SCIM = user/role provisioning and sync.",
+        "doc_reference": "https://docs.snowflake.com/en/user-guide/admin-security-fed-auth-overview"
+      },
+      {
+        "trap": "ALLOW_CLIENT_MFA_CACHING debe configurarse a nivel de CUENTA, no a nivel de sesion",
+        "why_confusing": "The exam gives options for session-level vs account-level. MFA token caching can only be enabled at the account level by ACCOUNTADMIN. Setting it at session level does nothing.",
+        "correct_answer": "ALTER ACCOUNT SET ALLOW_CLIENT_MFA_CACHING = TRUE (account level only)",
+        "doc_reference": "https://docs.snowflake.com/en/user-guide/security-mfa"
+      },
+      {
+        "trap": "Key pair authentication: only ACCOUNTADMIN can create SCIM integrations",
+        "why_confusing": "The default role for creating security integrations (including SCIM) is ACCOUNTADMIN. SYSADMIN cannot create security integrations unless explicitly granted the privilege.",
+        "correct_answer": "ACCOUNTADMIN role is required for CREATE SECURITY INTEGRATION",
+        "doc_reference": "https://docs.snowflake.com/en/user-guide/admin-security-fed-auth-configure-snowflake"
+      },
+      {
+        "trap": "Multiple identity providers pueden configurarse para la misma cuenta Snowflake",
+        "why_confusing": "Some think only one IdP is allowed. Snowflake supports multiple SAML IdPs, allowing different user groups to authenticate with different providers.",
+        "correct_answer": "Yes, multiple SAML identity providers are supported per account",
+        "doc_reference": "https://docs.snowflake.com/en/user-guide/admin-security-fed-auth-overview"
+      }
+    ]
+  },
+  {
+    "sub_topic": "2.1",
+    "sub_topic_name": "Data Modeling",
+    "traps": [
+      {
+        "trap": "Modelos de datos validos en Snowflake: Kimball/Star, Inmon/3NF, Data Vault -- NOT Bayesian or Graph",
+        "why_confusing": "The exam lists 'Bayesian hierarchical model', 'Graph model', 'Data lake' as distractors. These are NOT data modeling approaches for table design. Data Vault 2.0, Star Schema, and 3NF are the three valid answers.",
+        "correct_answer": "Dimensional/Kimball, Inmon/3NF, Data Vault",
+        "doc_reference": "https://docs.snowflake.com/en/user-guide/data-modeling"
+      },
+      {
+        "trap": "Star schema vs 3NF: Star = simple/fast queries, 3NF = reduced duplication",
+        "why_confusing": "The exam asks WHY choose star over 3NF. Wrong answer: 'Snowflake can't handle 3NF joins' (it can). Right answers: star is simpler for BI tools and end users. 3NF removes duplication. Star has duplication by design.",
+        "correct_answer": "Star = BI-friendly, flat views. 3NF = normalized, less duplication. Snowflake handles both.",
+        "doc_reference": "https://docs.snowflake.com/en/user-guide/data-modeling"
+      },
+      {
+        "trap": "Data Vault uses hash keys for parallelism, not surrogate keys in the traditional sense",
+        "why_confusing": "Multi-table INSERT in Snowflake supports Data Vault loading because it can insert into hubs and satellites in PARALLEL using hash keys. The exam says 'parallel to hubs and satellites using surrogate keys' -- this is correct. 'Sequential' options are wrong.",
+        "correct_answer": "Data Vault loads are parallel to hubs/satellites. Snowflake multi-table INSERT enables this.",
+        "doc_reference": "https://docs.snowflake.com/en/sql-reference/sql/insert-multi-table"
+      }
+    ]
+  },
+  {
+    "sub_topic": "2.2",
+    "sub_topic_name": "Object Hierarchy",
+    "traps": [
+      {
+        "trap": "INFORMATION_SCHEMA vs ACCOUNT_USAGE: latency and scope differ",
+        "why_confusing": "INFORMATION_SCHEMA is real-time but scoped to current database. ACCOUNT_USAGE has 45-minute latency but covers the entire account and includes dropped objects. The exam tests which one to use for auditing vs real-time checks.",
+        "correct_answer": "INFORMATION_SCHEMA = real-time, current DB. ACCOUNT_USAGE = 45min lag, all DBs + dropped objects.",
+        "doc_reference": "https://docs.snowflake.com/en/sql-reference/info-schema"
+      },
+      {
+        "trap": "Dropping a database drops ALL child objects (schemas, tables, stages, pipes, etc.)",
+        "why_confusing": "Some questions test whether you know that dropping a database is cascading. Everything inside is dropped. UNDROP DATABASE restores it all, but only within the Time Travel retention period.",
+        "correct_answer": "DROP DATABASE = cascading drop of all children. UNDROP restores all.",
+        "doc_reference": "https://docs.snowflake.com/en/sql-reference/sql/drop-database"
+      },
+      {
+        "trap": "API Integration is an ACCOUNT-level object, not database-level",
+        "why_confusing": "Unlike tables or stages, API integrations exist at the account level. External functions reference them but the integration itself is not inside a database. Only ACCOUNTADMIN can create them by default.",
+        "correct_answer": "CREATE API INTEGRATION is an account-level DDL. Requires ACCOUNTADMIN.",
+        "doc_reference": "https://docs.snowflake.com/en/sql-reference/sql/create-api-integration"
+      }
+    ]
+  },
+  {
+    "sub_topic": "2.3",
+    "sub_topic_name": "Table Types & Views",
+    "traps": [
+      {
+        "trap": "Transient tables have Time Travel (up to 1 day) but NO Fail-Safe",
+        "why_confusing": "Permanent tables have both Time Travel (up to 90 days) AND 7-day Fail-Safe. Transient tables have Time Travel (0 or 1 day only) but ZERO Fail-Safe. Temporary tables are like transient but session-scoped.",
+        "correct_answer": "Permanent = TT + Fail-Safe. Transient = TT (1 day max), no Fail-Safe. Temporary = session-scoped, no Fail-Safe.",
+        "doc_reference": "https://docs.snowflake.com/en/user-guide/tables-temp-transient"
+      },
+      {
+        "trap": "Secure views hide the view definition AND prevent query optimization pushdown",
+        "why_confusing": "Making a view SECURE hides its DDL from non-owners, but also prevents the optimizer from pushing predicates into the view. This can make secure views slower than regular views.",
+        "correct_answer": "SECURE VIEW = hidden definition + potential performance impact from no predicate pushdown",
+        "doc_reference": "https://docs.snowflake.com/en/user-guide/views-secure"
+      },
+      {
+        "trap": "LATERAL FLATTEN is how you query semi-structured VARIANT data",
+        "why_confusing": "The exam tests whether you know that VARIANT columns store JSON/XML and you use FLATTEN to unnest arrays. LATERAL keyword makes the table function correlate with the row.",
+        "correct_answer": "SELECT ... FROM table, LATERAL FLATTEN(input => table.variant_col:array_field)",
+        "doc_reference": "https://docs.snowflake.com/en/sql-reference/functions/flatten"
+      }
+    ]
+  },
+  {
+    "sub_topic": "2.4",
+    "sub_topic_name": "Data Recovery",
+    "traps": [
+      {
+        "trap": "Zero-copy cloning for long-term snapshots -- NOT Time Travel",
+        "why_confusing": "Time Travel maxes out at 90 days. For 'saving quarterly snapshots for 6 years', the answer is zero-copy cloning. Clones are metadata-only initially (no extra storage cost until data diverges).",
+        "correct_answer": "Zero-copy cloning for archival. Time Travel only for recent history (max 90 days).",
+        "doc_reference": "https://docs.snowflake.com/en/user-guide/tables-storage-considerations"
+      },
+      {
+        "trap": "External tables CANNOT be cloned with Time Travel",
+        "why_confusing": "Cloning with AT/BEFORE works for regular tables, but external tables are excluded. If the source is an external table, the clone operation fails.",
+        "correct_answer": "External tables cannot be cloned using Time Travel. Also, data outside retention period fails.",
+        "doc_reference": "https://docs.snowflake.com/en/sql-reference/sql/create-clone"
+      },
+      {
+        "trap": "UNDROP only works within the retention period and only restores the MOST RECENTLY dropped version",
+        "why_confusing": "If you drop and recreate and drop again, UNDROP restores the most recent drop. The older version is gone. Also, if retention has expired, UNDROP fails.",
+        "correct_answer": "UNDROP = most recent drop only, within retention period only",
+        "doc_reference": "https://docs.snowflake.com/en/sql-reference/sql/undrop"
+      }
+    ]
+  },
+  {
+    "sub_topic": "2.5",
+    "sub_topic_name": "Replication & Failover",
+    "traps": [
+      {
+        "trap": "Target account paga por AMBOS transferencia de datos Y computo in database replication",
+        "why_confusing": "Intuition says the source (primary) account should pay for something. But Snowflake bills the TARGET account for both the data transfer charges and the compute charges of the replication operation.",
+        "correct_answer": "Target account is billed for both data transfer and compute",
+        "doc_reference": "https://docs.snowflake.com/en/user-guide/database-replication-billing"
+      },
+      {
+        "trap": "Client redirect permite failover transparente to secondary account",
+        "why_confusing": "Without client redirect, applications must manually change their connection URL during failover. With client redirect (connection URL using organization-level URL), Snowflake automatically redirects clients to the promoted secondary.",
+        "correct_answer": "Client redirect = transparent failover using org-level connection URL",
+        "doc_reference": "https://docs.snowflake.com/en/user-guide/client-redirect"
+      },
+      {
+        "trap": "Failover groups can include databases, shares, AND roles/users",
+        "why_confusing": "It's not just databases that replicate. Failover groups can include account objects like roles, users, warehouses, and resource monitors. But NOT all account objects are supported.",
+        "correct_answer": "Failover group objects: databases, shares, roles, users, warehouses, resource monitors, integrations",
+        "doc_reference": "https://docs.snowflake.com/en/user-guide/account-replication-config"
+      }
+    ]
+  },
+  {
+    "sub_topic": "3.1",
+    "sub_topic_name": "Data Loading",
+    "traps": [
+      {
+        "trap": "COPY INTO skips files already loaded (64-day metadata). Use FORCE=TRUE to reload.",
+        "why_confusing": "Snowflake tracks loaded file metadata for 64 days. Re-uploading the same file with same name won't re-load it unless you use FORCE=TRUE or LOAD_HISTORY column check. This is different from FILES=('name') which still respects the 64-day check.",
+        "correct_answer": "Same filename = skipped. Use FORCE=TRUE to override. Or FILES=() to target specific files.",
+        "doc_reference": "https://docs.snowflake.com/en/sql-reference/sql/copy-into-table"
+      },
+      {
+        "trap": "Snowpipe auto-ingest for AWS uses SNS topic, NOT storage integration",
+        "why_confusing": "For AWS S3, auto-ingest Snowpipe requires aws_sns_topic. Storage integration (INTEGRATION='...') is for Azure/GCP, NOT AWS. The exam gives options mixing AWS SNS with Azure region names -- that's wrong.",
+        "correct_answer": "AWS = aws_sns_topic. Azure = INTEGRATION. GCP = INTEGRATION.",
+        "doc_reference": "https://docs.snowflake.com/en/user-guide/data-load-snowpipe-auto"
+      },
+      {
+        "trap": "COPY INTO pipe: only some copy options are supported (SKIP_HEADER, STRIP_OUTER_ARRAY are OK; FILES, PURGE, ON_ERROR=ABORT are NOT)",
+        "why_confusing": "CREATE PIPE ... AS COPY FROM only supports a subset of COPY options. PURGE, FILES, and ON_ERROR=ABORT_STATEMENT are NOT supported in pipe definitions.",
+        "correct_answer": "Pipe-supported: SKIP_HEADER, STRIP_OUTER_ARRAY. Not supported: FILES, PURGE, ON_ERROR=ABORT",
+        "doc_reference": "https://docs.snowflake.com/en/sql-reference/sql/create-pipe"
+      },
+      {
+        "trap": "CURRENT_TIMESTAMP in default column value is evaluated at load COMPILE time, not insert time",
+        "why_confusing": "If you add DEFAULT CURRENT_TIMESTAMP() to a column, the timestamp is set when the COPY INTO statement is compiled in cloud services, NOT when each row is physically inserted. This means all rows get the same timestamp, which is earlier than COPY_HISTORY.load_time.",
+        "correct_answer": "CURRENT_TIMESTAMP default = compile time, not per-row insert time",
+        "doc_reference": "https://docs.snowflake.com/en/sql-reference/sql/copy-into-table"
+      }
+    ]
+  },
+  {
+    "sub_topic": "3.2",
+    "sub_topic_name": "Stages & File Formats",
+    "traps": [
+      {
+        "trap": "Table stage (@%tablename) vs Named stage (@stagename) vs User stage (@~)",
+        "why_confusing": "Each table has an implicit table stage (@%tablename). Each user has @~. Named stages are explicit. The exam asks 'COPY INTO from @%tablea' -- that's the TABLE stage. Re-uploading same-named file to table stage after fixing it will load because the failed file isn't in the 64-day metadata.",
+        "correct_answer": "@~ = user stage, @%table = table stage, @stagename = named stage",
+        "doc_reference": "https://docs.snowflake.com/en/user-guide/data-load-overview"
+      },
+      {
+        "trap": "FILE_ROW_NUMBER metadata column gives line number in the source file, not the table",
+        "why_confusing": "The exam shows metadata columns like $1, METADATA$FILENAME, METADATA$FILE_ROW_NUMBER. FILE_ROW_NUMBER is the line number in the source file, not a table row number.",
+        "correct_answer": "METADATA$FILE_ROW_NUMBER = source file line number. Stage reference = @stagename.",
+        "doc_reference": "https://docs.snowflake.com/en/user-guide/querying-metadata"
+      },
+      {
+        "trap": "ON_ERROR options: CONTINUE, SKIP_FILE, ABORT_STATEMENT (default), SKIP_FILE_<n>",
+        "why_confusing": "The exam tests whether you know the default is ABORT_STATEMENT. With SKIP_FILE, the entire file is skipped on any error. CONTINUE loads valid rows and skips bad ones.",
+        "correct_answer": "Default = ABORT_STATEMENT. SKIP_FILE = skip entire file. CONTINUE = skip bad rows.",
+        "doc_reference": "https://docs.snowflake.com/en/sql-reference/sql/copy-into-table"
+      }
+    ]
+  },
+  {
+    "sub_topic": "3.3",
+    "sub_topic_name": "Streams & Tasks",
+    "traps": [
+      {
+        "trap": "Standard streams track INSERT, UPDATE, DELETE. Append-only streams track only INSERT.",
+        "why_confusing": "If you only need new rows (e.g., from Snowpipe loading), append-only streams are more efficient. Standard streams capture all DML changes. The exam asks which stream type for 'new records only'.",
+        "correct_answer": "Append-only = inserts only (efficient for Snowpipe). Standard = all DML.",
+        "doc_reference": "https://docs.snowflake.com/en/user-guide/streams-intro"
+      },
+      {
+        "trap": "Tasks require a warehouse OR can use serverless compute",
+        "why_confusing": "Tasks can run on a user-managed warehouse or on Snowflake-managed serverless compute. Serverless tasks auto-scale but you don't control the warehouse size. The exam asks about cost-effectiveness.",
+        "correct_answer": "Serverless tasks: no warehouse needed, auto-scale. User-managed: you pick the warehouse.",
+        "doc_reference": "https://docs.snowflake.com/en/user-guide/tasks-intro"
+      },
+      {
+        "trap": "SYSTEM$STREAM_HAS_DATA() returns TRUE/FALSE -- used in WHEN clause of tasks",
+        "why_confusing": "Tasks with WHEN SYSTEM$STREAM_HAS_DATA('stream_name') only run when the stream has unconsumed data. Without this, the task runs on schedule even if there's nothing to process (wasting credits).",
+        "correct_answer": "Use WHEN clause with SYSTEM$STREAM_HAS_DATA to avoid unnecessary task runs",
+        "doc_reference": "https://docs.snowflake.com/en/sql-reference/functions/system_stream_has_data"
+      }
+    ]
+  },
+  {
+    "sub_topic": "3.4",
+    "sub_topic_name": "External & Iceberg Tables",
+    "traps": [
+      {
+        "trap": "External tables son SOLO LECTURA en Snowflake",
+        "why_confusing": "You cannot INSERT, UPDATE, or DELETE on external tables. They reference data in external storage (S3, Azure Blob, GCS). Materialized views on external tables provide faster reads.",
+        "correct_answer": "External tables = read-only. Data stays in external storage.",
+        "doc_reference": "https://docs.snowflake.com/en/user-guide/tables-external-intro"
+      },
+      {
+        "trap": "Materialized views on external tables reducen latencia y costo de transferencia de datos",
+        "why_confusing": "The exam asks about cross-cloud access with low latency and minimal egress. A materialized view on an external table caches results in Snowflake, avoiding repeated cross-cloud data transfer.",
+        "correct_answer": "MV on external table = cached, low latency, reduced egress. Best for cross-cloud scenarios.",
+        "doc_reference": "https://docs.snowflake.com/en/user-guide/views-materialized"
+      },
+      {
+        "trap": "Iceberg tables in Snowflake can be managed (Snowflake catalog) or unmanaged (external catalog)",
+        "why_confusing": "Managed Iceberg tables let Snowflake handle metadata. Unmanaged ones use an external catalog (AWS Glue, etc.). The exam tests which approach gives full DML support.",
+        "correct_answer": "Managed = full DML, Snowflake manages metadata. Unmanaged = read-only or limited writes.",
+        "doc_reference": "https://docs.snowflake.com/en/user-guide/tables-iceberg"
+      }
+    ]
+  },
+  {
+    "sub_topic": "3.5",
+    "sub_topic_name": "Data Transformation",
+    "traps": [
+      {
+        "trap": "External functions return VARIANT type",
+        "why_confusing": "The exam asks 'what can an external function return?' -- the answer is VARIANT. External functions call remote services (via API gateway) and the response is always VARIANT.",
+        "correct_answer": "External function return type = VARIANT",
+        "doc_reference": "https://docs.snowflake.com/en/sql-reference/external-functions-introduction"
+      },
+      {
+        "trap": "External functions CAN appear in SQL statements and DO accept parameters",
+        "why_confusing": "Some wrong options say external functions 'can only appear in certain clauses' or 'are not database objects'. External functions ARE database objects, accept parameters, and can be used in SELECT, WHERE, etc.",
+        "correct_answer": "External functions are DB objects, accept params, return VARIANT, can be used in standard SQL clauses",
+        "doc_reference": "https://docs.snowflake.com/en/sql-reference/external-functions-introduction"
+      }
+    ]
+  },
+  {
+    "sub_topic": "3.6",
+    "sub_topic_name": "Kafka Connector",
+    "traps": [
+      {
+        "trap": "Kafka connector creates two VARIANT columns: RECORD_CONTENT and RECORD_METADATA",
+        "why_confusing": "The exam lists RECORD_PRIVILEGES, RECORD_ISCORRECT, RECORD_SUMMARY as distractors. Only RECORD_CONTENT (message payload) and RECORD_METADATA (Kafka offset, partition, etc.) are real.",
+        "correct_answer": "Two columns: RECORD_CONTENT (message data) + RECORD_METADATA (Kafka metadata)",
+        "doc_reference": "https://docs.snowflake.com/en/user-guide/kafka-connector-overview"
+      },
+      {
+        "trap": "Snowpipe streaming (Snowpipe with Kafka) is more cost-effective than regular Snowpipe for high-throughput",
+        "why_confusing": "The exam asks about 'most cost-effective' Kafka ingestion. Snowpipe Streaming writes directly to tables without staging files, reducing latency and cost for high-volume streams.",
+        "correct_answer": "Snowpipe Streaming = no file staging, lower latency, more cost-effective for Kafka",
+        "doc_reference": "https://docs.snowflake.com/en/user-guide/data-load-snowpipe-streaming-overview"
+      }
+    ]
+  },
+  {
+    "sub_topic": "3.7",
+    "sub_topic_name": "Ecosystem Connectivity",
+    "traps": [
+      {
+        "trap": "API integration stores security info for external functions -- not 'secure storage' or 'access control'",
+        "why_confusing": "The exam asks HOW Snowflake stores security info for external functions. The answer is API INTEGRATION object. 'Secure storage', 'access control', and 'restricted access' are distractors.",
+        "correct_answer": "API Integration object stores credentials/tokens for external function calls",
+        "doc_reference": "https://docs.snowflake.com/en/sql-reference/sql/create-api-integration"
+      },
+      {
+        "trap": "Git integration sequence: Secret -> API Integration -> Git Repository Stage",
+        "why_confusing": "The order matters: (1) Create a SECRET for authentication, (2) Create an API INTEGRATION referencing the secret, (3) Create the Git repository stage. Any other order fails.",
+        "correct_answer": "Secret first, then API Integration, then Git Repository",
+        "doc_reference": "https://docs.snowflake.com/en/developer-guide/git/git-setting-up"
+      }
+    ]
+  },
+  {
+    "sub_topic": "4.1",
+    "sub_topic_name": "Query Profile",
+    "traps": [
+      {
+        "trap": "Bytes scanned is in Statistics panel, not operator details",
+        "why_confusing": "The Query Profile has multiple sections. 'Bytes scanned' and 'Percentage scanned from cache' are in the overall Statistics panel. Per-operator metrics (like 'Rows produced') are in operator details when you click a node.",
+        "correct_answer": "Statistics panel: bytes scanned, cache %, partitions. Operator details: rows, time per operator.",
+        "doc_reference": "https://docs.snowflake.com/en/user-guide/ui-query-profile"
+      },
+      {
+        "trap": "Spilling to local/remote disk means the warehouse is too small for the query",
+        "why_confusing": "Spilling to local disk (SSD) is bad but tolerable. Spilling to REMOTE disk (S3/Blob) is much worse. Both indicate the warehouse needs to be scaled UP (not out -- multi-cluster doesn't help with single query performance).",
+        "correct_answer": "Spilling = scale UP warehouse size. Multi-cluster = scale OUT for concurrency.",
+        "doc_reference": "https://docs.snowflake.com/en/user-guide/ui-query-profile"
+      },
+      {
+        "trap": "Resource monitors track credit usage, not query performance",
+        "why_confusing": "Resource monitors set credit quotas and can suspend warehouses when limits are hit. They do NOT optimize queries. The exam may mix resource monitors with performance tuning options.",
+        "correct_answer": "Resource monitors = credit alerts/suspend. NOT a performance optimization tool.",
+        "doc_reference": "https://docs.snowflake.com/en/user-guide/resource-monitors"
+      }
+    ]
+  },
+  {
+    "sub_topic": "4.2",
+    "sub_topic_name": "Warehouses",
+    "traps": [
+      {
+        "trap": "Multi-cluster = concurrency (escalar horizontalmente). Warehouse size = single query speed (escalar verticalmente).",
+        "why_confusing": "Many questions mix these up. 2000 users running reports simultaneously = multi-cluster (scale out). One complex query running slowly = larger warehouse (scale up). The exam explicitly tests this distinction.",
+        "correct_answer": "Concurrency issue = multi-cluster. Single query slow = bigger warehouse size.",
+        "doc_reference": "https://docs.snowflake.com/en/user-guide/warehouses-multicluster"
+      },
+      {
+        "trap": "Economy scaling policy: favors KEEPING running clusters, delays adding new ones",
+        "why_confusing": "Standard scaling adds clusters quickly when queries queue. Economy scaling waits longer before adding clusters (saves credits but increases queue time). The exam asks which is more cost-effective.",
+        "correct_answer": "Economy = fewer clusters, longer queues, lower cost. Standard = faster scaling, higher cost.",
+        "doc_reference": "https://docs.snowflake.com/en/user-guide/warehouses-multicluster"
+      },
+      {
+        "trap": "Dedicated warehouses per workload type prevent resource contention",
+        "why_confusing": "The exam pattern: 'all reports share one warehouse' + 'timeouts during business hours'. Solution: separate warehouses for different teams/workloads. Multi-cluster helps with concurrency within a workload, but separating workloads requires separate warehouses.",
+        "correct_answer": "Different workloads = different warehouses. Same workload, many users = multi-cluster.",
+        "doc_reference": "https://docs.snowflake.com/en/user-guide/warehouses-considerations"
+      }
+    ]
+  },
+  {
+    "sub_topic": "4.3",
+    "sub_topic_name": "Caching",
+    "traps": [
+      {
+        "trap": "Tres capas de cache: metadata cache, result cache (24h), warehouse local disk cache",
+        "why_confusing": "Metadata cache: COUNT(*), MIN, MAX on unchanged data (free, instant). Result cache: exact same query within 24 hours (free, no warehouse needed). Local disk cache: micro-partition data cached on warehouse SSD (requires running warehouse).",
+        "correct_answer": "Metadata = instant stats. Result = 24h same-query. Local disk = warm warehouse data.",
+        "doc_reference": "https://docs.snowflake.com/en/user-guide/querying-persisted-results"
+      },
+      {
+        "trap": "Result cache se invalida si los datos subyacentes cambian",
+        "why_confusing": "Even within 24 hours, if the table data changes (INSERT, UPDATE, DELETE), the result cache is invalidated. Also, USE_CACHED_RESULT=FALSE forces re-execution.",
+        "correct_answer": "Result cache valid for 24h AND only if data hasn't changed.",
+        "doc_reference": "https://docs.snowflake.com/en/user-guide/querying-persisted-results"
+      }
+    ]
+  },
+  {
+    "sub_topic": "4.4",
+    "sub_topic_name": "Clustering & Pruning",
+    "traps": [
+      {
+        "trap": "High average_depth and average_overlaps = poorly clustered table",
+        "why_confusing": "SYSTEM$CLUSTERING_INFORMATION returns average_depth and average_overlaps. Higher values = worse clustering. Zero constant_partitions = no partitions can be fully pruned. The exam shows query output and asks you to interpret it.",
+        "correct_answer": "High depth/overlap = bad clustering. High constant_partitions = good pruning potential.",
+        "doc_reference": "https://docs.snowflake.com/en/user-guide/tables-clustering-micropartitions"
+      },
+      {
+        "trap": "Automatic clustering is a background service that RE-clusters data (not initial load)",
+        "why_confusing": "Defining a clustering key does NOT instantly re-organize data. Automatic Clustering is a serverless service that gradually reclusters over time. It costs credits. Natural clustering from the load order may already be good enough for many tables.",
+        "correct_answer": "Clustering key = metadata hint. Automatic Clustering = background re-organization service (costs credits).",
+        "doc_reference": "https://docs.snowflake.com/en/user-guide/tables-auto-reclustering"
+      },
+      {
+        "trap": "Data skew: scaling UP doesn't help because work is concentrated on one node",
+        "why_confusing": "If 90% of join values are the same, one node processes most of the data regardless of warehouse size. Adding more nodes (scale up) doesn't help because the bottleneck is the skewed data, not the number of nodes. Fix the query or data distribution instead.",
+        "correct_answer": "Data skew = one node overloaded. Scale up doesn't fix it. Restructure query/data.",
+        "doc_reference": "https://docs.snowflake.com/en/user-guide/ui-query-profile"
+      }
+    ]
+  },
+  {
+    "sub_topic": "4.5",
+    "sub_topic_name": "Performance Services",
+    "traps": [
+      {
+        "trap": "Search Optimization Service (SOS) helps point lookups, not full table scans",
+        "why_confusing": "SOS is for equality/IN predicates on specific values (like WHERE id = 123). It does NOT help with range scans, LIKE patterns, or aggregations. Costs extra credits as a background service.",
+        "correct_answer": "SOS = fast point lookups. Not for scans/aggregations. Extra cost.",
+        "doc_reference": "https://docs.snowflake.com/en/user-guide/search-optimization-service"
+      },
+      {
+        "trap": "Query Acceleration Service (QAS) helps queries with disproportionately large scans",
+        "why_confusing": "QAS offloads portions of a query to shared compute resources. Best for queries scanning lots of data but returning few rows. Not all queries benefit -- the scale factor parameter controls eligibility.",
+        "correct_answer": "QAS = offload large scans to shared compute. Set QUERY_ACCELERATION_MAX_SCALE_FACTOR.",
+        "doc_reference": "https://docs.snowflake.com/en/user-guide/query-acceleration-service"
+      }
+    ]
+  },
+  {
+    "sub_topic": "5.1",
+    "sub_topic_name": "Secure Data Sharing",
+    "traps": [
+      {
+        "trap": "SIMULATED_DATA_SHARING_CONSUMER validates what consumers see -- not reader accounts or row access policies",
+        "why_confusing": "To test that a secure view shows correct data per consumer, set the session parameter SIMULATED_DATA_SHARING_CONSUMER. Creating reader accounts or row access policies are NOT the recommended validation method.",
+        "correct_answer": "ALTER SESSION SET SIMULATED_DATA_SHARING_CONSUMER = 'consumer_account'",
+        "doc_reference": "https://docs.snowflake.com/en/user-guide/data-sharing-secure-views"
+      },
+      {
+        "trap": "Data sharing is free for same-region, same-cloud. Cross-region/cross-cloud requires replication.",
+        "why_confusing": "Direct shares work only within the same cloud and region. For cross-region or cross-cloud sharing, you must replicate the database first, then share from the replicated copy. This adds replication costs.",
+        "correct_answer": "Same region = direct share (free). Cross-region = replicate then share.",
+        "doc_reference": "https://docs.snowflake.com/en/user-guide/data-sharing-intro"
+      }
+    ]
+  },
+  {
+    "sub_topic": "5.2",
+    "sub_topic_name": "Sharing Scenarios",
+    "traps": [
+      {
+        "trap": "Cross-cloud sharing: replicate to a new account in the consumer's region/cloud",
+        "why_confusing": "If provider is on AWS eu-west-2 and consumer is on Azure West Europe, the provider must create a new Snowflake account in the consumer's cloud/region, replicate data there, then create a direct share from that replicated account.",
+        "correct_answer": "Cross-cloud sharing = replicate to consumer's cloud/region, then share from there",
+        "doc_reference": "https://docs.snowflake.com/en/user-guide/data-sharing-across-regions"
+      }
+    ]
+  },
+  {
+    "sub_topic": "5.3",
+    "sub_topic_name": "Reader Accounts",
+    "traps": [
+      {
+        "trap": "Reader accounts are managed by the provider and consume the provider's credits",
+        "why_confusing": "Unlike regular consumer accounts, reader accounts are created BY the provider for consumers who don't have their own Snowflake account. The provider pays for all compute used by reader accounts.",
+        "correct_answer": "Reader accounts = provider-managed and provider-billed. Consumer has no Snowflake account.",
+        "doc_reference": "https://docs.snowflake.com/en/user-guide/data-sharing-reader-create"
+      }
+    ]
+  },
+  {
+    "sub_topic": "5.4",
+    "sub_topic_name": "Marketplace & Data Exchange",
+    "traps": [
+      {
+        "trap": "Snowflake Marketplace listings can be free or paid, standard or personalized",
+        "why_confusing": "Standard listings share the same data with all consumers. Personalized listings can customize data per consumer. The exam tests whether you know the difference and when each is appropriate.",
+        "correct_answer": "Standard = same data for all. Personalized = customized per consumer. Both can be free or paid.",
+        "doc_reference": "https://docs.snowflake.com/en/user-guide/data-marketplace"
+      },
+      {
+        "trap": "Data Mesh: each domain owns its data and exposes it as a data product",
+        "why_confusing": "The exam tests Data Mesh concepts: domain separation, data-as-a-product, self-serve infrastructure. In Snowflake, this maps to separate databases/schemas per domain with controlled sharing. A third domain consuming from two others uses the READ roles granted to it.",
+        "correct_answer": "Data Mesh in Snowflake = domain databases + shares/grants + read roles for cross-domain access",
+        "doc_reference": "https://docs.snowflake.com/en/user-guide/data-sharing-intro"
+      }
+    ]
+  },
+  {
+    "sub_topic": "5.5",
+    "sub_topic_name": "Data Clean Rooms",
+    "traps": [
+      {
+        "trap": "Data Clean Rooms allow joint analysis without exposing raw data to either party",
+        "why_confusing": "Clean rooms use secure views and policies so two parties can run approved queries on combined data without seeing each other's raw records. The exam tests the concept, not implementation details.",
+        "correct_answer": "Clean rooms = secure multi-party analysis without raw data exposure",
+        "doc_reference": "https://docs.snowflake.com/en/user-guide/cleanrooms-introduction"
+      }
+    ]
+  },
+  {
+    "sub_topic": "5.6",
+    "sub_topic_name": "Native Apps",
+    "traps": [
+      {
+        "trap": "Native Apps run IN the consumer's account, not the provider's",
+        "why_confusing": "The application package is created by the provider, but when a consumer installs it, it runs inside the consumer's account. The provider's code executes with limited privileges in the consumer's environment.",
+        "correct_answer": "Native Apps = installed in consumer account, run with consumer's compute",
+        "doc_reference": "https://docs.snowflake.com/en/developer-guide/native-apps/native-apps-about"
+      }
+    ]
+  },
+  {
+    "sub_topic": "6.1",
+    "sub_topic_name": "Development Lifecycle",
+    "traps": [
+      {
+        "trap": "Zero-copy cloning is ideal for creating dev/test environments from production",
+        "why_confusing": "Cloning a production database for testing is instant and initially costs no extra storage. Changes in the clone don't affect production. This is the recommended approach, not full data copies.",
+        "correct_answer": "Clone production DB for dev/test. Instant, no initial storage cost, fully isolated.",
+        "doc_reference": "https://docs.snowflake.com/en/sql-reference/sql/create-clone"
+      }
+    ]
+  },
+  {
+    "sub_topic": "6.2",
+    "sub_topic_name": "CI/CD & Deployment",
+    "traps": [
+      {
+        "trap": "Snowflake CLI (snow) and Schemachange are different tools for different purposes",
+        "why_confusing": "Snowflake CLI is the official tool for deploying Snowpark, Streamlit, and managing Snowflake objects. Schemachange is a third-party tool for database migration scripts (similar to Flyway). The exam may test which tool for which use case.",
+        "correct_answer": "Snowflake CLI = deploy apps/objects. Schemachange = database migration scripts.",
+        "doc_reference": "https://docs.snowflake.com/en/developer-guide/snowflake-cli/index"
+      }
+    ]
+  },
+  {
+    "sub_topic": "6.3",
+    "sub_topic_name": "Snowpark Container Services",
+    "traps": [
+      {
+        "trap": "SPCS runs containers IN Snowflake, not externally",
+        "why_confusing": "SPCS provides compute pools within Snowflake to run Docker containers. Data stays in Snowflake. This is different from external functions which call external endpoints. SPCS keeps everything inside the Snowflake security boundary.",
+        "correct_answer": "SPCS = containers inside Snowflake. Data doesn't leave. Uses compute pools, image repositories.",
+        "doc_reference": "https://docs.snowflake.com/en/developer-guide/snowpark-container-services/overview"
+      },
+      {
+        "trap": "Service functions are how you call SPCS services from SQL",
+        "why_confusing": "SPCS exposes services via service functions (callable from SQL) or service endpoints (HTTP). The exam may ask how other Snowflake objects interact with containers.",
+        "correct_answer": "Service function = SQL interface to SPCS. Service endpoint = HTTP interface.",
+        "doc_reference": "https://docs.snowflake.com/en/developer-guide/snowpark-container-services/working-with-services"
+      }
+    ]
+  },
+  {
+    "sub_topic": "6.4",
+    "sub_topic_name": "AI/ML in Snowflake",
+    "traps": [
+      {
+        "trap": "Cortex AI functions run inside Snowflake -- no external API calls needed",
+        "why_confusing": "SNOWFLAKE.CORTEX functions (COMPLETE, SUMMARIZE, TRANSLATE, etc.) run entirely within Snowflake using pre-deployed LLMs. No API keys or external endpoints required.",
+        "correct_answer": "Cortex = in-Snowflake AI. No external setup. Just SQL function calls.",
+        "doc_reference": "https://docs.snowflake.com/en/user-guide/snowflake-cortex/llm-functions"
+      }
+    ]
+  },
+  {
+    "sub_topic": "6.5",
+    "sub_topic_name": "Streamlit & Native Apps",
+    "traps": [
+      {
+        "trap": "Streamlit in Snowflake runs in the user's context (their role and warehouse)",
+        "why_confusing": "SiS apps execute queries using the viewer's role and the assigned warehouse. This means different users see different data based on their privileges, without the app developer needing to implement access control.",
+        "correct_answer": "SiS uses viewer's role + assigned warehouse. Access control is automatic via RBAC.",
+        "doc_reference": "https://docs.snowflake.com/en/developer-guide/streamlit/about-streamlit"
+      }
+    ]
+  },
+  {
+    "sub_topic": "6.6",
+    "sub_topic_name": "Data Warehouse Layers",
+    "traps": [
+      {
+        "trap": "Landing/staging zone should use transient tables to avoid Fail-Safe costs",
+        "why_confusing": "Raw/staging data that gets transformed and loaded into permanent tables doesn't need 7-day Fail-Safe. Using transient tables for staging saves storage costs. Permanent tables are for curated/production data.",
+        "correct_answer": "Staging/landing = transient tables (no Fail-Safe). Production/curated = permanent tables.",
+        "doc_reference": "https://docs.snowflake.com/en/user-guide/tables-temp-transient"
+      }
+    ]
+  }
+]

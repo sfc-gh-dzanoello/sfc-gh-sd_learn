@@ -1,31 +1,37 @@
 """Score tracker page - visual performance tracking with domain colors."""
 import streamlit as st
+from i18n import t
 
-# ── Sidebar: Home button ──
-if st.sidebar.button("🏠 Home", key="progress_home", use_container_width=True):
-    st.session_state.app_mode = None
-    st.switch_page("app_pages/landing.py")
+# ── Sidebar: Navigation buttons ──
+_nav1, _nav2 = st.sidebar.columns(2)
+with _nav1:
+    if st.button(":material/home: Home", key="progress_home", use_container_width=True):
+        st.session_state.app_mode = None
+        st.switch_page("app_pages/landing.py")
+with _nav2:
+    if st.button(":material/arrow_back: Dashboard", key="progress_dash", use_container_width=True):
+        st.switch_page("app_pages/dashboard.py")
 
 DOMAIN_COLORS = st.session_state.get("DOMAIN_COLORS", {})
 DOMAIN_CSS_NUM = st.session_state.get("DOMAIN_CSS_NUM", {})
 DOMAIN_EMOJIS = st.session_state.get("DOMAIN_EMOJIS", {})
 
-st.markdown("""
-<h1 style="margin-bottom:4px;">📈 Score Tracker</h1>
-<p style="color:#9CA3AF; margin-top:0;">Track your quiz performance and identify weak areas</p>
+st.markdown(f"""
+<h1 style="margin-bottom:4px;">📈 {t("score_tracker_title")}</h1>
+<p style="color:#9CA3AF; margin-top:0;">{t("score_tracker_subtitle")}</p>
 """, unsafe_allow_html=True)
 
 history = st.session_state.quiz_score_history
 
 if not history:
-    st.markdown("""
+    st.markdown(f"""
     <div style="background:#1B2332; border-radius:12px; padding:40px; text-align:center; margin:20px 0;">
         <p style="font-size:2.5rem; margin:0;">🧠</p>
-        <p style="font-size:1.2rem; color:#FAFAFA; margin:10px 0;">No quiz scores yet</p>
-        <p style="color:#9CA3AF;">Go to <strong>Quiz Mode</strong> to start practicing!</p>
+        <p style="font-size:1.2rem; color:inherit; margin:10px 0;">{t("no_scores_yet")}</p>
+        <p style="color:#9CA3AF;">{t("go_quiz_to_practice")}</p>
     </div>
     """, unsafe_allow_html=True)
-    if st.button("🚀 Start a quiz", type="primary"):
+    if st.button(f"🚀 {t('start_a_quiz')}", type="primary"):
         st.switch_page("app_pages/quiz.py")
 else:
     # ── Overall stats ──
@@ -35,9 +41,9 @@ else:
 
     cols = st.columns(4)
     stats = [
-        (str(len(history)), "Quizzes taken"),
-        (str(total_answered), "Questions answered"),
-        (f"{overall_pct:.1f}%", "Overall accuracy"),
+        (str(len(history)), t("quizzes_taken")),
+        (str(total_answered), t("questions_answered")),
+        (f"{overall_pct:.1f}%", t("overall_accuracy")),
     ]
 
     for col, (val, label) in zip(cols[:3], stats):
@@ -53,16 +59,16 @@ else:
     with cols[3]:
         if overall_pct >= 75 and total_answered >= 20:
             badge_color = "#4ECB71"
-            badge_text = "✅ Ready"
-            badge_sub = f"+{overall_pct - 75:.1f}% above 75%"
+            badge_text = f"✅ {t('ready')}"
+            badge_sub = f"+{overall_pct - 75:.1f}% {t('above_threshold')}"
         elif total_answered < 20:
             badge_color = "#FFD93D"
-            badge_text = "📝 Keep going"
-            badge_sub = f"Need {20 - total_answered} more Qs"
+            badge_text = f"📝 {t('keep_going')}"
+            badge_sub = t("need_more_qs").replace("{n}", str(20 - total_answered))
         else:
             badge_color = "#FF6B6B"
-            badge_text = "📖 Keep studying"
-            badge_sub = f"{75 - overall_pct:.1f}% below 75%"
+            badge_text = f"📖 {t('keep_studying')}"
+            badge_sub = f"{75 - overall_pct:.1f}% {t('below_threshold')}"
 
         st.markdown(f"""
         <div class="stat-card" style="border:2px solid {badge_color};">
@@ -74,7 +80,7 @@ else:
     st.markdown("<br>", unsafe_allow_html=True)
 
     # ── Score trend chart ──
-    st.markdown("### 📊 Score Trend")
+    st.markdown(f"### 📊 {t('score_trend')}")
 
     if len(history) >= 2:
         import altair as alt
@@ -93,7 +99,7 @@ else:
             point=alt.OverlayMarkDef(filled=True, size=60),
             color="#29B5E8",
         ).encode(
-            x=alt.X("Quiz:Q", title="Quiz number"),
+            x=alt.X("Quiz:Q", title=t("quiz_number")),
             y=alt.Y("Score (%):Q", title="Score %", scale=alt.Scale(domain=[0, 100])),
             tooltip=["Quiz", "Score (%)", "Domain"],
         )
@@ -105,14 +111,14 @@ else:
         )
 
         st.altair_chart(line + threshold, use_container_width=True)
-        st.caption("Red dashed line = 75% passing threshold")
+        st.caption(t("passing_threshold"))
     else:
-        st.caption("Take at least 2 quizzes to see your trend chart.")
+        st.caption(t("take_2_quizzes"))
 
     st.markdown("<br>", unsafe_allow_html=True)
 
     # ── Domain breakdown with colored bars ──
-    st.markdown("### 🎯 Performance by Domain")
+    st.markdown(f"### 🎯 {t('performance_by_domain')}")
 
     domain_scores = {}
     for e in history:
@@ -122,14 +128,13 @@ else:
         domain_scores[d]["correct"] += e["score"]
         domain_scores[d]["total"] += e["total"]
 
-    for domain in [
-        "Domain 1: Architecture",
-        "Domain 2: Account & Governance",
-        "Domain 3: Data Loading",
-        "Domain 4: Performance & Querying",
-        "Domain 5: Collaboration",
-        "All",
-    ]:
+    # Build ordered domain list dynamically from current cert
+    active_cert = st.session_state.get("_active_cert", "core")
+    cert_registry = st.session_state.get("CERT_REGISTRY", {})
+    cert_info = cert_registry.get(active_cert, cert_registry.get("core", {}))
+    ordered_domains = list(cert_info.get("domains", {}).keys()) + ["All"]
+
+    for domain in ordered_domains:
         if domain in domain_scores:
             data = domain_scores[domain]
             pct = data["correct"] / data["total"] * 100
@@ -140,13 +145,13 @@ else:
             bar_width = min(pct, 100)
 
             if pct >= 75:
-                status = "✅ On track"
+                status = f"✅ {t('on_track')}"
                 status_color = "#4ECB71"
             elif pct >= 50:
-                status = "⚠️ Needs work"
+                status = f"⚠️ {t('needs_work')}"
                 status_color = "#FFD93D"
             else:
-                status = "🔴 Focus here"
+                status = f"🔴 {t('focus_here')}"
                 status_color = "#FF6B6B"
 
             st.markdown(f"""
@@ -164,7 +169,7 @@ else:
     st.markdown("<br>", unsafe_allow_html=True)
 
     # ── Weak areas ──
-    st.markdown("### ⚠️ Weak Areas to Focus On")
+    st.markdown(f"### ⚠️ {t('weak_areas')}")
 
     weak = []
     for domain, data in domain_scores.items():
@@ -180,23 +185,23 @@ else:
             st.markdown(f"""
             <div class="exam-trap">
                 {emoji} <strong>{domain}</strong> — {pct:.0f}% accuracy ({total_q} questions).
-                Review notes and take a domain-focused quiz.
+                {t("review_and_quiz")}
             </div>
             """, unsafe_allow_html=True)
     else:
         if total_answered >= 50:
-            st.markdown("""
+            st.markdown(f"""
             <div class="feedback-correct" style="text-align:center;">
-                🎉 <strong>All domains above 75%! You're looking good for the exam.</strong>
+                🎉 <strong>{t("all_above_75")}</strong>
             </div>
             """, unsafe_allow_html=True)
         else:
-            st.caption("Keep taking quizzes to identify weak areas (need 50+ questions for reliable data).")
+            st.caption(t("need_50_qs"))
 
     st.markdown("<br>", unsafe_allow_html=True)
 
     # ── Quiz history ──
-    st.markdown("### 📋 Quiz History")
+    st.markdown(f"### 📋 {t('quiz_history')}")
 
     for i, e in enumerate(reversed(history)):
         pct = e["score"] / e["total"] * 100
@@ -219,6 +224,6 @@ else:
 
     # ── Clear history ──
     st.markdown("---")
-    if st.button("🗑️ Clear all scores", type="secondary"):
+    if st.button(f"🗑️ {t('clear_all_scores')}", type="secondary"):
         st.session_state.quiz_score_history = []
         st.rerun()

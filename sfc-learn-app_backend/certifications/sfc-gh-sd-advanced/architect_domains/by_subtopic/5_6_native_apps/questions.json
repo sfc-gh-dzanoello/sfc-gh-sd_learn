@@ -1,0 +1,90 @@
+{
+  "sub_topic": "5.6",
+  "sub_topic_name": "Native Apps",
+  "domain": "Domain 5.0: Sharing & Collaboration",
+  "total_questions": 2,
+  "difficulty_distribution": {
+    "advanced": 1,
+    "intermediate": 1
+  },
+  "exam_traps": [
+    {
+      "trap": "Native Apps run IN the consumer's account, not the provider's",
+      "why_confusing": "The application package is created by the provider, but when a consumer installs it, it runs inside the consumer's account. The provider's code executes with limited privileges in the consumer's environment.",
+      "correct_answer": "Native Apps = installed in consumer account, run with consumer's compute",
+      "doc_reference": "https://docs.snowflake.com/en/developer-guide/native-apps/native-apps-about"
+    }
+  ],
+  "questions": [
+    {
+      "id": "architect_new_q8",
+      "source": "architect_new",
+      "question_num": 8,
+      "question": "Which statement about Snowflake Native Apps is TRUE?",
+      "options": [
+        {
+          "text": "Native Apps can only contain SQL procedures and nothing else.",
+          "explanation": ""
+        },
+        {
+          "text": "Native Apps are installed in the consumer's account and can include Streamlit UIs, procedures, and shared data.",
+          "explanation": ""
+        },
+        {
+          "text": "Native Apps require the consumer to have ACCOUNTADMIN privileges to install.",
+          "explanation": ""
+        },
+        {
+          "text": "Native Apps bypass Snowflake's access control model.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Native Apps (Application Packages) are full distributable packages that can include Streamlit interfaces, stored procedures, UDFs, shared data, and setup scripts. They install in the consumer's account and respect Snowflake's RBAC model.",
+      "domain_raw": "",
+      "domain": "Domain 5.0: Sharing & Collaboration",
+      "difficulty": "intermediate",
+      "sub_topic": "5.6",
+      "sub_topic_name": "Native Apps"
+    },
+    {
+      "id": "architect_new_q41",
+      "source": "architect_new",
+      "question_num": 41,
+      "question": "What is the relationship between an Application Package and a Native App?",
+      "options": [
+        {
+          "text": "An Application Package is the distributable artifact; a Native App is the installed instance in the consumer's account.",
+          "explanation": ""
+        },
+        {
+          "text": "They are the same thing -- the terms are interchangeable.",
+          "explanation": ""
+        },
+        {
+          "text": "A Native App contains multiple Application Packages.",
+          "explanation": ""
+        },
+        {
+          "text": "An Application Package is for free listings; a Native App is for paid listings.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        0
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "An Application Package is the provider-side artifact that bundles code, data, and configuration. When a consumer installs it, they get a Native App (application object) in their account. The package is the blueprint; the app is the running instance.",
+      "domain_raw": "",
+      "domain": "Domain 5.0: Sharing & Collaboration",
+      "difficulty": "advanced",
+      "sub_topic": "5.6",
+      "sub_topic_name": "Native Apps"
+    }
+  ]
+}

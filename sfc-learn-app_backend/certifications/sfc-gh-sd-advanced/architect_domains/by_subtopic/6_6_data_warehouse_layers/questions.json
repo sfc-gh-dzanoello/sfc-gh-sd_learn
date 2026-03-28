@@ -1,0 +1,54 @@
+{
+  "sub_topic": "6.6",
+  "sub_topic_name": "Data Warehouse Layers",
+  "domain": "Domain 6.0: DevOps & Ecosystem",
+  "total_questions": 1,
+  "difficulty_distribution": {
+    "intermediate": 1
+  },
+  "exam_traps": [
+    {
+      "trap": "Landing/staging zone should use transient tables to avoid Fail-Safe costs",
+      "why_confusing": "Raw/staging data that gets transformed and loaded into permanent tables doesn't need 7-day Fail-Safe. Using transient tables for staging saves storage costs. Permanent tables are for curated/production data.",
+      "correct_answer": "Staging/landing = transient tables (no Fail-Safe). Production/curated = permanent tables.",
+      "doc_reference": "https://docs.snowflake.com/en/user-guide/tables-temp-transient"
+    }
+  ],
+  "questions": [
+    {
+      "id": "architect_new_q32",
+      "source": "architect_new",
+      "question_num": 32,
+      "question": "A team uses dbt to transform data in Snowflake. In the medallion architecture, where do dbt staging models and mart models typically map?",
+      "options": [
+        {
+          "text": "Staging models = bronze, mart models = silver.",
+          "explanation": ""
+        },
+        {
+          "text": "Staging models = silver, mart models = gold.",
+          "explanation": ""
+        },
+        {
+          "text": "Staging models = gold, mart models = bronze.",
+          "explanation": ""
+        },
+        {
+          "text": "dbt does not follow medallion architecture patterns.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "In dbt's convention: staging models clean and standardize raw data (silver/curated layer), and mart models create business-ready aggregations and fact/dimension tables (gold/consumption layer). The bronze layer is typically populated by ingestion tools (Snowpipe, COPY INTO) before dbt runs.",
+      "domain_raw": "",
+      "domain": "Domain 6.0: DevOps & Ecosystem",
+      "difficulty": "intermediate",
+      "sub_topic": "6.6",
+      "sub_topic_name": "Data Warehouse Layers"
+    }
+  ]
+}

@@ -1,0 +1,159 @@
+{
+  "sub_topic": "6.1",
+  "sub_topic_name": "Development Lifecycle",
+  "domain": "Domain 6.0: DevOps & Ecosystem",
+  "total_questions": 4,
+  "difficulty_distribution": {
+    "intermediate": 4
+  },
+  "exam_traps": [
+    {
+      "trap": "Zero-copy cloning is ideal for creating dev/test environments from production",
+      "why_confusing": "Cloning a production database for testing is instant and initially costs no extra storage. Changes in the clone don't affect production. This is the recommended approach, not full data copies.",
+      "correct_answer": "Clone production DB for dev/test. Instant, no initial storage cost, fully isolated.",
+      "doc_reference": "https://docs.snowflake.com/en/sql-reference/sql/create-clone"
+    }
+  ],
+  "questions": [
+    {
+      "id": "architect_new_q20",
+      "source": "architect_new",
+      "question_num": 20,
+      "question": "After cloning a production database for testing, an Architect notices that scheduled tasks are not running in the cloned database. Why?",
+      "options": [
+        {
+          "text": "Tasks cannot be cloned.",
+          "explanation": ""
+        },
+        {
+          "text": "Cloned tasks are suspended by default and must be manually resumed.",
+          "explanation": ""
+        },
+        {
+          "text": "The clone does not include task objects.",
+          "explanation": ""
+        },
+        {
+          "text": "Tasks require a separate warehouse that wasn't cloned.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "When cloning a database or schema, all tasks are cloned but are automatically suspended. This is a safety measure to prevent cloned tasks from accidentally running against production resources or consuming unexpected credits.",
+      "domain_raw": "",
+      "domain": "Domain 6.0: DevOps & Ecosystem",
+      "difficulty": "intermediate",
+      "sub_topic": "6.1",
+      "sub_topic_name": "Development Lifecycle"
+    },
+    {
+      "id": "architect_new_q22",
+      "source": "architect_new",
+      "question_num": 22,
+      "question": "What is the purpose of CREATE GIT REPOSITORY in Snowflake?",
+      "options": [
+        {
+          "text": "It creates a local Git repository inside Snowflake for version control.",
+          "explanation": ""
+        },
+        {
+          "text": "It links an external Git repository so Snowflake can read files directly from it.",
+          "explanation": ""
+        },
+        {
+          "text": "It enables Snowflake to push changes back to a Git repository.",
+          "explanation": ""
+        },
+        {
+          "text": "It creates a backup of Snowflake objects in Git format.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "CREATE GIT REPOSITORY links an external Git repository (GitHub, GitLab, etc.) to Snowflake. Files can then be referenced directly using stage notation: @my_repo/branches/main/path/file.sql. This is read-only -- Snowflake can fetch files but cannot push changes back.",
+      "domain_raw": "",
+      "domain": "Domain 6.0: DevOps & Ecosystem",
+      "difficulty": "intermediate",
+      "sub_topic": "6.1",
+      "sub_topic_name": "Development Lifecycle"
+    },
+    {
+      "id": "architect_new_q29",
+      "source": "architect_new",
+      "question_num": 29,
+      "question": "An Architect is designing environment isolation for a Snowflake deployment. Which approach provides the STRONGEST security boundaries between dev and prod?",
+      "options": [
+        {
+          "text": "Separate schemas within the same database.",
+          "explanation": ""
+        },
+        {
+          "text": "Separate databases within the same account.",
+          "explanation": ""
+        },
+        {
+          "text": "Separate accounts within a Snowflake Organization.",
+          "explanation": ""
+        },
+        {
+          "text": "Separate roles with different object grants.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        2
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "Separate accounts within a Snowflake Organization provide the strongest isolation. Each account has independent RBAC, network policies, and billing. A mistake in the dev account (like a bad GRANT) cannot affect production. Database-level isolation is good but still shares account-level settings.",
+      "domain_raw": "",
+      "domain": "Domain 6.0: DevOps & Ecosystem",
+      "difficulty": "intermediate",
+      "sub_topic": "6.1",
+      "sub_topic_name": "Development Lifecycle"
+    },
+    {
+      "id": "architect_new_q33",
+      "source": "architect_new",
+      "question_num": 33,
+      "question": "What happens to privileges when you clone a database using CREATE DATABASE ... CLONE?",
+      "options": [
+        {
+          "text": "All privileges are cloned along with the objects.",
+          "explanation": ""
+        },
+        {
+          "text": "Privileges are NOT cloned by default; use COPY GRANTS to include them.",
+          "explanation": ""
+        },
+        {
+          "text": "Only OWNERSHIP privileges are cloned; other grants are dropped.",
+          "explanation": ""
+        },
+        {
+          "text": "Privileges are cloned but downgraded to read-only.",
+          "explanation": ""
+        }
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multi_select": false,
+      "multi_select_count": 1,
+      "overall_explanation": "By default, privileges (grants) are NOT cloned. The cloned objects are owned by the role performing the clone. Use CREATE ... CLONE ... COPY GRANTS to carry over existing grants.",
+      "domain_raw": "",
+      "domain": "Domain 6.0: DevOps & Ecosystem",
+      "difficulty": "intermediate",
+      "sub_topic": "6.1",
+      "sub_topic_name": "Development Lifecycle"
+    }
+  ]
+}

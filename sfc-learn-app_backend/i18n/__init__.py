@@ -6,33 +6,36 @@ import streamlit as st
 _BASE = os.path.dirname(os.path.abspath(__file__))
 _STRINGS_FILE = os.path.join(_BASE, "strings.json")
 
-LANGUAGES = {
-    "en": "English",
-    "pt": "Portugues",
-    "es": "Espanol",
-}
+# Supported languages
+LANGUAGES = {"en": "English", "pt": "Portugues", "es": "Espanol"}
 
+# Module-level cache
 _strings_cache = None
 
 
 def _load_strings():
+    """Load UI strings from Snowflake (SiS) or local file."""
     global _strings_cache
-    if _strings_cache is None:
-        # Try loading from Snowflake tables first (via data_layer)
-        try:
-            from app_pages.data_layer import get_i18n_strings, _IN_SIS
-            if _IN_SIS:
-                _strings_cache = get_i18n_strings()
-                if _strings_cache:
-                    return _strings_cache
-        except ImportError:
-            pass
-        # Fallback to file
-        if os.path.exists(_STRINGS_FILE):
-            with open(_STRINGS_FILE, "r", encoding="utf-8") as f:
-                _strings_cache = json.load(f)
-        else:
-            _strings_cache = {}
+    if _strings_cache is not None:
+        return _strings_cache
+
+    # Try loading from data_layer (works in SiS and local)
+    try:
+        from app_pages.data_layer import get_i18n_strings, _IN_SIS
+        if _IN_SIS:
+            _strings_cache = get_i18n_strings()
+            if _strings_cache:
+                return _strings_cache
+    except ImportError:
+        pass
+
+    # Fallback: load from local strings.json
+    if os.path.exists(_STRINGS_FILE):
+        with open(_STRINGS_FILE, "r", encoding="utf-8") as f:
+            _strings_cache = json.load(f)
+    else:
+        _strings_cache = {}
+
     return _strings_cache
 
 

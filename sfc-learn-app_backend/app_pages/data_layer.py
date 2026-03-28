@@ -8,14 +8,18 @@ import json
 import os
 import streamlit as st
 
-# Detect SiS environment
+# Detect SiS environment (import alone is not enough -- snowpark may be
+# installed locally without an active session)
 try:
     from snowflake.snowpark.context import get_active_session
+    get_active_session()
     _IN_SIS = True
-except ImportError:
+except Exception:
     _IN_SIS = False
 
 BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# Registry paths already include "certifications/" prefix, so base is the app root
+CONTENT_BASE = BASE
 
 
 def _session():
@@ -104,7 +108,7 @@ def get_cert_registry():
 
 def _file_cert_registry():
     """Fallback: load from registry.json for local dev."""
-    fp = os.path.join(BASE, "certifications", "registry.json")
+    fp = os.path.join(BASE, "registry.json")
     if os.path.exists(fp):
         with open(fp, "r", encoding="utf-8") as f:
             return json.load(f).get("certifications", {})
@@ -138,13 +142,20 @@ def get_questions(cert_key="core"):
         correct = r["CORRECT_INDICES"]
         if isinstance(correct, str):
             correct = json.loads(correct)
+        correct = correct or []
+        is_multi = len(correct) > 1
         questions.append({
             "id": r["QUESTION_ID"],
             "source": r["SOURCE"],
+            "question_num": r["QUESTION_ID"],
             "domain": r["DOMAIN"],
+            "domain_raw": r["DOMAIN"],
             "question": r["QUESTION_TEXT"],
             "options": options or [],
-            "correct_indices": correct or [],
+            "correct_indices": correct,
+            "multi_select": is_multi,
+            "multi_select_count": len(correct) if is_multi else None,
+            "overall_explanation": r["EXPLANATION"] or "",
             "explanation": r["EXPLANATION"] or "",
             "difficulty": r["DIFFICULTY"],
         })
@@ -158,7 +169,7 @@ def _file_questions(cert_key):
     qfile = cert_info.get("questions_file")
     if not qfile:
         return []
-    fp = os.path.join(BASE, qfile)
+    fp = os.path.join(CONTENT_BASE, qfile)
     if os.path.exists(fp):
         with open(fp, "r", encoding="utf-8") as f:
             return json.load(f)
@@ -202,9 +213,9 @@ def _file_review_notes(cert_key, lang):
     notes = {}
     for domain, info in cert_info.get("domains", {}).items():
         dirname = info.get("dir", "")
-        filepath = os.path.join(BASE, dirname, f"review_notes_{lang}.md")
+        filepath = os.path.join(CONTENT_BASE, dirname, f"review_notes_{lang}.md")
         if not os.path.exists(filepath):
-            filepath = os.path.join(BASE, dirname, "review_notes_en.md")
+            filepath = os.path.join(CONTENT_BASE, dirname, "review_notes_en.md")
         if os.path.exists(filepath):
             with open(filepath, "r", encoding="utf-8") as f:
                 notes[domain] = f.read()
@@ -298,11 +309,13 @@ def get_topic_content(track_key, topic_key):
 
 
 def _file_topic_content(track_key, topic_key):
-    """Fallback: load from labs/<track>/<topic>.json."""
-    fp = os.path.join(BASE, "labs", track_key, f"{topic_key}.json")
-    if os.path.exists(fp):
-        with open(fp, "r", encoding="utf-8") as f:
-            return json.load(f)
+    """Fallback: load from content JSON files."""
+    # Try CONTENT_BASE first (sfc-gh-sd-paths), then BASE (backend)
+    for base in [CONTENT_BASE, BASE]:
+        fp = os.path.join(base, "labs", track_key, f"{topic_key}.json")
+        if os.path.exists(fp):
+            with open(fp, "r", encoding="utf-8") as f:
+                return json.load(f)
     return None
 
 
