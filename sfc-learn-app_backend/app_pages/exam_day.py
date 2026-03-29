@@ -2,15 +2,6 @@
 import streamlit as st
 from i18n import t
 
-# ── Sidebar: Navigation buttons ──
-_nav1, _nav2 = st.sidebar.columns(2)
-with _nav1:
-    if st.button(":material/home: Home", key="examday_home", use_container_width=True):
-        st.session_state.app_mode = None
-        st.switch_page("app_pages/landing.py")
-with _nav2:
-    if st.button(":material/arrow_back: Dashboard", key="examday_dash", use_container_width=True):
-        st.switch_page("app_pages/dashboard.py")
 
 active_cert = st.session_state.get("_active_cert", "core")
 registry = st.session_state.get("CERT_REGISTRY", {})

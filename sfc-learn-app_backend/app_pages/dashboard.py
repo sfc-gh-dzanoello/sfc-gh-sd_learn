@@ -4,10 +4,43 @@ from collections import Counter
 from i18n import t
 from theme import T
 
-# ── Sidebar: Home button ──
-if st.sidebar.button(t("home"), key="dash_home", use_container_width=True):
-    st.session_state.app_mode = None
-    st.switch_page("app_pages/landing.py")
+# Detect active cert — read exam metadata from registry
+active_cert = st.session_state.get("_active_cert", "core")
+registry = st.session_state.get("CERT_REGISTRY", {})
+cert_info = registry.get(active_cert, registry.get("core", {}))
+
+# ── Cert selector (top of dashboard) ──
+cert_options = []
+cert_keys = []
+for rk, rv in registry.items():
+    if rv.get("available"):
+        cert_options.append(rv["full_name"])
+        cert_keys.append(rk)
+    else:
+        cert_options.append(f"{rv['full_name']} (coming soon)")
+        cert_keys.append(rk)
+
+current_full_name = cert_info.get("full_name", "SnowPro Core (COF-C03)")
+current_idx = cert_options.index(current_full_name) if current_full_name in cert_options else 0
+
+selected_cert = st.selectbox("Select certification", cert_options, index=current_idx, key="dash_cert_select")
+if "coming soon" not in selected_cert:
+    # Find the registry key for the selected cert
+    sel_idx = cert_options.index(selected_cert)
+    sel_key = cert_keys[sel_idx]
+    if sel_key != active_cert:
+        st.session_state._pending_cert = selected_cert
+        st.session_state.app_mode = "certifications"
+        st.rerun()
+
+# Refresh cert_info after potential change
+cert_info = registry.get(active_cert, registry.get("core", {}))
+exam = cert_info.get("exam", {})
+cert_name = f"{cert_info.get('name', 'SnowPro Core')} {cert_info.get('code', 'COF-C03')}"
+exam_qs = exam.get("questions", 100)
+exam_time = exam.get("time", "115 min")
+exam_cost = exam.get("cost", "$175")
+pass_score = exam.get("pass_score", "750/1000")
 
 DOMAIN_COLORS = st.session_state.get("DOMAIN_COLORS", {})
 DOMAIN_CSS_NUM = st.session_state.get("DOMAIN_CSS_NUM", {})
@@ -17,17 +50,6 @@ DOMAIN_WEIGHTS = st.session_state.get("DOMAIN_WEIGHTS", {})
 questions = st.session_state.questions
 domain_counts = Counter(q["domain"] for q in questions)
 multi_count = sum(1 for q in questions if q.get("multi_select"))
-
-# Detect active cert — read exam metadata from registry
-active_cert = st.session_state.get("_active_cert", "core")
-registry = st.session_state.get("CERT_REGISTRY", {})
-cert_info = registry.get(active_cert, registry.get("core", {}))
-exam = cert_info.get("exam", {})
-cert_name = f"{cert_info.get('name', 'SnowPro Core')} {cert_info.get('code', 'COF-C03')}"
-exam_qs = exam.get("questions", 100)
-exam_time = exam.get("time", "115 min")
-exam_cost = exam.get("cost", "$175")
-pass_score = exam.get("pass_score", "750/1000")
 
 # ── Header ──
 st.markdown(

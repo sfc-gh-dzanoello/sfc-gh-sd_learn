@@ -12,16 +12,6 @@ if BASE not in sys.path:
 
 from app_pages.data_layer import get_app_content
 
-# ── Sidebar: Navigation buttons ──
-_nav1, _nav2 = st.sidebar.columns(2)
-with _nav1:
-    if st.button(":material/home: Home", key="strategy_home", use_container_width=True):
-        st.session_state.app_mode = None
-        st.switch_page("app_pages/landing.py")
-with _nav2:
-    if st.button(":material/arrow_back: Dashboard", key="strategy_dash", use_container_width=True):
-        st.switch_page("app_pages/dashboard.py")
-
 DOMAIN_COLORS = st.session_state.get("DOMAIN_COLORS", {})
 DOMAIN_CSS_NUM = st.session_state.get("DOMAIN_CSS_NUM", {})
 DOMAIN_EMOJIS = st.session_state.get("DOMAIN_EMOJIS", {})

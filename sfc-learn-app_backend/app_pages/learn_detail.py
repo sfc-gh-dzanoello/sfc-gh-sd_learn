@@ -34,12 +34,6 @@ def save_progress(progress):
 
 
 # ── Sidebar ──
-st.sidebar.markdown("---")
-
-if st.sidebar.button(f"🏠 {t('home')}", use_container_width=True):
-    st.session_state.app_mode = None
-    st.switch_page("app_pages/landing.py")
-
 if st.sidebar.button(f"← {t('back')}", key="back_topics", use_container_width=True):
     st.switch_page("app_pages/learn_topics.py")
 

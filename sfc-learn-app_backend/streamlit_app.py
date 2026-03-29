@@ -91,27 +91,14 @@ def load_review_notes(cert="core", lang="en"):
 
 # Load data into session state
 # Determine active certification from registry
-# _active_cert is the source of truth (persists even when selectbox doesn't render).
-# cert_select is a widget key that Streamlit purges when the selectbox doesn't render
-# (e.g., when app_mode != "certifications"), so we must NOT rely on it for data loading.
+# _active_cert is the source of truth (persists across page switches).
 active_cert = st.session_state.get("_active_cert", "core")
 
-# If landing page set _pending_cert, resolve it to a registry key
-# and seed cert_select so the sidebar selectbox will show the right value.
+# If landing page or dashboard set _pending_cert, resolve it to a registry key
 pending = st.session_state.pop("_pending_cert", None)
 if pending:
     for rk, rv in CERT_REGISTRY.items():
         if rv.get("full_name") == pending:
-            active_cert = rk
-            break
-    # Pre-seed cert_select BEFORE the widget renders (safe at this point)
-    st.session_state.cert_select = pending
-
-# If cert_select was changed via the sidebar selectbox, resolve it
-cert_key = st.session_state.get("cert_select")
-if cert_key:
-    for rk, rv in CERT_REGISTRY.items():
-        if rv.get("full_name") == cert_key:
             active_cert = rk
             break
 
@@ -182,120 +169,96 @@ st.session_state["_save_progress"] = save_progress
 # ── Determine app mode ──
 app_mode = st.session_state.get("app_mode", "landing")
 
-# ── Sidebar: cert selector + search (only in certification mode) ──
-if app_mode == "certifications":
-    st.sidebar.markdown("---")
-    st.sidebar.markdown("### Certification")
-    # Build cert options dynamically from registry
-    cert_options = []
-    for rk, rv in CERT_REGISTRY.items():
-        if rv.get("available"):
-            cert_options.append(rv["full_name"])
-        else:
-            cert_options.append(f"{rv['full_name']} (coming soon)")
-    # Pre-sync: if cert_select was purged (widget didn't render last run),
-    # restore it from _active_cert so the selectbox shows the right value
-    if "cert_select" not in st.session_state:
-        cert_info = CERT_REGISTRY.get(active_cert, {})
-        st.session_state.cert_select = cert_info.get("full_name", "SnowPro Core (COF-C03)")
-    selected_cert = st.sidebar.selectbox("Select certification", cert_options, key="cert_select")
-    if "coming soon" in selected_cert:
-        st.sidebar.info(f"{selected_cert} -- materials coming soon.")
-    else:
-        # Find the matching registry entry for the sidebar card
-        sidebar_cert = CERT_REGISTRY.get(active_cert, {})
-        exam = sidebar_cert.get("exam", {})
-        num_domains = len(sidebar_cert.get("domains", {}))
-        st.sidebar.markdown(
-        f'<div style="background:{sidebar_cert.get("sidebar_gradient", "linear-gradient(135deg,#0E4D71,#0B3D5B)")};border-radius:10px;padding:10px 14px;margin:6px 0;text-align:center;">'
-        f'<span style="color:{sidebar_cert.get("sidebar_accent", "#B2EBF2")};font-size:0.8rem;">ACTIVE CERT</span><br>'
-        f'<strong style="color:{sidebar_cert.get("sidebar_text", "#E0F7FA")};font-size:1rem;">{sidebar_cert.get("name", "")} {sidebar_cert.get("code", "")}</strong><br>'
-        f'<span style="color:{sidebar_cert.get("sidebar_sub", "#80DEEA")};font-size:0.75rem;">{exam.get("questions", "")} Qs &bull; {num_domains} domains &bull; {exam.get("cost", "")}</span>'
-        '</div>', unsafe_allow_html=True)
+# ── Sidebar: Snowflake logo at top ──
+SF_LOGO_SM = '<svg width="32" height="32" viewBox="0 0 48 48" fill="none"><g transform="translate(24,24)"><g fill="#29B5E8"><rect x="-2" y="-21" width="4" height="21" rx="2"/><rect x="-2" y="0" width="4" height="21" rx="2"/><rect x="-2" y="-21" width="4" height="21" rx="2" transform="rotate(60)"/><rect x="-2" y="0" width="4" height="21" rx="2" transform="rotate(60)"/><rect x="-2" y="-21" width="4" height="21" rx="2" transform="rotate(-60)"/><rect x="-2" y="0" width="4" height="21" rx="2" transform="rotate(-60)"/></g><g fill="#29B5E8"><circle cx="0" cy="-21" r="3.2"/><circle cx="0" cy="21" r="3.2"/><circle cx="18.2" cy="-10.5" r="3.2"/><circle cx="-18.2" cy="10.5" r="3.2"/><circle cx="-18.2" cy="-10.5" r="3.2"/><circle cx="18.2" cy="10.5" r="3.2"/></g><circle cx="0" cy="0" r="4" fill="#29B5E8"/></g></svg>'
+st.sidebar.markdown(
+    f'<div style="text-align:center; padding:10px 0 4px;">'
+    f'{SF_LOGO_SM}'
+    f'<p style="color:#80DEEA; font-size:0.75rem; margin:4px 0 0;">Study Hub</p>'
+    f'</div>', unsafe_allow_html=True)
 
-    st.sidebar.markdown("---")
-    st.sidebar.markdown("### Global Search")
-    global_search = st.sidebar.text_input("Search all notes + questions", key="global_search", placeholder="e.g., Time Travel, RBAC...")
-
-    if global_search:
-        results_notes = []
-        for d, content in st.session_state.get("review_notes", {}).items():
-            if global_search.lower() in content.lower():
-                count = content.lower().count(global_search.lower())
-                results_notes.append((d, count))
-
-        results_qs = []
-        for q in st.session_state.get("questions", []):
-            if global_search.lower() in q["question"].lower():
-                results_qs.append(q)
-
-        st.sidebar.markdown(f"**Found in notes:** {len(results_notes)} domains")
-        for d, count in sorted(results_notes, key=lambda x: -x[1]):
-            short = d.split(": ")[1] if ": " in d else d
-            emoji = st.session_state.get("DOMAIN_EMOJIS", {}).get(d, "")
-            st.sidebar.markdown(f"- {emoji} {short}: **{count}** matches")
-
-        st.sidebar.markdown(f"**Found in questions:** {len(results_qs[:10])} questions")
-        for q in results_qs[:5]:
-            st.sidebar.caption(f"Q: {q['question'][:80]}...")
-
-# ── Language selector (always visible in sidebar) ──
+# ── Language selector ──
 language_selector()
+
+# ── Sidebar: search (below navigation) ──
+st.sidebar.markdown("---")
+global_search = st.sidebar.text_input("Search notes + questions", key="global_search", placeholder="e.g., Time Travel, RBAC...")
+
+if global_search:
+    results_notes = []
+    for d, content in st.session_state.get("review_notes", {}).items():
+        if global_search.lower() in content.lower():
+            count = content.lower().count(global_search.lower())
+            results_notes.append((d, count))
+
+    results_qs = []
+    for q in st.session_state.get("questions", []):
+        if global_search.lower() in q["question"].lower():
+            results_qs.append(q)
+
+    st.sidebar.markdown(f"**Found in notes:** {len(results_notes)} domains")
+    for d, count in sorted(results_notes, key=lambda x: -x[1]):
+        short = d.split(": ")[1] if ": " in d else d
+        emoji = st.session_state.get("DOMAIN_EMOJIS", {}).get(d, "")
+        st.sidebar.markdown(f"- {emoji} {short}: **{count}** matches")
+
+    st.sidebar.markdown(f"**Found in questions:** {len(results_qs[:10])} questions")
+    for q in results_qs[:5]:
+        st.sidebar.caption(f"Q: {q['question'][:80]}...")
 
 # ── Build page list (mode-aware) ──
 landing = st.Page("app_pages/landing.py", title="Home", icon=":material/home:", default=True)
 
 # All pages that must always be registered for switch_page to work
+tracker_pages = [
+    st.Page("app_pages/progress.py", title="Score tracker", icon=":material/trending_up:"),
+]
 cert_pages = [
     st.Page("app_pages/dashboard.py", title="Dashboard", icon=":material/dashboard:"),
     st.Page("app_pages/quiz.py", title="Quiz mode", icon=":material/quiz:"),
-    st.Page("app_pages/review.py", title="Review notes", icon=":material/menu_book:"),
+    st.Page("app_pages/review.py", title="Review content", icon=":material/menu_book:"),
     st.Page("app_pages/learn.py", title="My Notes & Cards", icon=":material/edit_note:"),
-]
-exam_pages = [
     st.Page("app_pages/strategy.py", title="Exam strategy", icon=":material/strategy:"),
-    st.Page("app_pages/exam_day.py", title="EXAM DAY", icon=":material/emergency:"),
-    st.Page("app_pages/progress.py", title="Score tracker", icon=":material/trending_up:"),
+    st.Page("app_pages/learn_paths.py", title="Learn Paths", icon=":material/route:"),
 ]
-learn_pages = [
-    st.Page("app_pages/learn_tracks.py", title="Learning Tracks", icon=":material/school:"),
-    st.Page("app_pages/assistant.py", title="Study Assistant", icon=":material/smart_toy:"),
+tools_pages = [
+    st.Page("app_pages/learn_tracks.py", title="Project Preparation", icon=":material/build:"),
     st.Page("app_pages/sandbox.py", title="SQL Sandbox", icon=":material/code:"),
-    st.Page("app_pages/project_prep.py", title="Project Preparation", icon=":material/build:"),
+    st.Page("app_pages/quickstarts.py", title="Quickstarts", icon=":material/rocket_launch:"),
+    st.Page("app_pages/assistant.py", title="Study Assistant", icon=":material/smart_toy:"),
 ]
-# Hidden pages (navigated programmatically, not shown in sidebar)
-hidden_pages = [
-    st.Page("app_pages/learn_topics.py", title="Topics", visibility="hidden"),
-    st.Page("app_pages/learn_detail.py", title="Topic Detail", visibility="hidden"),
+# Pages navigated programmatically (no visibility param for SiS compatibility)
+extra_pages = [
+    st.Page("app_pages/learn_topics.py", title="Topics"),
+    st.Page("app_pages/learn_detail.py", title="Topic Detail"),
 ]
 
 if app_mode == "certifications":
     nav_config = {
-        "": [landing],
+        "": [landing] + tracker_pages,
         "Certification": cert_pages,
-        "Exam Prep": exam_pages,
-        "Learn": learn_pages,
-        " ": hidden_pages,
+        "Tools": tools_pages,
+        " ": extra_pages,
     }
 elif app_mode == "project_prep":
     nav_config = {
-        "": [landing],
-        "Learn": learn_pages,
-        " ": cert_pages + exam_pages + hidden_pages,
+        "": [landing] + tracker_pages,
+        "Tools": tools_pages,
+        " ": cert_pages + extra_pages,
     }
 elif app_mode == "learn":
     nav_config = {
-        "": [landing],
-        "Learn": learn_pages,
-        " ": cert_pages + exam_pages + hidden_pages,
+        "": [landing] + tracker_pages,
+        "Tools": tools_pages,
+        " ": cert_pages + extra_pages,
     }
 else:
     # Landing mode — show all sections so user can freely navigate
     nav_config = {
-        "": [landing],
+        "": [landing] + tracker_pages,
         "Certification": cert_pages,
-        "Exam Prep": exam_pages,
-        "Learn": learn_pages,
+        "Tools": tools_pages,
+        " ": extra_pages,
     }
 
 page = st.navigation(nav_config, position="sidebar")

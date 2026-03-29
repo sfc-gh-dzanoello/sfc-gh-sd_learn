@@ -13,15 +13,32 @@ try:
 except Exception:
     _HAS_CORTEX = False
 
-# ── Sidebar: Navigation buttons ──
-_nav1, _nav2 = st.sidebar.columns(2)
-with _nav1:
-    if st.button(":material/home: Home", key="review_home", use_container_width=True):
-        st.session_state.app_mode = None
-        st.switch_page("app_pages/landing.py")
-with _nav2:
-    if st.button(":material/arrow_back: Dashboard", key="review_dash", use_container_width=True):
-        st.switch_page("app_pages/dashboard.py")
+# ── Cert selector (top of page) ──
+active_cert = st.session_state.get("_active_cert", "core")
+registry = st.session_state.get("CERT_REGISTRY", {})
+cert_info = registry.get(active_cert, registry.get("core", {}))
+
+cert_options = []
+cert_keys = []
+for rk, rv in registry.items():
+    if rv.get("available"):
+        cert_options.append(rv["full_name"])
+        cert_keys.append(rk)
+    else:
+        cert_options.append(f"{rv['full_name']} (coming soon)")
+        cert_keys.append(rk)
+
+current_full_name = cert_info.get("full_name", "SnowPro Core (COF-C03)")
+current_idx = cert_options.index(current_full_name) if current_full_name in cert_options else 0
+
+selected_cert = st.selectbox("Select certification", cert_options, index=current_idx, key="review_cert_select")
+if "coming soon" not in selected_cert:
+    sel_idx = cert_options.index(selected_cert)
+    sel_key = cert_keys[sel_idx]
+    if sel_key != active_cert:
+        st.session_state._pending_cert = selected_cert
+        st.session_state.app_mode = "certifications"
+        st.rerun()
 
 # Sidebar quiz shortcut (always visible)
 st.sidebar.markdown("---")

@@ -230,24 +230,42 @@ td.no { color: #4B5563 !important; }
 .notes-imp-yellow { border-color: #FFD93D; }
 .notes-imp-purple { border-color: #C084FC; }
 
-/* Sticky note */
+/* Sticky note - base */
 .sticky-note {
-    background: #FFF9C4;
     color: #333;
-    border-radius: 6px;
-    padding: 10px 14px;
+    border-radius: 4px 24px 4px 4px;
+    padding: 12px 16px;
     margin: 8px 0;
     font-size: 0.9rem;
-    border: 1px solid #F0E68C;
-    box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+    box-shadow: 2px 3px 8px rgba(0,0,0,0.12);
     position: relative;
+    line-height: 1.5;
+    font-family: 'Segoe UI', sans-serif;
 }
 .sticky-note::before {
-    content: "📌";
     position: absolute;
-    top: -8px;
-    right: 8px;
+    top: -10px;
+    right: 10px;
+    font-size: 0.9rem;
 }
+/* Post-it colors */
+.sticky-yellow { background: #FFF9C4; border-left: 4px solid #F9A825; }
+.sticky-yellow::before { content: "pin"; color: #F9A825; }
+.sticky-pink { background: #FCE4EC; border-left: 4px solid #E91E63; }
+.sticky-pink::before { content: "pin"; color: #E91E63; }
+.sticky-blue { background: #E3F2FD; border-left: 4px solid #1565C0; }
+.sticky-blue::before { content: "pin"; color: #1565C0; }
+.sticky-green { background: #E8F5E9; border-left: 4px solid #2E7D32; }
+.sticky-green::before { content: "pin"; color: #2E7D32; }
+.sticky-purple { background: #F3E5F5; border-left: 4px solid #7B1FA2; }
+.sticky-purple::before { content: "pin"; color: #7B1FA2; }
+.sticky-orange { background: #FFF3E0; border-left: 4px solid #E65100; }
+.sticky-orange::before { content: "pin"; color: #E65100; }
+/* Highlight marker styles */
+.mark-yellow { background: #FFF176; padding: 1px 4px; border-radius: 2px; }
+.mark-pink { background: #F48FB1; padding: 1px 4px; border-radius: 2px; }
+.mark-blue { background: #90CAF9; padding: 1px 4px; border-radius: 2px; }
+.mark-green { background: #A5D6A7; padding: 1px 4px; border-radius: 2px; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -430,6 +448,7 @@ cert_pages = [
     st.Page("app_pages/dashboard.py", title="Dashboard", icon=":material/dashboard:"),
     st.Page("app_pages/quiz.py", title="Quiz mode", icon=":material/quiz:"),
     st.Page("app_pages/review.py", title="Review notes", icon=":material/menu_book:"),
+    st.Page("app_pages/learn.py", title="My Notes & Cards", icon=":material/edit_note:"),
 ]
 exam_pages = [
     st.Page("app_pages/strategy.py", title="Exam strategy", icon=":material/strategy:"),

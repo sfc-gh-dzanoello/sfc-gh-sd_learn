@@ -66,7 +66,7 @@ f'<p style="color:#A5D6A7; font-size:0.82rem; margin:0 0 10px;">{t("project_prep
 '</div></div>', unsafe_allow_html=True)
     if st.button(f"{t('enter_project_prep')}", key="go_prep", use_container_width=True, type="primary"):
         st.session_state.app_mode = "project_prep"
-        st.switch_page("app_pages/project_prep.py")
+        st.switch_page("app_pages/learn_tracks.py")
 
 with col3:
     st.markdown(

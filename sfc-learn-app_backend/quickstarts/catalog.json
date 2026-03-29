@@ -1,0 +1,123 @@
+[
+  {
+    "id": "zero_to_snowflake",
+    "title": "Getting Started with Snowflake",
+    "subtitle": "Zero to Snowflake",
+    "difficulty": "beginner",
+    "duration": "45 min",
+    "color": "#29B5E8",
+    "url": "https://www.snowflake.com/en/developers/guides/getting-started-with-snowflake/",
+    "description": "Navigate the Snowflake interface and learn core capabilities: stages, databases, tables, views, warehouses, loading structured and semi-structured data, cloning, Time Travel, roles, and secure sharing.",
+    "topics": ["SQL", "Data Loading", "Warehouses", "RBAC", "Time Travel", "Data Sharing"],
+    "steps": [
+      {
+        "title": "Create a Database and Table",
+        "description": "Create a database and a table to hold company metadata from CSV files.",
+        "sql": "CREATE OR REPLACE DATABASE Public_Data;\n\nUSE DATABASE Public_Data;\nUSE SCHEMA PUBLIC;\n\nCREATE OR REPLACE TABLE company_metadata\n(cybersyn_company_id STRING,\ncompany_name STRING,\npermid_security_id STRING,\nprimary_ticker STRING,\nsecurity_name STRING,\nasset_class STRING,\nprimary_exchange_code STRING,\nprimary_exchange_name STRING,\nsecurity_status STRING,\nglobal_tickers VARIANT,\nexchange_code VARIANT,\npermid_quote_id VARIANT);"
+      },
+      {
+        "title": "Create an External Stage",
+        "description": "Create a stage pointing to the S3 bucket with CSV data.",
+        "sql": "CREATE OR REPLACE STAGE Public_Data_company_metadata\n  URL = 's3://sfquickstarts/zero_to_snowflake/cybersyn-consumer-company-metadata-csv/';\n\n-- List files in the stage\nLIST @Public_Data_company_metadata;"
+      },
+      {
+        "title": "Create a File Format",
+        "description": "Define a CSV file format for loading the data.",
+        "sql": "CREATE OR REPLACE FILE FORMAT csv\n  TYPE = 'CSV'\n  COMPRESSION = 'AUTO'\n  FIELD_DELIMITER = ','\n  RECORD_DELIMITER = '\\n'\n  SKIP_HEADER = 1\n  FIELD_OPTIONALLY_ENCLOSED_BY = '\\042'\n  TRIM_SPACE = FALSE\n  ERROR_ON_COLUMN_COUNT_MISMATCH = FALSE\n  ESCAPE = 'NONE'\n  ESCAPE_UNENCLOSED_FIELD = '\\134'\n  DATE_FORMAT = 'AUTO'\n  TIMESTAMP_FORMAT = 'AUTO'\n  NULL_IF = ('');"
+      },
+      {
+        "title": "Load Structured Data (CSV)",
+        "description": "Use COPY INTO to load CSV data from the external stage into the table.",
+        "sql": "COPY INTO company_metadata\n  FROM @Public_Data_company_metadata\n  FILE_FORMAT = csv\n  PATTERN = '.*csv.*'\n  ON_ERROR = 'CONTINUE';\n\n-- Verify the data\nSELECT * FROM company_metadata LIMIT 10;"
+      },
+      {
+        "title": "Create Tables for Semi-Structured Data",
+        "description": "Create tables with VARIANT columns to hold JSON SEC filing data.",
+        "sql": "CREATE OR REPLACE TABLE sec_filings_index (v VARIANT);\nCREATE OR REPLACE TABLE sec_filings_attributes (v VARIANT);"
+      },
+      {
+        "title": "Load Semi-Structured Data (JSON)",
+        "description": "Create a stage for JSON data and load it into VARIANT tables.",
+        "sql": "CREATE OR REPLACE STAGE Public_Data_sec_filings\n  URL = 's3://sfquickstarts/zero_to_snowflake/cybersyn_cpg_sec_filings/';\n\nCOPY INTO sec_filings_index\n  FROM @Public_Data_sec_filings/cybersyn_sec_report_index.json.gz\n  FILE_FORMAT = (TYPE = JSON STRIP_OUTER_ARRAY = TRUE);\n\nCOPY INTO sec_filings_attributes\n  FROM @Public_Data_sec_filings/cybersyn_sec_report_attributes.json.gz\n  FILE_FORMAT = (TYPE = JSON STRIP_OUTER_ARRAY = TRUE);"
+      },
+      {
+        "title": "Create Views from JSON Data",
+        "description": "Use SQL dot notation to create columnar views from semi-structured data.",
+        "sql": "CREATE OR REPLACE VIEW sec_filings_index_view AS\nSELECT\n  v:CIK::STRING AS cik,\n  v:COMPANY_NAME::STRING AS company_name,\n  v:EIN::INT AS ein,\n  v:ADSH::STRING AS adsh,\n  v:TIMESTAMP_ACCEPTED::TIMESTAMP AS timestamp_accepted,\n  v:FILED_DATE::DATE AS filed_date,\n  v:FORM_TYPE::STRING AS form_type,\n  v:FISCAL_PERIOD::STRING AS fiscal_period,\n  v:FISCAL_YEAR::STRING AS fiscal_year\nFROM sec_filings_index;\n\nSELECT * FROM sec_filings_index_view LIMIT 20;"
+      },
+      {
+        "title": "Analytical Queries: Stock Prices",
+        "description": "Calculate daily returns and moving averages from stock price data.",
+        "sql": "-- Note: Requires Snowflake Public Data (Free) from Marketplace\nSELECT\n  meta.primary_ticker,\n  meta.company_name,\n  ts.date,\n  ts.value AS post_market_close,\n  (ts.value / LAG(ts.value, 1) OVER (\n    PARTITION BY meta.primary_ticker ORDER BY ts.date\n  ))::DOUBLE AS daily_return,\n  AVG(ts.value) OVER (\n    PARTITION BY meta.primary_ticker ORDER BY ts.date\n    ROWS BETWEEN 4 PRECEDING AND CURRENT ROW\n  ) AS five_day_moving_avg\nFROM SNOWFLAKE_PUBLIC_DATA_FREE.PUBLIC_DATA_FREE.STOCK_PRICE_TIMESERIES ts\nINNER JOIN company_metadata meta\n  ON ts.ticker = meta.primary_ticker\nWHERE ts.variable_name = 'Post-Market Close'\nLIMIT 100;"
+      },
+      {
+        "title": "Clone a Table (Zero-Copy)",
+        "description": "Create a zero-copy clone for development/testing without duplicating storage.",
+        "sql": "CREATE TABLE company_metadata_dev CLONE company_metadata;\n\n-- Verify the clone\nSELECT COUNT(*) AS row_count FROM company_metadata_dev;"
+      },
+      {
+        "title": "Time Travel: Undo Mistakes",
+        "description": "Use Time Travel to restore data after an accidental UPDATE.",
+        "sql": "-- Simulate a mistake\nUPDATE company_metadata SET company_name = 'oops';\n\n-- Check the damage\nSELECT * FROM company_metadata LIMIT 5;\n\n-- Find the bad query and restore\nSET query_id = (\n  SELECT query_id\n  FROM TABLE(INFORMATION_SCHEMA.QUERY_HISTORY_BY_SESSION(RESULT_LIMIT=>5))\n  WHERE query_text LIKE 'UPDATE%'\n  ORDER BY start_time DESC LIMIT 1\n);\n\nCREATE OR REPLACE TABLE company_metadata AS\nSELECT * FROM company_metadata\nBEFORE (STATEMENT => $query_id);\n\n-- Verify restoration\nSELECT * FROM company_metadata LIMIT 5;"
+      },
+      {
+        "title": "Create Roles and Grant Privileges",
+        "description": "Set up role-based access control with a new role.",
+        "sql": "USE ROLE ACCOUNTADMIN;\n\nCREATE ROLE IF NOT EXISTS junior_dba;\nGRANT USAGE ON WAREHOUSE COMPUTE_WH TO ROLE junior_dba;\nGRANT USAGE ON DATABASE Public_Data TO ROLE junior_dba;\n\n-- Grant the role to yourself (replace YOUR_USER)\n-- GRANT ROLE junior_dba TO USER YOUR_USER;\n\n-- Test the role\n-- USE ROLE junior_dba;\n-- SHOW DATABASES;"
+      },
+      {
+        "title": "Cleanup",
+        "description": "Drop all objects created during this quickstart.",
+        "sql": "USE ROLE ACCOUNTADMIN;\n\nDROP DATABASE IF EXISTS Public_Data;\nDROP WAREHOUSE IF EXISTS analytics_wh;\nDROP ROLE IF EXISTS junior_dba;"
+      }
+    ]
+  },
+  {
+    "id": "tasty_bytes",
+    "title": "Tasty Bytes: Zero to Snowflake",
+    "subtitle": "Food Truck Analytics",
+    "difficulty": "beginner",
+    "duration": "30 min",
+    "color": "#FF6B6B",
+    "url": "https://quickstarts.snowflake.com/guide/tasty_bytes_introduction/",
+    "description": "Explore a food truck company dataset. Learn warehousing, data exploration, role-based access, and analytics on point-of-sale data.",
+    "topics": ["SQL", "Warehouses", "Analytics", "Data Exploration"],
+    "steps": []
+  },
+  {
+    "id": "data_engineering_pipelines",
+    "title": "Data Engineering Pipelines",
+    "subtitle": "Streams, Tasks & Dynamic Tables",
+    "difficulty": "intermediate",
+    "duration": "60 min",
+    "color": "#4ECB71",
+    "url": "https://quickstarts.snowflake.com/guide/data_engineering_pipelines_with_snowpark_python/",
+    "description": "Build automated data pipelines using Streams, Tasks, and Dynamic Tables. Learn CDC patterns, incremental processing, and pipeline orchestration.",
+    "topics": ["Streams", "Tasks", "Dynamic Tables", "CDC", "Pipelines"],
+    "steps": []
+  },
+  {
+    "id": "snowpark_python",
+    "title": "Getting Started with Snowpark Python",
+    "subtitle": "Python + Snowflake",
+    "difficulty": "intermediate",
+    "duration": "45 min",
+    "color": "#C084FC",
+    "url": "https://quickstarts.snowflake.com/guide/getting_started_with_snowpark_python/",
+    "description": "Use Python to process data at scale in Snowflake. Build DataFrames, create UDFs, and deploy stored procedures -- all without moving data out of Snowflake.",
+    "topics": ["Snowpark", "Python", "UDFs", "Stored Procedures"],
+    "steps": []
+  },
+  {
+    "id": "getting_started_with_cortex",
+    "title": "Getting Started with Cortex AI",
+    "subtitle": "AI/ML in Snowflake",
+    "difficulty": "intermediate",
+    "duration": "30 min",
+    "color": "#FFD93D",
+    "url": "https://quickstarts.snowflake.com/guide/getting_started_with_snowflake_cortex/",
+    "description": "Use Snowflake Cortex AI functions for text summarization, sentiment analysis, translation, and more -- directly in SQL.",
+    "topics": ["Cortex AI", "LLM", "Sentiment", "Summarization", "SQL"],
+    "steps": []
+  }
+]

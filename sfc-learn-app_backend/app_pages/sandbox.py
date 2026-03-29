@@ -3,11 +3,6 @@ import time
 import streamlit as st
 from i18n import t
 
-# ── Home button ──
-if st.button("🏠 Home", key="sandbox_home"):
-    st.session_state.app_mode = "landing"
-    st.switch_page("app_pages/landing.py")
-
 # ── SQL Templates by category ──
 TEMPLATES = {
     "Account & Access": [

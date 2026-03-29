@@ -13,6 +13,8 @@ entities:
     artifacts:
       - i18n/
       - certifications/
+      - quickstarts/
+      - labs/
       - registry.json
       - environment.yml
       - theme.py
