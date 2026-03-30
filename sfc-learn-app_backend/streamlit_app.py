@@ -213,15 +213,15 @@ landing = st.Page("app_pages/landing.py", title="Home", icon=":material/home:", 
 tracker_pages = [
     st.Page("app_pages/progress.py", title="Score tracker", icon=":material/trending_up:"),
 ]
+cert_hub = st.Page("app_pages/dashboard.py", title="Certification Hub", icon=":material/dashboard:")
 cert_pages = [
-    st.Page("app_pages/dashboard.py", title="Certification Hub", icon=":material/dashboard:"),
     st.Page("app_pages/quiz.py", title="Quiz mode", icon=":material/quiz:"),
     st.Page("app_pages/review.py", title="Review content", icon=":material/menu_book:"),
     st.Page("app_pages/learn.py", title="My Notes & Cards", icon=":material/edit_note:"),
     st.Page("app_pages/strategy.py", title="Exam strategy", icon=":material/strategy:"),
 ]
 tools_pages = [
-    st.Page("app_pages/learn_paths.py", title="Learn Paths", icon=":material/route:"),
+    st.Page("app_pages/learn_paths.py", title="Learn Hub", icon=":material/route:"),
     st.Page("app_pages/learn_tracks.py", title="Project Preparation", icon=":material/build:"),
     st.Page("app_pages/sandbox.py", title="SQL Sandbox", icon=":material/code:"),
     st.Page("app_pages/quickstarts.py", title="Quickstarts", icon=":material/rocket_launch:"),
@@ -235,27 +235,27 @@ extra_pages = [
 
 if app_mode == "certifications":
     nav_config = {
-        "": [landing] + tracker_pages,
+        "": [landing, cert_hub] + tracker_pages,
         "Certification": cert_pages,
         "Tools": tools_pages,
         " ": extra_pages,
     }
 elif app_mode == "project_prep":
     nav_config = {
-        "": [landing] + tracker_pages,
+        "": [landing, cert_hub] + tracker_pages,
         "Tools": tools_pages,
         " ": cert_pages + extra_pages,
     }
 elif app_mode == "learn":
     nav_config = {
-        "": [landing] + tracker_pages,
+        "": [landing, cert_hub] + tracker_pages,
         "Tools": tools_pages,
         " ": cert_pages + extra_pages,
     }
 else:
-    # Landing mode — show all sections so user can freely navigate
+    # Landing mode -- show all sections so user can freely navigate
     nav_config = {
-        "": [landing] + tracker_pages,
+        "": [landing, cert_hub] + tracker_pages,
         "Certification": cert_pages,
         "Tools": tools_pages,
         " ": extra_pages,
