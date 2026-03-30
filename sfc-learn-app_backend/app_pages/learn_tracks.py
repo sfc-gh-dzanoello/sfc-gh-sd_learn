@@ -466,8 +466,8 @@ elif active_tool == "tool_compare":
         cmp = comparisons[tool_choice]
         md_header = " | ".join(cmp["headers"])
         md_sep = " | ".join(["---"] * len(cmp["headers"]))
-        md_rows = "\n".join(" | ".join(row) for row in cmp["rows"])
-        st.markdown(f"| {md_header} |\n| {md_sep} |\n| {' |\n| '.join(' | '.join(row) for row in cmp['rows'])} |")
+        md_rows = "\n| ".join(" | ".join(row) for row in cmp["rows"])
+        st.markdown(f"| {md_header} |\n| {md_sep} |\n| {md_rows} |")
 
 else:
     st.markdown("""
