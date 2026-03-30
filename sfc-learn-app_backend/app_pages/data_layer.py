@@ -228,13 +228,10 @@ def _file_review_notes(cert_key, lang):
 
 @st.cache_data(ttl=3600)
 def get_i18n_strings():
-    """Load all i18n strings. Returns {key: {en, pt, es}}."""
-    if not _IN_SIS:
-        return _file_i18n_strings()
-
-    session = _session()
-    rows = session.sql("SELECT STRING_KEY, EN, PT, ES FROM APP_I18N").collect()
-    return {r["STRING_KEY"]: {"en": r["EN"] or "", "pt": r["PT"] or "", "es": r["ES"] or ""} for r in rows}
+    """Load all i18n strings. Returns {key: {en, pt, es}}.
+    Always reads from strings.json (deployed with the app via Git).
+    """
+    return _file_i18n_strings()
 
 
 def _file_i18n_strings():
