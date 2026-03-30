@@ -219,6 +219,7 @@ cert_pages = [
     st.Page("app_pages/review.py", title="Review content", icon=":material/menu_book:"),
     st.Page("app_pages/learn.py", title="My Notes & Cards", icon=":material/edit_note:"),
     st.Page("app_pages/strategy.py", title="Exam strategy", icon=":material/strategy:"),
+    st.Page("app_pages/exam_gotchas.py", title="Exam Gotchas", icon=":material/warning:"),
 ]
 tools_pages = [
     st.Page("app_pages/learn_paths.py", title="Learn Hub", icon=":material/route:"),

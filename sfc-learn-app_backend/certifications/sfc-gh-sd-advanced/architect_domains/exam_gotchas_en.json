@@ -1,0 +1,211 @@
+[
+  {
+    "id": "gotcha_cross_region_sharing",
+    "title": "Cross-Region Data Sharing: Direct Share vs Replication",
+    "domain": "Domain 5.0: Sharing & Collaboration",
+    "sub_topics": ["5.1", "5.2", "5.4"],
+    "problem": "You need to share data with a partner in a different region (or different cloud provider). The exam gives you options like 'Direct Sharing', 'Database Replication + Share', 'Create another account', and 'Snowflake Marketplace'. Many candidates pick Direct Sharing because it's the simplest and most well-known mechanism -- but it ONLY works within the same region and same cloud.",
+    "solution": "If the partner is in a different region, the correct answer involves Database Replication. The provider must replicate their database to the region where the consumer is located. Once the data is replicated to a secondary database in the target region, the provider creates the share from that local account. If the question mentions 'most efficient' and Marketplace or Auto-Fulfillment is an option, those are often correct because Snowflake automates the replication behind the scenes.",
+    "comparison_table": {
+      "headers": ["Feature", "Same Region", "Different Regions"],
+      "rows": [
+        ["Primary Tool", "Direct Share", "Database Replication + Share"],
+        ["Data Movement?", "No (zero-copy)", "Yes (data copied to target region)"],
+        ["Real-time?", "Yes, immediately", "Depends on replication frequency"],
+        ["Egress Costs?", "No", "Yes (charged to the Provider)"],
+        ["Automation?", "Built-in", "Auto-Fulfillment (Marketplace) or manual"]
+      ]
+    },
+    "rule_of_thumb": "Same Region = Direct Share. Different Region = Replication first, then Share. Public/Large Scale = Marketplace with Auto-Fulfillment.",
+    "pro_tip": "If the question specifically asks for the 'most efficient way to share across regions' and mentions Snowflake Marketplace or Auto-Fulfillment, those are often the correct answers because Snowflake has automated the replication and fulfillment process.",
+    "exam_keywords": ["cross-region", "different region", "share data", "replication", "auto-fulfillment"]
+  },
+  {
+    "id": "gotcha_multi_tenant_account",
+    "title": "Multi-Tenant Architecture: Account Per Tenant vs Schema Per Tenant",
+    "domain": "Domain 1.0: Accounts and Security",
+    "sub_topics": ["1.1", "1.3"],
+    "problem": "A company needs to design a multi-tenant architecture in Snowflake. The exam asks which approach makes RBAC 'simple to configure' or provides 'maximum isolation'. Candidates confuse when to use Account Per Tenant vs Schema Per Tenant vs Database Per Tenant because all three are valid -- the question hinges on specific requirements like isolation level, cost, and RBAC complexity.",
+    "solution": "Account Per Tenant = each tenant gets their own Snowflake account. RBAC is simplest because each account has its own role hierarchy with no cross-tenant collision. Maximum isolation. But higher operational overhead and cost. Schema Per Tenant = all tenants share one account, each gets a schema. Cost-efficient but RBAC gets complex (row access policies, future grants per schema). Database Per Tenant = middle ground with better isolation than schema-level but less than account-level.",
+    "comparison_table": {
+      "headers": ["Factor", "Account Per Tenant", "Database Per Tenant", "Schema Per Tenant"],
+      "rows": [
+        ["Isolation Level", "Maximum (separate accounts)", "High (separate databases)", "Moderate (shared database)"],
+        ["RBAC Complexity", "Simplest (independent hierarchies)", "Medium (cross-DB grants)", "Most Complex (row policies, schema grants)"],
+        ["Cost", "Highest (per-account overhead)", "Medium", "Lowest (shared resources)"],
+        ["Data Sharing Between Tenants", "Requires cross-account sharing", "Cross-database grants", "Simple RBAC grants"],
+        ["Operational Overhead", "Highest (manage N accounts)", "Medium", "Lowest"]
+      ]
+    },
+    "rule_of_thumb": "If the question says 'simple RBAC' or 'maximum isolation' = Account Per Tenant. If it says 'cost-efficient' or 'shared resources' = Schema Per Tenant. If it says 'balance of isolation and cost' = Database Per Tenant.",
+    "pro_tip": "The exam often phrases this as 'Which approach makes RBAC configuration simplest?' -- the trap is that Schema Per Tenant sounds simple but actually requires the most complex RBAC setup. Account Per Tenant is counterintuitively simpler for RBAC.",
+    "exam_keywords": ["multi-tenant", "account per tenant", "schema per tenant", "RBAC", "isolation"]
+  },
+  {
+    "id": "gotcha_clustering_vs_search_opt",
+    "title": "Clustering Keys vs Search Optimization vs Query Acceleration",
+    "domain": "Domain 4.0: Performance Optimization",
+    "sub_topics": ["4.4", "4.5"],
+    "problem": "The exam presents a slow query scenario and asks which performance feature to use. Candidates confuse Clustering Keys, Search Optimization Service (SOS), and Query Acceleration Service (QAS) because all three 'speed up queries' -- but each targets a completely different query pattern. Picking the wrong one is a common trap.",
+    "solution": "Clustering Keys = best for large tables with range/equality filters on predictable columns (WHERE date BETWEEN X AND Y). They physically reorder data for partition pruning. Search Optimization Service = best for point lookups, substring searches (LIKE '%term%'), geo queries, and VARIANT field searches. It creates an auxiliary index. Query Acceleration Service = best for queries that scan large amounts of data and can benefit from parallel processing (large scans, not selective filters).",
+    "comparison_table": {
+      "headers": ["Feature", "Clustering Keys", "Search Optimization (SOS)", "Query Acceleration (QAS)"],
+      "rows": [
+        ["Best For", "Range/equality on known columns", "Point lookups, LIKE, geo, VARIANT", "Large scan-heavy queries"],
+        ["How It Works", "Reorders micro-partitions", "Creates search access paths (index)", "Offloads portions to serverless compute"],
+        ["Table Size Requirement", "Large tables (multi-TB ideal)", "Any size", "Large result sets"],
+        ["Cost Model", "Credits for reclustering", "Serverless credits", "Serverless credits"],
+        ["Setup", "ALTER TABLE ... CLUSTER BY", "ALTER TABLE ... ADD SEARCH OPTIMIZATION", "ALTER WAREHOUSE ... ENABLE_QUERY_ACCELERATION"],
+        ["Maintenance", "Automatic reclustering", "Automatic", "None (per-query)"]
+      ]
+    },
+    "rule_of_thumb": "If the query uses WHERE col = X or WHERE col BETWEEN: Clustering. If the query uses LIKE '%term%', point lookups, or geo: SOS. If the query scans huge tables with few filters: QAS.",
+    "pro_tip": "The exam loves to describe a scenario with 'selective point lookups on a large table' and offer both Clustering and SOS. Clustering is wrong here because it's designed for range scans, not point lookups. SOS is the correct answer for point lookups.",
+    "exam_keywords": ["clustering", "search optimization", "query acceleration", "point lookup", "range filter", "partition pruning"]
+  },
+  {
+    "id": "gotcha_table_types_failsafe",
+    "title": "Permanent vs Transient vs Temporary: The Fail-Safe Trap",
+    "domain": "Domain 2.0: Data Architecture",
+    "sub_topics": ["2.3", "2.4"],
+    "problem": "The exam asks about storage costs or data protection features and gives options involving different table types. Candidates often confuse which table types have Fail-Safe and how Time Travel retention differs. The killer question is usually: 'Which table type minimizes storage costs while still allowing data recovery?' -- and the trap is thinking Transient tables have Fail-Safe.",
+    "solution": "Only Permanent tables have Fail-Safe (7 days after Time Travel expires). Transient tables have Time Travel (0 or 1 day max) but NO Fail-Safe. Temporary tables are like Transient but session-scoped (dropped when session ends). For long-term recovery needs, you MUST use Permanent tables. For staging/ETL scratch tables where you don't need recovery, Transient saves storage cost by skipping Fail-Safe.",
+    "comparison_table": {
+      "headers": ["Feature", "Permanent", "Transient", "Temporary"],
+      "rows": [
+        ["Time Travel", "0-90 days (Enterprise+)", "0-1 day only", "0-1 day only"],
+        ["Fail-Safe", "Yes (7 days)", "NO", "NO"],
+        ["Scope", "Persistent", "Persistent", "Session only"],
+        ["Storage Cost", "Highest (TT + Fail-Safe)", "Medium (TT only)", "Lowest (session-scoped)"],
+        ["Use Case", "Production data", "Staging/ETL scratch", "Session-specific temp data"],
+        ["Edition for 90-day TT", "Enterprise+", "N/A (1 day max)", "N/A (1 day max)"]
+      ]
+    },
+    "rule_of_thumb": "Need recovery guarantees? Permanent. Need to minimize storage for scratch data? Transient. Need session-scoped scratch? Temporary. Fail-Safe = Permanent ONLY.",
+    "pro_tip": "If the exam says 'reduce storage costs' and the data is not critical, Transient is correct. If it says 'ensure data is recoverable even after Time Travel expires,' only Permanent works because Fail-Safe is exclusive to Permanent tables.",
+    "exam_keywords": ["transient", "temporary", "permanent", "fail-safe", "time travel", "storage cost", "data recovery"]
+  },
+  {
+    "id": "gotcha_replication_billing",
+    "title": "Database Replication Billing: Who Pays?",
+    "domain": "Domain 2.0: Data Architecture",
+    "sub_topics": ["2.5"],
+    "problem": "The exam asks 'Who is billed for database replication?' and gives options like 'Source account', 'Target account', 'Both accounts split costs', or 'The organization pays'. Intuition says the source (primary) should pay for sending data, but that's wrong.",
+    "solution": "The TARGET account pays for BOTH data transfer charges AND the compute charges of the replication operation. The source account pays nothing for replication itself (though they still pay for their own storage). This is because the target account initiates the refresh operation.",
+    "comparison_table": {
+      "headers": ["Cost Component", "Who Pays?", "Notes"],
+      "rows": [
+        ["Data Transfer (network egress)", "Target account", "Cross-region/cloud transfer fees"],
+        ["Compute (refresh operation)", "Target account", "Processing to apply changes"],
+        ["Source Storage", "Source account", "Normal storage of primary database"],
+        ["Target Storage", "Target account", "Storage of replicated data"]
+      ]
+    },
+    "rule_of_thumb": "Target pays for replication. Always. Both transfer and compute.",
+    "pro_tip": "The exam may frame this as 'A company replicates from US-East to EU-West. Which account sees increased costs?' The answer is always the EU-West (target) account. Don't be tricked by 'the provider/source pays for data movement.'",
+    "exam_keywords": ["replication billing", "target account", "data transfer", "cross-region cost", "database replication"]
+  },
+  {
+    "id": "gotcha_secure_views_performance",
+    "title": "Secure Views: Hidden Performance Impact",
+    "domain": "Domain 5.0: Sharing & Collaboration",
+    "sub_topics": ["5.1", "5.7"],
+    "problem": "The exam asks about the trade-offs of using Secure Views. Many candidates know that Secure Views hide the view definition, but they miss the PERFORMANCE impact. The trap question is: 'After converting views to SECURE, queries are slower. What is the cause?' with options including 'warehouse too small', 'no clustering', and 'optimizer restrictions.'",
+    "solution": "Secure Views prevent the query optimizer from pushing predicates (WHERE clauses) through the view boundary. In a regular view, if you query SELECT * FROM my_view WHERE region = 'US', the optimizer pushes the region filter down into the base table scan, reducing data read. With a Secure View, the optimizer cannot do this because predicate pushdown could leak information about the view's internal structure. This means the view processes ALL rows first, then filters.",
+    "comparison_table": {
+      "headers": ["Aspect", "Regular View", "Secure View"],
+      "rows": [
+        ["Definition Visible?", "Yes (SHOW VIEWS)", "No (hidden from non-owners)"],
+        ["Predicate Pushdown?", "Yes (optimizer pushes filters)", "No (filters applied after view)"],
+        ["Performance", "Optimal (pruning works)", "May be slower (full scan possible)"],
+        ["Required for Sharing?", "No", "Yes (mandatory in shares)"],
+        ["Use Case", "Internal views", "Shared data, sensitive logic"]
+      ]
+    },
+    "rule_of_thumb": "Secure Views = hidden definition + no predicate pushdown = potentially slower. Use them when you MUST (sharing, sensitive logic), not everywhere.",
+    "pro_tip": "If the exam describes slow queries after making views secure, the answer is almost always 'Secure views restrict optimizer predicate pushdown.' Don't pick 'warehouse size' or 'clustering' -- those are distractors.",
+    "exam_keywords": ["secure view", "predicate pushdown", "optimizer", "performance", "sharing", "view definition"]
+  },
+  {
+    "id": "gotcha_snowpipe_auto_ingest",
+    "title": "Snowpipe Auto-Ingest: SNS (AWS) vs Integration (Azure/GCP)",
+    "domain": "Domain 3.0: Data Engineering",
+    "sub_topics": ["3.1", "3.2"],
+    "problem": "The exam asks how to configure auto-ingest Snowpipe and gives options mixing cloud-specific parameters. The trap is that AWS uses a different mechanism (SNS topic) than Azure/GCP (storage integration). Candidates who only studied one cloud provider get this wrong.",
+    "solution": "For AWS S3, auto-ingest Snowpipe requires configuring an SNS topic notification (aws_sns_topic parameter in CREATE PIPE). For Azure Blob Storage and GCP Cloud Storage, auto-ingest uses a Storage Integration (INTEGRATION parameter). The exam may present options that mix AWS SNS with Azure regions or GCP with SNS -- those combinations are always wrong.",
+    "comparison_table": {
+      "headers": ["Cloud", "Notification Mechanism", "Key Parameter", "Event Source"],
+      "rows": [
+        ["AWS S3", "SNS Topic", "aws_sns_topic = 'arn:aws:sns:...'", "S3 Event Notification -> SNS -> Snowpipe"],
+        ["Azure Blob", "Storage Integration", "INTEGRATION = 'my_integration'", "Event Grid -> Storage Queue -> Snowpipe"],
+        ["GCP Cloud Storage", "Storage Integration", "INTEGRATION = 'my_integration'", "Pub/Sub -> Snowpipe"]
+      ]
+    },
+    "rule_of_thumb": "AWS = SNS topic. Azure/GCP = Storage Integration. Never mix them.",
+    "pro_tip": "If the exam shows a CREATE PIPE with both aws_sns_topic and INTEGRATION parameters, that's invalid. Also remember: PURGE and ON_ERROR=ABORT_STATEMENT are NOT supported in pipe definitions -- only in COPY INTO.",
+    "exam_keywords": ["snowpipe", "auto-ingest", "SNS", "storage integration", "AWS", "Azure", "GCP", "CREATE PIPE"]
+  },
+  {
+    "id": "gotcha_reader_accounts_billing",
+    "title": "Reader Accounts: Provider Pays EVERYTHING",
+    "domain": "Domain 5.0: Sharing & Collaboration",
+    "sub_topics": ["5.3"],
+    "problem": "The exam asks about cost allocation for reader accounts. The trap is that in normal sharing, the consumer pays for compute. But reader accounts flip this model completely. Candidates who memorize 'consumer pays for compute' apply it to reader accounts and get it wrong.",
+    "solution": "Reader accounts are managed accounts created by the provider for non-Snowflake customers. The PROVIDER pays for EVERYTHING -- both storage and compute. The consumer (reader account user) pays nothing. This is the opposite of normal sharing where the consumer brings their own warehouse. Reader accounts also cannot load data, create shares, or use advanced features.",
+    "comparison_table": {
+      "headers": ["Cost/Feature", "Normal Share (Consumer)", "Reader Account"],
+      "rows": [
+        ["Who pays storage?", "Provider", "Provider"],
+        ["Who pays compute?", "Consumer (own warehouse)", "Provider (provider-funded warehouse)"],
+        ["Can load data?", "Yes (own account)", "No"],
+        ["Can create shares?", "Yes", "No"],
+        ["Can use Marketplace?", "Yes", "No"],
+        ["Can use Tasks/Streams?", "Yes", "No"]
+      ]
+    },
+    "rule_of_thumb": "Reader account = provider pays ALL costs. Normal share = consumer pays compute. If the question mentions 'non-Snowflake customer' + cost, the provider bears everything.",
+    "pro_tip": "Always set resource monitors on reader account warehouses. Since you pay their compute, an unmonitored reader account can run up your bill. Use X-Small warehouses with aggressive auto-suspend (60 seconds).",
+    "exam_keywords": ["reader account", "managed account", "provider pays", "non-Snowflake customer", "compute cost"]
+  },
+  {
+    "id": "gotcha_copy_into_metadata",
+    "title": "COPY INTO: The 64-Day File Tracking Trap",
+    "domain": "Domain 3.0: Data Engineering",
+    "sub_topics": ["3.1", "3.2"],
+    "problem": "You fix a bad data file and re-upload it with the same filename. Then you run COPY INTO again, but it loads 0 rows. The exam asks why and how to fix it. Candidates think 'same filename = reload' but Snowflake's load metadata tracking prevents this.",
+    "solution": "Snowflake tracks loaded file metadata for 64 days. If a file with the same name was already loaded successfully, COPY INTO silently skips it. To reload: use FORCE=TRUE (reloads regardless of metadata), or rename the file. Note: FORCE=TRUE may cause duplicates if the original load was partially successful. The safer approach is to use a new filename or check LOAD_HISTORY.",
+    "comparison_table": {
+      "headers": ["Scenario", "What Happens", "Solution"],
+      "rows": [
+        ["Same file, same name, within 64 days", "Skipped (0 rows loaded)", "Use FORCE=TRUE or rename file"],
+        ["Same file, same name, after 64 days", "Loads again (metadata expired)", "No action needed"],
+        ["Different file, same name", "Skipped (name matches)", "Rename file or FORCE=TRUE"],
+        ["Failed file, re-upload same name", "Loads (failed files not tracked)", "Just re-run COPY INTO"],
+        ["PURGE=TRUE and re-upload", "Skipped (metadata still exists)", "FORCE=TRUE or new filename"]
+      ]
+    },
+    "rule_of_thumb": "Same filename + successful load within 64 days = skipped. Use FORCE=TRUE to override. Failed loads are NOT tracked.",
+    "pro_tip": "The exam often describes a scenario where data was loaded, the file had errors, was fixed and re-uploaded. The answer to 'why no rows loaded' is always the 64-day metadata tracking. FORCE=TRUE is the fix, but warn about potential duplicates.",
+    "exam_keywords": ["COPY INTO", "FORCE=TRUE", "64 days", "file metadata", "load history", "skip file"]
+  },
+  {
+    "id": "gotcha_time_travel_vs_cloning",
+    "title": "Time Travel vs Zero-Copy Cloning for Long-Term Retention",
+    "domain": "Domain 2.0: Data Architecture",
+    "sub_topics": ["2.4"],
+    "problem": "The exam says 'retain quarterly snapshots for 6 years' and gives options including 'Set Time Travel to 6 years', 'Use zero-copy cloning', 'Use Fail-Safe', and 'Export to external storage'. Candidates who know Time Travel can go up to 90 days still pick it because they confuse retention period with snapshot strategy.",
+    "solution": "Time Travel maxes at 90 days (Enterprise+). Fail-Safe is 7 days after TT and is Snowflake-controlled (you can't query it). For long-term retention (months or years), the correct answer is zero-copy cloning. CREATE TABLE snapshot_q1 CLONE production_table creates a metadata-only copy that costs nothing until data diverges. You can create quarterly clones and keep them indefinitely.",
+    "comparison_table": {
+      "headers": ["Method", "Max Duration", "Cost", "Access"],
+      "rows": [
+        ["Time Travel", "90 days (Enterprise+)", "Storage for changed micro-partitions", "AT / BEFORE queries"],
+        ["Fail-Safe", "7 days (after TT expires)", "Included in storage", "Snowflake support only (not user-accessible)"],
+        ["Zero-Copy Clone", "Unlimited", "Free initially; cost only as data diverges", "Full table access (SELECT, etc.)"],
+        ["External Export", "Unlimited", "External storage cost", "Re-import required"]
+      ]
+    },
+    "rule_of_thumb": "Short-term recovery (days/weeks) = Time Travel. Long-term snapshots (months/years) = Zero-copy cloning. Disaster recovery beyond TT = Fail-Safe (but Snowflake-managed only).",
+    "pro_tip": "If the exam mentions a retention requirement longer than 90 days, Time Travel is ALWAYS wrong. Zero-copy cloning is almost always the right answer. Also remember: external tables CANNOT be cloned.",
+    "exam_keywords": ["time travel", "zero-copy clone", "fail-safe", "retention", "snapshot", "90 days", "long-term"]
+  }
+]
