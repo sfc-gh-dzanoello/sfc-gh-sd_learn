@@ -235,29 +235,23 @@ extra_pages = [
 
 if app_mode == "certifications":
     nav_config = {
-        "": [landing, cert_hub] + tracker_pages,
-        "Certification": cert_pages,
-        "Tools": tools_pages,
+        "": [landing, cert_hub] + tracker_pages + cert_pages + tools_pages,
         " ": extra_pages,
     }
 elif app_mode == "project_prep":
     nav_config = {
-        "": [landing, cert_hub] + tracker_pages,
-        "Tools": tools_pages,
+        "": [landing, cert_hub] + tracker_pages + tools_pages,
         " ": cert_pages + extra_pages,
     }
 elif app_mode == "learn":
     nav_config = {
-        "": [landing, cert_hub] + tracker_pages,
-        "Tools": tools_pages,
+        "": [landing, cert_hub] + tracker_pages + tools_pages,
         " ": cert_pages + extra_pages,
     }
 else:
     # Landing mode -- show all sections so user can freely navigate
     nav_config = {
-        "": [landing, cert_hub] + tracker_pages,
-        "Certification": cert_pages,
-        "Tools": tools_pages,
+        "": [landing, cert_hub] + tracker_pages + cert_pages + tools_pages,
         " ": extra_pages,
     }
 

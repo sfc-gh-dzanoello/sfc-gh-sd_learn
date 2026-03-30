@@ -38,50 +38,61 @@ if active_qs is None:
 
     st.markdown("")
 
+    # Group by difficulty
+    groups = {}
+    for qs in catalog:
+        diff = qs.get("difficulty", "beginner")
+        groups.setdefault(diff, []).append(qs)
+
+    diff_order = ["beginner", "intermediate", "advanced"]
+    diff_labels = {"beginner": "Beginner", "intermediate": "Intermediate", "advanced": "Advanced"}
     cols_per_row = 3
-    for row_start in range(0, len(catalog), cols_per_row):
-        row_items = catalog[row_start:row_start + cols_per_row]
-        cols = st.columns(cols_per_row, gap="medium")
 
-        for col, qs in zip(cols, row_items):
-            color = qs.get("color", "#29B5E8")
-            diff = qs.get("difficulty", "beginner")
-            diff_color = DIFFICULTY_COLORS.get(diff, "#9CA3AF")
-            has_steps = len(qs.get("steps", [])) > 0
-            badge = "" if has_steps else '<span style="background:#4B5563;color:#D1D5DB;padding:1px 6px;border-radius:6px;font-size:0.65rem;margin-left:4px;">coming soon</span>'
-            topics_html = " ".join(
-                f'<span style="background:rgba(255,255,255,0.08);color:#80DEEA;padding:2px 8px;border-radius:10px;font-size:0.7rem;">{t}</span>'
-                for t in qs.get("topics", [])[:4]
-            )
+    for diff in diff_order:
+        items = groups.get(diff, [])
+        if not items:
+            continue
 
-            with col:
-                st.markdown(f"""
-                <div style="background:linear-gradient(135deg, {color}15, {color}08);
-                border:2px solid {color}; border-radius:14px; padding:20px;
-                text-align:center; min-height:280px;">
-                <h3 style="color:{color}; margin:8px 0 4px; font-size:1.1rem;">{qs['title']}{badge}</h3>
-                <p style="color:#9CA3AF; font-size:0.8rem; margin:2px 0 8px;">{qs.get('subtitle', '')}</p>
-                <div style="display:flex; gap:6px; justify-content:center; margin:8px 0;">
-                <span style="background:{diff_color}22;color:{diff_color};padding:2px 10px;border-radius:10px;font-size:0.75rem;font-weight:600;">{diff}</span>
-                <span style="background:rgba(255,255,255,0.08);color:#9CA3AF;padding:2px 10px;border-radius:10px;font-size:0.75rem;">{qs.get('duration', '')}</span>
-                </div>
-                <p style="color:#B0BEC5; font-size:0.82rem; margin:10px 0;">{qs['description'][:120]}...</p>
-                <div style="display:flex; gap:4px; justify-content:center; flex-wrap:wrap; margin:8px 0;">
-                {topics_html}
-                </div>
-                </div>
-                """, unsafe_allow_html=True)
+        diff_color = DIFFICULTY_COLORS.get(diff, "#9CA3AF")
+        st.markdown(f"""
+        <div style="margin:16px 0 8px; padding:4px 12px; border-left:4px solid {diff_color};
+        background:{diff_color}11; border-radius:0 8px 8px 0;">
+        <h2 style="color:{diff_color}; margin:0; font-size:1.2rem;">{diff_labels.get(diff, diff)}</h2>
+        </div>
+        """, unsafe_allow_html=True)
 
-                if has_steps:
-                    if st.button(f"Start {qs['title'][:25]}", key=f"qs_{qs['id']}",
-                                 use_container_width=True, type="primary"):
-                        st.session_state.active_quickstart = qs["id"]
-                        st.session_state.qs_step = 0
-                        st.rerun()
-                else:
-                    url = qs.get("url", "")
-                    if url:
-                        st.link_button(f"View on Snowflake", url, use_container_width=True)
+        for row_start in range(0, len(items), cols_per_row):
+            row_items = items[row_start:row_start + cols_per_row]
+            cols = st.columns(cols_per_row, gap="medium")
+
+            for col, qs in zip(cols, row_items):
+                color = qs.get("color", "#29B5E8")
+                has_steps = len(qs.get("steps", [])) > 0
+                badge = "" if has_steps else '<span style="background:#4B5563;color:#D1D5DB;padding:1px 6px;border-radius:6px;font-size:0.65rem;margin-left:4px;">coming soon</span>'
+                topic = qs.get("topic", qs.get("subtitle", ""))
+
+                with col:
+                    st.markdown(f"""
+                    <div style="background:linear-gradient(135deg, {color}15, {color}08);
+                    border:2px solid {color}; border-radius:14px; padding:20px;
+                    text-align:center; min-height:240px;">
+                    <p style="color:{diff_color}; font-size:0.75rem; font-weight:700; margin:0 0 4px; text-transform:uppercase; letter-spacing:1px;">{topic}</p>
+                    <h3 style="color:{color}; margin:4px 0 8px; font-size:1.05rem;">{qs['title']}{badge}</h3>
+                    <p style="color:#B0BEC5; font-size:0.82rem; margin:8px 0;">{qs['description'][:120]}...</p>
+                    <span style="background:rgba(255,255,255,0.08);color:#9CA3AF;padding:2px 10px;border-radius:10px;font-size:0.75rem;">{qs.get('duration', '')}</span>
+                    </div>
+                    """, unsafe_allow_html=True)
+
+                    if has_steps:
+                        if st.button(f"Start {qs['title'][:25]}", key=f"qs_{qs['id']}",
+                                     use_container_width=True, type="primary"):
+                            st.session_state.active_quickstart = qs["id"]
+                            st.session_state.qs_step = 0
+                            st.rerun()
+                    else:
+                        url = qs.get("url", "")
+                        if url:
+                            st.link_button(f"View on Snowflake", url, use_container_width=True)
 
 else:
     # ── Detail view: step-by-step guide ──
