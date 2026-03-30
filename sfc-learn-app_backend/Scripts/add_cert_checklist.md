@@ -229,3 +229,78 @@ Each question object:
 | `overall_explanation` | Yes | Explanation shown after answering |
 | `domain` | Yes | Must match a domain key in registry.json |
 | `archived` | No | Set true to hide without deleting |
+
+---
+
+## Managing Per-Option Explanations
+
+Each option in a question can have a detailed explanation that shows in the quiz after answering.
+The app displays these at `quiz.py:382-383` when the option is correct or was selected by the user.
+
+### Manual Editing (Recommended for Small Changes)
+
+Open the questions JSON directly and edit the `explanation` field for any option:
+
+```json
+{
+  "text": "Configure multi-cluster warehouses",
+  "explanation": "Correct. Multi-cluster warehouses scale out to handle concurrent queries, ideal for high-concurrency scenarios."
+}
+```
+
+**Format conventions:**
+- Start correct options with `"Correct. "` then the reason
+- Start wrong options with `"Incorrect. "` then the reason/trap
+- Keep to 1-2 sentences (max ~200 chars)
+- Focus on WHY correct/wrong and common exam traps
+
+### Bulk Enrichment with Cortex AI
+
+To generate explanations for all empty options using Snowflake Cortex AI:
+
+```bash
+# Step 1: Generate prompts from questions with empty explanations
+python Scripts/enrich_architect_explanations.py --dry-run  # preview what will be processed
+python Scripts/enrich_architect_explanations.py --local     # use local extraction (no Snowflake needed)
+
+# Step 2: Or use Cortex AI via Snowflake (higher quality)
+python Scripts/run_enrichment.py  # requires snowflake-connector-python
+```
+
+**Filter options:**
+```bash
+# Only a specific domain
+python Scripts/enrich_architect_explanations.py --domain "Domain 1.0"
+
+# Only specific question IDs
+python Scripts/enrich_architect_explanations.py --ids architect_test1_q1 architect_test2_q34
+```
+
+The scripts skip any option that already has a non-empty explanation, so your manual edits are always preserved.
+
+### Applying Cortex Results from Stage
+
+If you ran the bulk Cortex AI enrichment via SQL (stored in ENRICHMENT_RESULTS table):
+
+```bash
+# Download results from Snowflake stage
+snow stage copy @PST.PS_APPS_DEV.ENRICHMENT_STAGE/results/ Scripts/.results/ --connection SNOWHOUSE_AWS_US_WEST_2
+
+# Apply to questions JSON
+python Scripts/apply_enrichment_results.py
+```
+
+### Quick Quality Check
+
+After any edits, verify the file is valid:
+
+```bash
+python -c "
+import json
+with open('certifications/sfc-gh-sd-advanced/architect_domains/architect_questions.json') as f:
+    qs = json.load(f)
+empty = sum(1 for q in qs for o in q['options'] if not o.get('explanation'))
+total = sum(len(q['options']) for q in qs)
+print(f'Questions: {len(qs)}, Empty: {empty}/{total}')
+"
+```
