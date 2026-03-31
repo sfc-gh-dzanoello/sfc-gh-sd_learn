@@ -10,9 +10,7 @@ DOMAIN_EMOJIS = st.session_state.get("DOMAIN_EMOJIS", {})
 
 # ── Load gotchas ──
 @st.cache_data(ttl=3600)
-def _load_gotchas():
-    active_cert = st.session_state.get("_active_cert", "core")
-    lang = st.session_state.get("lang", "en")
+def _load_gotchas(active_cert: str, lang: str):
     if active_cert == "architect":
         path = os.path.join(
             BASE,
@@ -37,7 +35,9 @@ def _load_gotchas():
     return []
 
 
-gotchas = _load_gotchas()
+_active_cert = st.session_state.get("_active_cert", "core")
+_lang = st.session_state.get("lang", "en")
+gotchas = _load_gotchas(_active_cert, _lang)
 
 # ── Header ──
 st.markdown("""
